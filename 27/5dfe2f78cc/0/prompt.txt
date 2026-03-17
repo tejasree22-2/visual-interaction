@@ -1,0 +1,25 @@
+Generate a Flutter frontend structure.
+
+Folder structure:
+
+frontend/lib/
+  main.dart
+  screens/
+    simulation_screen.dart
+  widgets/
+    control_panel.dart
+    formula_editor.dart
+    graph_2d.dart
+    graph_3d.dart
+    view_toggle.dart
+  services/
+    api_service.dart
+    speech_service.dart
+  models/
+    simulation_model.dart
+
+Requirements:
+- Sliders for angle, velocity, gravity
+- Show 2D projectile graph
+- Toggle to enable 3D view
+- Play audio explanation

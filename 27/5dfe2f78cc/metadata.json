@@ -1,0 +1,35 @@
+{
+  "cli_version": "0.5.0",
+  "checkpoint_id": "275dfe2f78cc",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "frontend/lib/main.dart",
+    "frontend/lib/models/simulation_model.dart",
+    "frontend/lib/screens/simulation_screen.dart",
+    "frontend/lib/services/api_service.dart",
+    "frontend/lib/services/speech_service.dart",
+    "frontend/lib/widgets/control_panel.dart",
+    "frontend/lib/widgets/formula_editor.dart",
+    "frontend/lib/widgets/graph_2d.dart",
+    "frontend/lib/widgets/graph_3d.dart",
+    "frontend/lib/widgets/view_toggle.dart",
+    "frontend/pubspec.yaml"
+  ],
+  "sessions": [
+    {
+      "metadata": "/27/5dfe2f78cc/0/metadata.json",
+      "transcript": "/27/5dfe2f78cc/0/full.jsonl",
+      "content_hash": "/27/5dfe2f78cc/0/content_hash.txt",
+      "prompt": "/27/5dfe2f78cc/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 1900,
+    "cache_creation_tokens": 20381,
+    "cache_read_tokens": 204044,
+    "output_tokens": 4556,
+    "api_call_count": 16
+  }
+}

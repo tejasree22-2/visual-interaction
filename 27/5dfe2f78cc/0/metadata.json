@@ -1,0 +1,44 @@
+{
+  "cli_version": "0.5.0",
+  "checkpoint_id": "275dfe2f78cc",
+  "session_id": "ses_30403977dffeMKnmxywxG2MgzS",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-17T13:35:53.243083292Z",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "frontend/lib/main.dart",
+    "frontend/lib/models/simulation_model.dart",
+    "frontend/lib/screens/simulation_screen.dart",
+    "frontend/lib/services/api_service.dart",
+    "frontend/lib/services/speech_service.dart",
+    "frontend/lib/widgets/control_panel.dart",
+    "frontend/lib/widgets/formula_editor.dart",
+    "frontend/lib/widgets/graph_2d.dart",
+    "frontend/lib/widgets/graph_3d.dart",
+    "frontend/lib/widgets/view_toggle.dart",
+    "frontend/pubspec.yaml"
+  ],
+  "agent": "OpenCode",
+  "model": "big-pickle",
+  "turn_id": "1f300887d6b3",
+  "token_usage": {
+    "input_tokens": 1900,
+    "cache_creation_tokens": 20381,
+    "cache_read_tokens": 204044,
+    "output_tokens": 4556,
+    "api_call_count": 16
+  },
+  "session_metrics": {
+    "turn_count": 1
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-17T13:35:53.168804686Z",
+    "agent_lines": 562,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 562,
+    "agent_percentage": 100
+  }
+}
