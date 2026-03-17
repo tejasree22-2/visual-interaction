@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  static const String baseUrl = 'http://172.20.199.176:5000';
+  static const String baseUrl = 'http://localhost:5000';
 
   Future<Map<String, dynamic>> getSimulationData(
       Map<String, dynamic> params) async {
