@@ -1,0 +1,24 @@
+Implement projectile motion calculations in services/physics_service.py.
+
+The service should calculate:
+
+- trajectory points
+- maximum height
+- horizontal range
+- time of flight
+
+Inputs:
+angle
+velocity
+gravity
+
+Return:
+
+{
+ "trajectory": [[x,y],[x,y]],
+ "max_height": number,
+ "range": number,
+ "time_of_flight": number
+}
+
+Generate multiple trajectory points so the frontend can draw a curve.

@@ -1,0 +1,25 @@
+{
+  "cli_version": "0.5.0",
+  "checkpoint_id": "b0aaf4476596",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "backend/services/physics_service.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/b0/aaf4476596/0/metadata.json",
+      "transcript": "/b0/aaf4476596/0/full.jsonl",
+      "content_hash": "/b0/aaf4476596/0/content_hash.txt",
+      "prompt": "/b0/aaf4476596/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 2340,
+    "cache_creation_tokens": 13242,
+    "cache_read_tokens": 70887,
+    "output_tokens": 1110,
+    "api_call_count": 7
+  }
+}
