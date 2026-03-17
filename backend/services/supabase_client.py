@@ -1,41 +1,32 @@
 import os
-from supabase import create_client, Client
-
-_supabase_client: Client | None = None
-
-
-def get_supabase_client() -> Client | None:
-    global _supabase_client
-    return _supabase_client
+import psycopg2
+from psycopg2.extras import RealDictCursor
 
 
-def init_supabase() -> Client | None:
-    global _supabase_client
-    
+def get_db_connection():
     connection_string = os.environ.get("SUPABASE_CONNECTION_STRING")
-    
     if not connection_string:
-        print("Supabase connection string not found. Please add SUPABASE_CONNECTION_STRING in the .env file.")
+        print("SUPABASE_CONNECTION_STRING not found in .env")
         return None
-    
-    _supabase_client = create_client(connection_string, connection_string)
-    return _supabase_client
+    return psycopg2.connect(connection_string)
 
 
 def store_simulation(angle: float, velocity: float, gravity: float) -> dict | None:
-    client = get_supabase_client()
-    
-    if not client:
-        client = init_supabase()
-    
-    if not client:
+    conn = get_db_connection()
+    if not conn:
         return None
     
-    data = {
-        "angle": angle,
-        "velocity": velocity,
-        "gravity": gravity
-    }
-    
-    response = client.table("simulations").insert(data).execute()
-    return response.data
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                "INSERT INTO simulations (angle, velocity, gravity) VALUES (%s, %s, %s) RETURNING id",
+                (angle, velocity, gravity)
+            )
+            conn.commit()
+            return {"success": True}
+    except Exception as e:
+        print(f"Database error: {e}")
+        return None
+    finally:
+        if conn:
+            conn.close()

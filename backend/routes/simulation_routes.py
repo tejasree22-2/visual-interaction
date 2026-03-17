@@ -14,6 +14,7 @@ def _generate_cache_key(angle, velocity, gravity):
     return f"simulation:{hashlib.md5(key_str.encode()).hexdigest()}"
 
 
+@simulation_bp.route('/simulation', methods=['POST'])
 @simulation_bp.route('/simulate', methods=['POST'])
 def simulate():
     data = request.get_json()
