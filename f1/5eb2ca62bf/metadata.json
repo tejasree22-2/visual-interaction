@@ -1,0 +1,27 @@
+{
+  "cli_version": "0.5.0",
+  "checkpoint_id": "f15eb2ca62bf",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 7,
+  "files_touched": [
+    "backend/app.py",
+    "backend/routes/simulation_routes.py",
+    "backend/services/supabase_client.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/f1/5eb2ca62bf/0/metadata.json",
+      "transcript": "/f1/5eb2ca62bf/0/full.jsonl",
+      "content_hash": "/f1/5eb2ca62bf/0/content_hash.txt",
+      "prompt": "/f1/5eb2ca62bf/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 11471,
+    "cache_creation_tokens": 46317,
+    "cache_read_tokens": 555436,
+    "output_tokens": 5517,
+    "api_call_count": 29
+  }
+}

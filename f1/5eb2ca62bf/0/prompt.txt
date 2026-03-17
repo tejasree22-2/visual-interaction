@@ -1,0 +1,45 @@
+entire explain --prompt "
+I have a full-stack projectile motion simulation app with the following setup:
+
+- Frontend: Flutter (interactive sliders for angle, velocity, gravity; shows 2D and optional 3D visualization)
+- Backend: Flask API serving simulation results, connected to frontend
+- Cache: Redis used to store computed simulation results
+- Database: Supabase storing simulation history in a table called 'simulations'
+- Environment variables: SUPABASE_CONNECTION_STRING, SARVAM_API_KEY, REDIS_CONNECTION_STRING
+
+Please do the following:
+
+1. Verify that the Flask backend can be reached by the Flutter frontend.
+2. Check that Redis caching is properly implemented and the connection string is used.
+3. Check that Supabase table 'simulations' exists and can be accessed with the connection string.
+4. Verify that Flutter frontend is configured for web and can communicate with the backend API.
+5. Detect any missing environment variables or misconfigurations, and provide instructions to fix them.
+6. Explain if there are any issues with running backend and frontend in WSL2 or locally.
+7. Provide a summary of next steps to make the app fully functional, including testing sliders, buttons, 2D/3D views, and audio explanations.
+
+Return the output as a clear checklist, highlighting what works and what needs fixing.
+"
+
+---
+
+ok
+
+---
+
+1
+
+---
+
+next
+
+---
+
+ok
+
+---
+
+only with connection string is not possible in the database
+
+---
+
+now the code will work or not
