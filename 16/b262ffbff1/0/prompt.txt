@@ -1,0 +1,24 @@
+Implement Supabase integration in services/supabase_client.py.
+
+Requirements:
+- Use a single Supabase connection string from an environment variable called SUPABASE_CONNECTION_STRING.
+- Do not use separate SUPABASE_URL or SUPABASE_KEY variables.
+- Connect to Supabase using this single connection string.
+
+Create a function to store simulation history in a table called "simulations" with the following fields:
+- id
+- angle
+- velocity
+- gravity
+- created_at
+
+Behavior:
+1. If the SUPABASE_CONNECTION_STRING environment variable is missing, print a clear message:
+
+"Supabase connection string not found. Please add SUPABASE_CONNECTION_STRING in the .env file."
+
+2. The function should be able to insert a simulation record into the database.
+
+Example .env configuration:
+
+REDACTED
