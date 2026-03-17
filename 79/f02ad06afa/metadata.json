@@ -1,0 +1,25 @@
+{
+  "cli_version": "0.5.0",
+  "checkpoint_id": "79f02ad06afa",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 5,
+  "files_touched": [
+    "frontend/lib/services/api_service.dart"
+  ],
+  "sessions": [
+    {
+      "metadata": "/79/f02ad06afa/0/metadata.json",
+      "transcript": "/79/f02ad06afa/0/full.jsonl",
+      "content_hash": "/79/f02ad06afa/0/content_hash.txt",
+      "prompt": "/79/f02ad06afa/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 2354,
+    "cache_creation_tokens": 15041,
+    "cache_read_tokens": 225387,
+    "output_tokens": 2398,
+    "api_call_count": 19
+  }
+}

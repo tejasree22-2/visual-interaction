@@ -1,0 +1,26 @@
+Current State
+
+Flutter frontend is running on a dynamic web-server port (e.g., http://127.0.0.1:46409/...)
+
+Flask backend is running on:
+
+http://127.0.0.1:5000
+http://172.20.199.176:5000  ← WSL2 IP
+
+Important: Your frontend in Windows Chrome cannot access 127.0.0.1 inside WSL2, but it can access the WSL2 IP, which here is 172.20.199.176.  is this correct or wrong
+
+---
+
+check it
+
+---
+
+once check my code that is all perfect on ubuntu run
+
+---
+
+but why can't access the backend nothing works while running flutter run -d web-server --web-port=0 --web-hostname=0.0.0.0 in frontend and python3 app.py in backend what may the reason
+
+---
+
+now it will work
