@@ -1,0 +1,33 @@
+The simplest solution: run everything inside WSL2
+
+Instead of trying to reach WSL2 Flask from Windows via localhost, do all commands in WSL2:
+
+Run Flask backend in WSL2:
+
+cd ~/visual-task/visual-interaction/backend
+python3 app.py
+
+Flask will run on 0.0.0.0:5000 and 172.20.199.176:5000.
+
+Run Flutter frontend in WSL2:
+
+cd ~/visual-task/visual-interaction/frontend
+flutter run -d web-server --web-port=0 --web-hostname=0.0.0.0
+
+Flutter will print a URL like:
+
+http://127.0.0.1:46409/
+
+Access Flutter web in Windows:
+
+Open browser and replace 127.0.0.1 with WSL2 IP:
+
+http://172.20.199.176:46409/
+
+Now the Flutter frontend is served by WSL2 and can call the Flask backend using the same IP:
+
+const String API_BASE_URL = 'http://172.20.199.176:5000';   make this will work in ubuntu and make changes
+
+---
+
+still any changes need do it
