@@ -1,0 +1,17 @@
+Implement speech explanation service using Sarvam AI.
+
+File:
+services/speech_service.py
+
+Functionality:
+1. Generate explanation text describing how parameter changes affect projectile motion
+2. Send the text to Sarvam AI text-to-speech API
+3. Return an audio URL
+
+Use environment variable SARVAM_API_KEY.
+
+If the key is missing, print instructions explaining where to add SARVAM_API_KEY in the .env file.
+
+---
+
+is it correct
