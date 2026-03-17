@@ -1,0 +1,10 @@
+Create entire.yaml configuration for the project.
+
+Services:
+- Flask backend
+- Redis
+- Flutter development server
+
+Load environment variables from .env.
+
+If required keys are missing (SUPABASE_CONNECTION_STRING, SARVAM_API_KEY), print instructions explaining where to add them.
