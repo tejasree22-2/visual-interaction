@@ -1,0 +1,21 @@
+version: '1.0'
+
+name: visual-interaction
+
+services:
+  frontend:
+    type: flutter
+    path: ./frontend
+    
+  backend:
+    type: flask
+    path: ./backend
+    port: 5000
+    
+  redis:
+    type: redis
+    port: 6379
+
+environment:
+  - FLASK_ENV=development
+  - FLASK_DEBUG=true
