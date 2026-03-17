@@ -1,0 +1,18 @@
+entire explain --prompt "
+I have a full-stack projectile motion simulation app.
+- Frontend: Flutter (interactive sliders, 2D/3D view)
+- Backend: Flask API serving simulation results
+- Cache: Redis for computed results
+- Database: Supabase to store history
+- Environment variables: SUPABASE_CONNECTION_STRING, SARVAM_API_KEY, REDIS_CONNECTION_STRING
+Please:
+1. Verify that the backend can be reached by the frontend.
+2. Check that Redis caching is integrated.
+3. Check that Supabase table exists and can be accessed.
+4. Check that Flutter frontend is configured for web.
+5. Provide instructions or warnings if any setup is missing or incorrect.
+"
+
+---
+
+do changes
