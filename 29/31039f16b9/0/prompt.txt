@@ -1,0 +1,22 @@
+Update simulation_routes.py to integrate all services.
+
+Flow:
+
+1. Receive simulation parameters
+2. Check Redis cache
+3. If not cached calculate physics
+4. Store result in Redis
+5. Save simulation record in Supabase
+6. Generate speech explanation
+7. Return response JSON
+
+Response format:
+
+{
+ trajectory,
+ max_height,
+ range,
+ time_of_flight,
+ explanation_text,
+ speech_audio_url
+}
