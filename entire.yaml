@@ -11,11 +11,49 @@ services:
     type: flask
     path: ./backend
     port: 5000
+    env:
+      - FLASK_ENV=development
+      - FLASK_DEBUG=true
     
   redis:
     type: redis
     port: 6379
 
-environment:
-  - FLASK_ENV=development
-  - FLASK_DEBUG=true
+env_file: .env
+
+pre_start_check:
+  - name: check_required_env_vars
+    command: |
+      #!/bin/bash
+      set -e
+      
+      MISSING_VARS=""
+      
+      if [ -z "$SUPABASE_CONNECTION_STRING" ]; then
+        MISSING_VARS="${MISSING_VARS}SUPABASE_CONNECTION_STRING "
+      fi
+      
+      if [ -z "$SARVAM_API_KEY" ]; then
+        MISSING_VARS="${MISSING_VARS}SARVAM_API_KEY "
+      fi
+      
+      if [ -n "$MISSING_VARS" ]; then
+        echo "=========================================="
+        echo "Missing required environment variables:"
+        echo ""
+        echo "Please add the following keys to your .env file:"
+        echo ""
+        if echo "$MISSING_VARS" | grep -q "SUPABASE_CONNECTION_STRING"; then
+          echo "  SUPABASE_CONNECTION_STRING=your_supabase_connection_string"
+          echo "    ^ Get this from your Supabase dashboard -> Settings -> Database -> Connection string"
+        fi
+        if echo "$MISSING_VARS" | grep -q "SARVAM_API_KEY"; then
+          echo "  SARVAM_API_KEY=your_sarvam_api_key"
+          echo "    ^ Get this from https://sarvam.ai/ (free tier available)"
+        fi
+        echo ""
+        echo "=========================================="
+        exit 1
+      fi
+      
+      echo "All required environment variables are set."
