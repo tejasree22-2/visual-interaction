@@ -1,0 +1,16 @@
+Implement Redis caching in services/cache_service.py.
+
+Requirements:
+- Use REDIS_URL from environment variables
+- Cache simulation results
+
+Cache key format:
+angle:{angle}_velocity:{velocity}_gravity:{gravity}
+
+Behavior:
+1. Check Redis cache
+2. If cached return result
+3. If not cached compute result
+4. Store result in Redis
+
+If REDIS_URL is missing in .env, print a message explaining where to add it.
