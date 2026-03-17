@@ -2,9 +2,10 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  static const String baseUrl = 'http://localhost:8000';
+  static const String baseUrl = 'http://localhost:5000';
 
-  Future<Map<String, dynamic>> getSimulationData(Map<String, dynamic> params) async {
+  Future<Map<String, dynamic>> getSimulationData(
+      Map<String, dynamic> params) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/api/simulation'),
