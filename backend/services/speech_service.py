@@ -457,10 +457,14 @@ def combine_audio_chunks(audio_urls: List[str]) -> Optional[str]:
                     if audio.channels != target_channels:
                         audio = audio.set_channels(target_channels)
                     
-                    combined_seg += audio
+                    if i > 0 and len(combined_seg) > 0:
+                        crossfade_duration = min(100, len(combined_seg), len(audio))
+                        combined_seg = combined_seg.append(audio, crossfade=crossfade_duration)
+                    else:
+                        combined_seg += audio
                     
                     if i < len(audio_urls) - 1:
-                        silence_duration_ms = 500
+                        silence_duration_ms = 300
                         silence = AudioSegment.silent(duration=silence_duration_ms, frame_rate=target_sample_rate)
                         combined_seg += silence
                     valid_chunks += 1
@@ -472,9 +476,15 @@ def combine_audio_chunks(audio_urls: List[str]) -> Optional[str]:
                             audio = audio.set_frame_rate(target_sample_rate)
                         if audio.channels != target_channels:
                             audio = audio.set_channels(target_channels)
-                        combined_seg += audio
+                        
+                        if i > 0 and len(combined_seg) > 0:
+                            crossfade_duration = min(100, len(combined_seg), len(audio))
+                            combined_seg = combined_seg.append(audio, crossfade=crossfade_duration)
+                        else:
+                            combined_seg += audio
+                        
                         if i < len(audio_urls) - 1:
-                            silence_duration_ms = 500
+                            silence_duration_ms = 300
                             silence = AudioSegment.silent(duration=silence_duration_ms, frame_rate=target_sample_rate)
                             combined_seg += silence
                         valid_chunks += 1
@@ -494,8 +504,10 @@ def combine_audio_chunks(audio_urls: List[str]) -> Optional[str]:
             print("Combined audio is empty")
             return None
         
+        combined_seg = combined_seg.set_frame_rate(target_sample_rate)
+        combined_seg = combined_seg.set_channels(target_channels)
+        
         output_buffer = io.BytesIO()
-        combined_seg.set_frame_rate(target_sample_rate)
         combined_seg.export(output_buffer, format="wav")
         output_buffer.seek(0)
         

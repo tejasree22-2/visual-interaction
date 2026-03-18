@@ -15,6 +15,12 @@ class SpeechService {
 
   SpeechService() {
     _initTts();
+    _initAudioPlayer();
+  }
+
+  void _initAudioPlayer() {
+    _audioPlayer.setPlayerMode(PlayerMode.lowLatency);
+    _audioPlayer.setReleaseMode(ReleaseMode.stop);
     _audioPlayer.onPlayerComplete.listen((_) {
       _onComplete?.call();
     });
@@ -60,7 +66,9 @@ class SpeechService {
           final data = jsonDecode(response.body);
           final audioUrl = data['speech_audio_url'];
           if (audioUrl != null && audioUrl.isNotEmpty) {
-            await _audioPlayer.play(UrlSource(audioUrl));
+            await _audioPlayer.stop();
+            await _audioPlayer.setSourceUrl(audioUrl);
+            await _audioPlayer.resume();
             return;
           }
         }
@@ -117,7 +125,9 @@ class SpeechService {
           final data = jsonDecode(response.body);
           final audioUrl = data['speech_audio_url'];
           if (audioUrl != null && audioUrl.isNotEmpty) {
-            await _audioPlayer.play(UrlSource(audioUrl));
+            await _audioPlayer.stop();
+            await _audioPlayer.setSourceUrl(audioUrl);
+            await _audioPlayer.resume();
             return;
           }
         }
