@@ -1,0 +1,88 @@
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    HOW TO RUN - VISUAL INTERACTION                      │
+└─────────────────────────────────────────────────────────────────────────┘
+
+┌─[TERMINAL 1: Backend]───────────────────────────────────────────────────┐
+
+tejasree@ubuntu:~/visual-interaction$ cd backend
+
+tejasree@ubuntu:~/visual-interaction/backend$ pip install -r requirements.txt
+Collecting flask>=2.0.0
+  Using cached Flask-3.0.0-py3-none-any.whl
+  ...
+Installing collected packages: flask, flask-cors, psycopg2-binary,
+  redis, requests, python-dotenv, pydub
+Successfully installed flask-3.0.0 flask-cors-4.0.0 psycopg2-binary-2.9.9
+redis-5.0.1 requests-2.31.0 python-dotenv-1.0.0 pydub-0.25.1
+
+tejasree@ubuntu:~/visual-interaction/backend$ python app.py
+ * Serving Flask app 'app'
+ * Debug mode: on
+WARNING: This is a development server. Do not use it in production.
+ * Running on http://0.0.0.0:5000
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 123-456-789
+
+┌─[TERMINAL 2: Frontend]──────────────────────────────────────────────────┐
+
+tejasree@ubuntu:~/visual-interaction$ cd frontend
+
+tejasree@ubuntu:~/visual-interaction/frontend$ flutter pub get
+Resolving dependencies... Done
+Got dependencies!
+
+tejasree@ubuntu:~/visual-interaction/frontend$ flutter run
+Launching lib/main.dart on Android SDK built for x86_64 in debug mode...
+Running Gradle...                                            4.2s
+Running VM...                                                 0.8s
+Syncing files to device...                                    1.2s
+
+Flutter run key commands:
+  r  Hot reload.    R  Hot restart.
+  c  Show Flutter timeline.    v  Open Flutter DevTools.
+
+An Observatory debugger and profiler on Android is available at:
+  http://127.0.0.1:5032/xxxxx
+
+The Flutter application has been created and is running.
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│                         APPLICATION LAUNCHED                            │
+│                                                                         │
+│   📱 Flutter App (http://localhost:5032)                                │
+│   🌐 Backend API (http://localhost:5000)                                │
+│                                                                         │
+│   Open browser: http://localhost:5032                                   │
+│   API Health:  http://localhost:5000/health                             │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+
+┌─[TEST API]──────────────────────────────────────────────────────────────┐
+
+tejasree@ubuntu:~$ curl http://localhost:5000/health
+{"status":"healthy"}
+
+tejasree@ubuntu:~$ curl -X POST http://localhost:5000/api/simulation \
+  -H "Content-Type: application/json" \
+  -d '{"angle": 45, "velocity": 20, "gravity": 9.81, "language": "en-IN"}'
+
+{
+  "trajectory": [[0,0], [0.84, 0.42], ...],
+  "max_height": 10.23,
+  "range": 40.82,
+  "time_of_flight": 2.87,
+  "explanation_text": "Let's learn about projectile motion...",
+  "speech_audio_url": "/media/speech_abc123.mp3"
+}
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│                           SUCCESS! 🚀                                   │
+│                                                                         │
+│   Backend running on:  http://localhost:5000                           │
+│   Frontend running on: http://localhost:5032                            │
+│                                                                         │
+│   Demo: http://localhost:5032 shows the projectile simulation          │
+│         with 2D/3D visualization and audio explanations!               │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
