@@ -1,0 +1,26 @@
+{
+  "cli_version": "0.5.0",
+  "checkpoint_id": "0bc5f4be7bf6",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "frontend/lib/widgets/graph_2d.dart",
+    "frontend/lib/widgets/graph_3d.dart"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0b/c5f4be7bf6/0/metadata.json",
+      "transcript": "/0b/c5f4be7bf6/0/full.jsonl",
+      "content_hash": "/0b/c5f4be7bf6/0/content_hash.txt",
+      "prompt": "/0b/c5f4be7bf6/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 8661,
+    "cache_creation_tokens": 25586,
+    "cache_read_tokens": 303346,
+    "output_tokens": 4168,
+    "api_call_count": 19
+  }
+}
