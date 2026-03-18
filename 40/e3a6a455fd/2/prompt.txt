@@ -1,0 +1,14 @@
+127.0.0.1 - - [18/Mar/2026 15:33:05] "POST /api/simulate HTTP/1.1" 200 -
+Audio chunks: 6 successful, 0 failed out of 6 total
+Chunk 0 processed successfully, length: 25444ms
+Chunk 1 processed successfully, length: 17920ms
+Chunk 2 processed successfully, length: 19541ms
+Chunk 3 processed successfully, length: 21845ms
+Chunk 4 processed successfully, length: 32527ms
+Chunk 5 processed successfully, length: 22016ms
+Total valid chunks combined: 6/6
+Final combined audio length: 140043ms
+Combined audio created: success
+127.0.0.1 - - [18/Mar/2026 15:33:14] "POST /api/chunks HTTP/1.1" 200 -
+127.0.0.1 - - [18/Mar/2026 15:33:14] "GET /media/combined_debd3ec40260316d.mp3 HTTP/1.1" 206 -
+^C(venv) tejasree@Tejasree:~/visual-task/visual-interaction/backend$   before atlead the explaination audio for 30s is perfectly there but now no audio is generated plz make chunks and combine thses chunks into one audio that when user clicks button
