@@ -1,0 +1,1 @@
+i need these changes that formula editor->if they edit the formula also the graph need to change according to that formula   and text to speech->regarding to the formula edit and concept the text to speech need to convert.
