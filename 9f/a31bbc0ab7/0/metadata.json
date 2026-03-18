@@ -1,0 +1,35 @@
+{
+  "cli_version": "0.5.0",
+  "checkpoint_id": "9fa31bbc0ab7",
+  "session_id": "ses_2ff97f2a9ffeLjid9pr1c4BC6p",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-18T10:12:46.475003653Z",
+  "branch": "main",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "backend/services/speech_service.py",
+    "frontend/lib/services/speech_service.dart"
+  ],
+  "agent": "OpenCode",
+  "model": "big-pickle",
+  "turn_id": "064b6eb22bd6",
+  "token_usage": {
+    "input_tokens": 25471,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 343200,
+    "output_tokens": 8862,
+    "api_call_count": 19
+  },
+  "session_metrics": {
+    "turn_count": 2
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-18T10:12:46.313480147Z",
+    "agent_lines": 28,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 28,
+    "agent_percentage": 100
+  }
+}
