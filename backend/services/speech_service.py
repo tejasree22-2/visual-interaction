@@ -4,6 +4,7 @@ import requests
 from datetime import datetime
 from typing import Optional
 from dotenv import load_dotenv
+import math
 
 project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 env_path = os.path.join(project_root, '.env')
@@ -140,38 +141,65 @@ def generate_explanation_text_telugu(angle: float, velocity: float, gravity: flo
                                     prev_gravity: Optional[float] = None,
                                     custom_formula: Optional[str] = None,
                                     include_formula: bool = False) -> str:
-    parts = []
-    
-    if include_formula and custom_formula:
-        formula_speech = _convert_formula_to_speech(custom_formula)
-        parts.append(f"బుల్లెట్‌ motion ఫార్ములా: {formula_speech}. ")
-        parts.append("ఈ ఫార్ములాలో y అనగా vertical height, x horizontal distance, theta launch angle, v initial velocity, g gravitational acceleration. ")
-    
-    parts.append(f"ఈ projectile motion simulation లో, object {angle} డిగ్రীల launch angleతో, {velocity} meters per second velocityతో, {gravity} meters per second squared gravityతో launch occur.")
-    
     import sys
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
     from physics_service import calculate_trajectory
     result = calculate_trajectory(angle, velocity, gravity)
     
-    parts.append(f"maximum height: {result['max_height']} meters. ")
-    parts.append(f"range (horizontal distance): {result['range']} meters. ")
-    parts.append(f"time of flight: {result['time_of_flight']} seconds.")
+    parts = []
+    
+    angle_rad = angle * math.pi / 180
+    
+    if include_formula and custom_formula:
+        formula_speech = _convert_formula_to_speech(custom_formula)
+        parts.append(f"Formula: {formula_speech}. ")
+    
+    parts.append(f"Projectile Motion Theory: ")
+    parts.append(f"Projectile motion లో object horizontal direction లao constant velocity {velocity * math.cos(angle_rad):.2f} m/sతో move avutundi. ")
+    parts.append(f"Vertical direction లao gravity {gravity} m/s² cause vertical velocity change avutundi. ")
+    parts.append(f"Horizontal motion: x = v cosθ t. Vertical motion: y = v sinθ t - ½gt². ")
+    
+    parts.append(f"\nResults: ")
+    parts.append(f"Launch angle = {angle}°, initial velocity = {velocity} m/s, gravity = {gravity} m/s². ")
+    parts.append(f"Maximum height = {result['max_height']:.2f} m. ")
+    parts.append(f"Total range = {result['range']:.2f} m. ")
+    parts.append(f"Time of flight = {result['time_of_flight']:.2f} seconds. ")
     
     if prev_angle is not None and prev_angle != angle:
-        change = angle - prev_angle
-        direction = "increase" if change > 0 else "decrease"
-        parts.append(f"Launch angle {direction} from {prev_angle} to {angle} degrees. ")
+        diff = angle - prev_angle
+        if diff > 0:
+            parts.append(f"\nAngle change: {prev_angle}° → {angle}° (increase). ")
+            parts.append(f"Theory: Higher angle = more vertical component, less horizontal component. ")
+            parts.append(f"Result: Height increase, range decrease. ")
+            parts.append(f"45° maximum range achieve avutundi. ")
+        else:
+            parts.append(f"\nAngle change: {prev_angle}° → {angle}° (decrease). ")
+            parts.append(f"Theory: Lower angle = more horizontal component. ")
+            parts.append(f"Result: Range increase, height decrease. ")
     
     if prev_velocity is not None and prev_velocity != velocity:
-        change = velocity - prev_velocity
-        direction = "increase" if change > 0 else "decrease"
-        parts.append(f"Initial velocity {direction} from {prev_velocity} to {velocity} meters per second. ")
+        diff = velocity - prev_velocity
+        if diff > 0:
+            parts.append(f"\nVelocity change: {prev_velocity} → {velocity} m/s (increase). ")
+            parts.append(f"Theory: More initial velocity = more kinetic energy. ")
+            parts.append(f"Height and range both increase. ")
+            parts.append(f"Formula: Range ∝ v², Height ∝ v². ")
+        else:
+            parts.append(f"\nVelocity change: {prev_velocity} → {velocity} m/s (decrease). ")
+            parts.append(f"Theory: Less initial velocity = less energy. ")
+            parts.append(f"Height and range both decrease. ")
     
     if prev_gravity is not None and prev_gravity != gravity:
-        change = gravity - prev_gravity
-        direction = "increase" if change > 0 else "decrease"
-        parts.append(f"Gravity {direction} from {prev_gravity} to {gravity} meters per second squared. ")
+        diff = gravity - prev_gravity
+        if diff > 0:
+            parts.append(f"\nGravity change: {prev_gravity} → {gravity} m/s² (increase). ")
+            parts.append(f"Theory: Stronger gravity pulls down faster. ")
+            parts.append(f"Flight time and height both decrease. ")
+            parts.append(f"Example: Moon (1.6) less distance, Jupiter (24.8) less distance. ")
+        else:
+            parts.append(f"\nGravity change: {prev_gravity} → {gravity} m/s² (decrease). ")
+            parts.append(f"Theory: Weaker gravity = less downward pull. ")
+            parts.append(f"Flight time and height both increase. ")
     
     return " ".join(parts)
 
