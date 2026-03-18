@@ -1,0 +1,5 @@
+no after "horizontal" the voice is breaking not able to understand try to fix this
+
+---
+
+the first word when horizontal occurs after than only the issue is
