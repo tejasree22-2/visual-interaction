@@ -54,9 +54,12 @@ class _Graph2DState extends State<Graph2D> with SingleTickerProviderStateMixin {
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        CustomPaint(
-          painter: _ProjectilePainter(widget.model, _animation.value),
-          size: Size.infinite,
+        ListenableBuilder(
+          listenable: widget.model,
+          builder: (context, _) => CustomPaint(
+            painter: _ProjectilePainter(widget.model, _animation.value),
+            size: Size.infinite,
+          ),
         ),
         Positioned(
           right: 16,

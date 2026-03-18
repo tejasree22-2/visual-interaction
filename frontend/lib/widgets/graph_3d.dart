@@ -54,9 +54,12 @@ class _Graph3DState extends State<Graph3D> with SingleTickerProviderStateMixin {
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        CustomPaint(
-          painter: _Projectile3DPainter(widget.model, _animation.value),
-          size: Size.infinite,
+        ListenableBuilder(
+          listenable: widget.model,
+          builder: (context, _) => CustomPaint(
+            painter: _Projectile3DPainter(widget.model, _animation.value),
+            size: Size.infinite,
+          ),
         ),
         Positioned(
           right: 16,

@@ -17,6 +17,15 @@ def _generate_cache_key(angle, velocity, gravity):
 @simulation_bp.route('/simulation', methods=['POST'])
 @simulation_bp.route('/simulate', methods=['POST'])
 def simulate():
+    # Check if this is a text-to-speech request
+    if request.get_json().get('text'):
+        text = request.get_json().get('text')
+        speech_result = synthesize_speech(text)
+        return jsonify({
+            'speech_audio_url': speech_result.get('audio_url'),
+            'error': speech_result.get('error')
+        })
+    
     data = request.get_json()
     
     angle = data.get('angle')

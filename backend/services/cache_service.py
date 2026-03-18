@@ -1,7 +1,5 @@
 import os
 import json
-import redis
-
 
 _redis_client = None
 
@@ -15,11 +13,17 @@ def _get_redis_client():
     
     if not redis_url:
         print("REDIS_URL is not set in environment variables.")
-        print("Please add REDIS_URL to your .env file (e.g., redis://localhost:6379/0)")
         return None
     
-    _redis_client = redis.from_url(redis_url)
-    return _redis_client
+    try:
+        import redis
+        _redis_client = redis.from_url(redis_url, decode_responses=True)
+        _redis_client.ping()
+        return _redis_client
+    except Exception as e:
+        print(f"Redis connection failed: {e}")
+        _redis_client = None
+        return None
 
 
 def get_cached_result(key):
@@ -27,9 +31,12 @@ def get_cached_result(key):
     if client is None:
         return None
     
-    cached = client.get(key)
-    if cached:
-        return json.loads(cached)
+    try:
+        cached: str | None = client.get(key)  # type: ignore[assignment]
+        if cached:
+            return json.loads(cached)
+    except Exception as e:
+        print(f"Cache read error: {e}")
     return None
 
 
@@ -38,10 +45,16 @@ def set_cached_result(key, value):
     if client is None:
         return
     
-    client.set(key, json.dumps(value))
+    try:
+        client.set(key, json.dumps(value))
+    except Exception as e:
+        print(f"Cache write error: {e}")
 
 
 def clear_cache():
     client = _get_redis_client()
     if client:
-        client.flushdb()
+        try:
+            client.flushdb()
+        except Exception as e:
+            print(f"Cache clear error: {e}")

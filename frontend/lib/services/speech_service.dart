@@ -1,24 +1,34 @@
-import 'package:flutter_tts/flutter_tts.dart';
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class SpeechService {
-  final FlutterTts _flutterTts = FlutterTts();
-
-  SpeechService() {
-    _flutterTts.setLanguage('en-US');
-    _flutterTts.setSpeechRate(0.5);
-    _flutterTts.setVolume(1.0);
-    _flutterTts.setPitch(1.0);
-  }
+  static const String baseUrl = 'http://172.20.199.176:5000';
 
   Future<void> speak(String text) async {
-    await _flutterTts.speak(text);
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/api/simulate'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'text': text,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final audioUrl = data['speech_audio_url'];
+        if (audioUrl != null) {
+          // For now, just print - we can add audio playback later
+          debugPrint('Audio URL received: $audioUrl');
+        }
+      }
+    } catch (e) {
+      debugPrint('Error calling backend: $e');
+    }
   }
 
-  Future<void> stop() async {
-    await _flutterTts.stop();
-  }
+  Future<void> stop() async {}
 
-  void dispose() {
-    _flutterTts.stop();
-  }
+  void dispose() {}
 }
