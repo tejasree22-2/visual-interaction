@@ -1,0 +1,13 @@
+check all my code that works and run both frontend and backend to check it works
+
+---
+
+commands to run these in frontend and backend
+
+---
+
+is this possible to run python server in the frontend in the fluter
+
+---
+
+the present code will work or not
