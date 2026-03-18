@@ -137,7 +137,7 @@ def synthesize_speech(text: str, target_language_code: str = "en-IN",
     }
     
     payload = {
-        "inputs": [text],
+        "inputs": [text.replace('\n', ' ').strip()],
         "target_language_code": target_language_code,
         "speaker": "shruti",
         "model": "bulbul:v3",
@@ -201,7 +201,7 @@ def generate_explanation_text_telugu(angle: float, velocity: float, gravity: flo
     parts.append(f"Regarding sideways motion, gravity effect ledu. Kabbati constant velocity tho move avutundi. Formula: x = v cos theta times t. ")
     parts.append(f"Vertical motion lo, gravity {gravity} m/s² impact undi. Upward movement lo velocity decrease avutundi, downward movement lo increase avutundi. Formula: y = v sinθ × t - ½gt². ")
     
-    parts.append(f"\nOkay, ante results: ")
+    parts.append(f"Okay, ante results: ")
     parts.append(f"Maximum height = {result['max_height']:.2f} meters. ")
     parts.append(f"Total range = {result['range']:.2f} meters. ")
     parts.append(f"Time of flight = {result['time_of_flight']:.2f} seconds. ")
@@ -209,30 +209,30 @@ def generate_explanation_text_telugu(angle: float, velocity: float, gravity: flo
     if prev_angle is not None and prev_angle != angle:
         diff = angle - prev_angle
         if diff > 0:
-            parts.append(f"\nSo, angle increase ayyindi ante, vertical component increase avutundi. Sideways component decrease avutundi. ")
+            parts.append(f"So, angle increase ayyindi ante, vertical component increase avutundi. Sideways component decrease avutundi. ")
             parts.append(f"Kabbati maximum height increase avutundi. Range decrease avutundi. ")
             parts.append(f"Remember: 45° max range ki ideal angle. ")
         else:
-            parts.append(f"\nSo, angle decrease ayyindi ante, sideways component increase avutundi. Vertical component decrease avutundi. ")
+            parts.append(f"So, angle decrease ayyindi ante, sideways component increase avutundi. Vertical component decrease avutundi. ")
             parts.append(f"Kabbati range increase avutundi. Maximum height decrease avutundi. ")
     
     if prev_velocity is not None and prev_velocity != velocity:
         diff = velocity - prev_velocity
         if diff > 0:
-            parts.append(f"\nVelocity increase ayyindi ante, initial energy increase avutundi. ")
+            parts.append(f"Velocity increase ayyindi ante, initial energy increase avutundi. ")
             parts.append(f"Both height and range increase avutundi. Physics ante, Range ∝ v² and Height ∝ v². ")
         else:
-            parts.append(f"\nVelocity decrease ayyindi ante, initial energy decrease avutundi. ")
+            parts.append(f"Velocity decrease ayyindi ante, initial energy decrease avutundi. ")
             parts.append(f"Both height and range decrease avutundi. ")
     
     if prev_gravity is not None and prev_gravity != gravity:
         diff = gravity - prev_gravity
         if diff > 0:
-            parts.append(f"\nGravity increase ayyindi ante, downward pull strong avutundi. ")
+            parts.append(f"Gravity increase ayyindi ante, downward pull strong avutundi. ")
             parts.append(f"Flight time and maximum height both decrease avutundi. ")
             parts.append(f"Example: Moon lo gravity 1.6 m/s², Jupiter lo 24.8 m/s². Moon lo projectile more distance travel avutundi. ")
         else:
-            parts.append(f"\nGravity decrease ayyindi ante, downward pull weak avutundi. ")
+            parts.append(f"Gravity decrease ayyindi ante, downward pull weak avutundi. ")
             parts.append(f"Flight time and maximum height both increase avutundi. ")
     
     return " ".join(parts)
