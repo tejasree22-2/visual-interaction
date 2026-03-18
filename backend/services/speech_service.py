@@ -106,8 +106,8 @@ def synthesize_speech(text: str, target_language_code: str = "en-IN",
     payload = {
         "inputs": [text],
         "target_language_code": target_language_code,
-        "speaker": speaker,
-        "model": "bulbul:v2",
+        "speaker": "shruti",
+        "model": "bulbul:v3",
         "speech_sample_rate": 16000
     }
     
