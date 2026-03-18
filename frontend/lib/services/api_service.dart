@@ -12,6 +12,13 @@ class ApiService {
 
   static String get apiBaseUrl => baseUrl;
 
+  static String getMediaUrl(String path) {
+    if (path.startsWith('/media/')) {
+      return '$baseUrl$path';
+    }
+    return path;
+  }
+
   Future<Map<String, dynamic>> getSimulationData(
       Map<String, dynamic> params) async {
     try {

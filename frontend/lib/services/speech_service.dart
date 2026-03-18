@@ -67,7 +67,7 @@ class SpeechService {
           final audioUrl = data['speech_audio_url'];
           if (audioUrl != null && audioUrl.isNotEmpty) {
             await _audioPlayer.stop();
-            await _audioPlayer.setSourceUrl(audioUrl);
+            await _audioPlayer.setSourceUrl(ApiService.getMediaUrl(audioUrl));
             await _audioPlayer.resume();
             return;
           }
@@ -126,7 +126,7 @@ class SpeechService {
           final audioUrl = data['speech_audio_url'];
           if (audioUrl != null && audioUrl.isNotEmpty) {
             await _audioPlayer.stop();
-            await _audioPlayer.setSourceUrl(audioUrl);
+            await _audioPlayer.setSourceUrl(ApiService.getMediaUrl(audioUrl));
             await _audioPlayer.resume();
             return;
           }

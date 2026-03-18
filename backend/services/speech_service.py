@@ -125,7 +125,8 @@ def generate_explanation_text(angle: float, velocity: float, gravity: float,
 
 
 def synthesize_speech(text: str, target_language_code: str = "en-IN", 
-                      speaker: str = "arya", max_retries: int = 3) -> dict:
+                      speaker: str = "arya", max_retries: int = 3,
+                      save_file: bool = False) -> dict:
     api_key = get_api_key()
     
     if not api_key:
@@ -160,6 +161,26 @@ def synthesize_speech(text: str, target_language_code: str = "en-IN",
                         time.sleep(1)
                         continue
                     return {"error": "Audio data too short", "audio_url": None}
+                
+                if save_file:
+                    import hashlib
+                    import os
+                    audio_hash = hashlib.md5((text + target_language_code).encode()).hexdigest()[:16]
+                    media_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "media")
+                    os.makedirs(media_dir, exist_ok=True)
+                    audio_path = os.path.join(media_dir, f"speech_{audio_hash}.mp3")
+                    
+                    audio_bytes = base64.b64decode(audio_base64)
+                    try:
+                        audio = AudioSegment.from_wav(io.BytesIO(audio_bytes))
+                        audio.export(audio_path, format="mp3", bitrate="64k")
+                        return {
+                            "audio_url": f"/media/speech_{audio_hash}.mp3",
+                            "request_id": result.get("request_id")
+                        }
+                    except Exception as e:
+                        print(f"Warning: Could not convert to MP3, using base64: {e}")
+                
                 audio_data_url = f"data:audio/wav;base64,{audio_base64}"
                 return {
                     "audio_url": audio_data_url,
@@ -436,7 +457,7 @@ def generate_speech_explanation(angle: float, velocity: float, gravity: float,
     return synthesize_speech(explanation_text, target_language_code=language)
 
 
-def combine_audio_chunks(audio_urls: List[str]) -> Optional[str]:
+def combine_audio_chunks(audio_urls: List[str], output_format: str = "mp3") -> Optional[str]:
     if not PYDUB_AVAILABLE or AudioSegment is None:
         print("pydub not installed. Cannot combine audio chunks.")
         return None
@@ -446,6 +467,8 @@ def combine_audio_chunks(audio_urls: List[str]) -> Optional[str]:
     
     try:
         import wave
+        import hashlib
+        import os
         
         combined_seg = AudioSegment.empty()
         target_sample_rate = 16000
@@ -525,13 +548,18 @@ def combine_audio_chunks(audio_urls: List[str]) -> Optional[str]:
         combined_seg = combined_seg.set_frame_rate(target_sample_rate)
         combined_seg = combined_seg.set_channels(target_channels)
         
-        output_buffer = io.BytesIO()
-        combined_seg.export(output_buffer, format="wav")
-        output_buffer.seek(0)
+        audio_hash = hashlib.md5(str(audio_urls).encode()).hexdigest()[:16]
+        media_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "media")
+        os.makedirs(media_dir, exist_ok=True)
         
-        audio_base64 = base64.b64encode(output_buffer.read()).decode("utf-8")
-        print(f"Combined audio base64 length: {len(audio_base64)}")
-        return f"data:audio/wav;base64,{audio_base64}"
+        if output_format == "mp3":
+            output_path = os.path.join(media_dir, f"combined_{audio_hash}.mp3")
+            combined_seg.export(output_path, format="mp3", bitrate="64k")
+            return f"/media/combined_{audio_hash}.mp3"
+        else:
+            output_path = os.path.join(media_dir, f"combined_{audio_hash}.wav")
+            combined_seg.export(output_path, format="wav")
+            return f"/media/combined_{audio_hash}.wav"
     except Exception as e:
         print(f"Error combining audio chunks: {e}")
         import traceback

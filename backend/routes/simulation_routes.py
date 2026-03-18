@@ -72,7 +72,7 @@ def simulate():
     
     print(f"Calling Sarvam TTS API...")
     logger.info("Calling Sarvam TTS API...")
-    speech_result = synthesize_speech(explanation_text, target_language_code=language)
+    speech_result = synthesize_speech(explanation_text, target_language_code=language, save_file=True)
     print(f"TTS completed: audio_url={'present' if speech_result.get('audio_url') else 'NOT present'}")
     logger.info(f"TTS: audio_url={'present' if speech_result.get('audio_url') else 'NOT present'}")
     
