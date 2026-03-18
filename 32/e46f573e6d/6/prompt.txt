@@ -1,0 +1,25 @@
+727/ab6y-VzVMlA=/ws
+(venv) tejasree@Tejasree:~/visual-task/visual-interaction/frontend$ flutter run -d web-server --web-port=0 --web-hostname=0.0.0.0
+Launching lib/main.dart on Web Server in debug mode...
+Waiting for connection from debug service on Web Server...         17.9s
+lib/main.dart is being served at http://0.0.0.0:35459
+The web-server device requires the Dart Debug Chrome extension for debugging. Consider using the Chrome or Edge devices
+for an improved development workflow.
+
+Flutter run key commands.
+r Hot reload. 🔥🔥🔥
+R Hot restart.
+h List all available interactive commands.
+d Detach (terminate "flutter run" but leave application running).
+c Clear the screen
+q Quit (terminate the application on the device).
+
+Debug service listening on ws://127.0.0.1:45475/BTHVKJOk5Sw=/ws
+A Dart VM Service on Web Server is available at: http://127.0.0.1:45475/BTHVKJOk5Sw=
+The Flutter DevTools debugger and profiler on Web Server is available at:
+http://127.0.0.1:45475/BTHVKJOk5Sw=/devtools/?uri=ws://127.0.0.1:45475/BTHVKJOk5Sw=/ws
+(venv) tejasree@Tejasree:~/visual-task/visual-interaction/frontend$ in the frontend backend shows nothing and no sarvam and supabase also don't change the code tell me the reason
+
+---
+
+check both 1 and 2
