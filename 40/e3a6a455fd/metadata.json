@@ -3,7 +3,7 @@
   "checkpoint_id": "40e3a6a455fd",
   "strategy": "manual-commit",
   "branch": "main",
-  "checkpoints_count": 2,
+  "checkpoints_count": 3,
   "files_touched": [
     "backend/services/speech_service.py",
     "frontend/lib/services/speech_service.dart"
@@ -26,13 +26,19 @@
       "transcript": "/40/e3a6a455fd/2/full.jsonl",
       "content_hash": "/40/e3a6a455fd/2/content_hash.txt",
       "prompt": "/40/e3a6a455fd/2/prompt.txt"
+    },
+    {
+      "metadata": "/40/e3a6a455fd/3/metadata.json",
+      "transcript": "/40/e3a6a455fd/3/full.jsonl",
+      "content_hash": "/40/e3a6a455fd/3/content_hash.txt",
+      "prompt": "/40/e3a6a455fd/3/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 65579,
-    "cache_creation_tokens": 101011,
-    "cache_read_tokens": 709912,
-    "output_tokens": 17070,
-    "api_call_count": 34
+    "input_tokens": 101821,
+    "cache_creation_tokens": 142116,
+    "cache_read_tokens": 1331307,
+    "output_tokens": 24652,
+    "api_call_count": 59
   }
 }
