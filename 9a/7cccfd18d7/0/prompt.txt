@@ -1,0 +1,6 @@
+Search the codebase to find files related to audio generation, audio chunking, and combining audio chunks. Look for:
+1. Files that handle audio generation (TTS, speech synthesis, etc.)
+2. Files that combine audio chunks
+3. Any logic that merges or concatenates audio
+
+Return the file paths and a brief summary of what each file does related to audio.

@@ -1,0 +1,740 @@
+{
+  "info": {
+    "id": "ses_2ff0904ecffeJZ42k2DBgWcSEA",
+    "slug": "clever-cactus",
+    "projectID": "0eddc3b0503d540472052df40a9e122b14441051",
+    "directory": "/home/tejasree/visual-task/visual-interaction",
+    "parentID": "ses_2ff0925d4ffethPidVthN4AgzM",
+    "title": "Find audio generation code (@explore subagent)",
+    "version": "1.2.27",
+    "summary": {
+      "additions": 0,
+      "deletions": 0,
+      "files": 0
+    },
+    "permission": [
+      {
+        "permission": "todowrite",
+        "pattern": "*",
+        "action": "deny"
+      },
+      {
+        "permission": "todoread",
+        "pattern": "*",
+        "action": "deny"
+      },
+      {
+        "permission": "task",
+        "pattern": "*",
+        "action": "deny"
+      }
+    ],
+    "time": {
+      "created": 1773837679379,
+      "updated": 1773837708128
+    }
+  },
+  "messages": [
+    {
+      "info": {
+        "role": "user",
+        "time": {
+          "created": 1773837679389
+        },
+        "summary": {
+          "diffs": []
+        },
+        "agent": "explore",
+        "model": {
+          "providerID": "opencode",
+          "modelID": "big-pickle"
+        },
+        "tools": {
+          "todowrite": false,
+          "todoread": false,
+          "task": false
+        },
+        "id": "msg_d00f6fb1b0018ect2v8t7AjHfs",
+        "sessionID": "ses_2ff0904ecffeJZ42k2DBgWcSEA"
+      },
+      "parts": [
+        {
+          "type": "text",
+          "text": "Search the codebase to find files related to audio generation, audio chunking, and combining audio chunks. Look for:\n1. Files that handle audio generation (TTS, speech synthesis, etc.)\n2. Files that combine audio chunks\n3. Any logic that merges or concatenates audio\n\nReturn the file paths and a brief summary of what each file does related to audio.",
+          "id": "prt_d00f6fb1d001EKJKQxXU2urPs6",
+          "sessionID": "ses_2ff0904ecffeJZ42k2DBgWcSEA",
+          "messageID": "msg_d00f6fb1b0018ect2v8t7AjHfs"
+        }
+      ]
+    },
+    {
+      "info": {
+        "role": "assistant",
+        "time": {
+          "created": 1773837679403,
+          "completed": 1773837693745
+        },
+        "parentID": "msg_d00f6fb1b0018ect2v8t7AjHfs",
+        "modelID": "big-pickle",
+        "providerID": "opencode",
+        "mode": "explore",
+        "agent": "explore",
+        "path": {
+          "cwd": "/home/tejasree/visual-task/visual-interaction",
+          "root": "/home/tejasree/visual-task/visual-interaction"
+        },
+        "cost": 0,
+        "tokens": {
+          "total": 5423,
+          "input": 42,
+          "output": 359,
+          "reasoning": 0,
+          "cache": {
+            "read": 0,
+            "write": 5022
+          }
+        },
+        "finish": "tool-calls",
+        "id": "msg_d00f6fb2b001Q9QPev7TZaOwi4",
+        "sessionID": "ses_2ff0904ecffeJZ42k2DBgWcSEA"
+      },
+      "parts": [
+        {
+          "type": "step-start",
+          "snapshot": "6a2fbe4e97354d5196a098a79075194aac5569da",
+          "id": "prt_d00f70f71001QPs0EBP7Ayfjei",
+          "sessionID": "ses_2ff0904ecffeJZ42k2DBgWcSEA",
+          "messageID": "msg_d00f6fb2b001Q9QPev7TZaOwi4"
+        },
+        {
+          "type": "reasoning",
+          "text": "The user wants me to search the codebase for files related to audio generation, audio chunking, and combining audio chunks. I need to find:\n1. Files handling audio generation (TTS, speech synthesis)\n2. Files combining audio chunks\n3. Any logic merging/concatenating audio\n\nLet me start by searching for audio-related files and patterns. I'll use multiple search strategies:\n1. Glob for audio-related files by extension or name\n2. Grep for common audio-related terms like \"audio\", \"tts\", \"speech\", \"chunk\", \"synthesis\"\n3. Search for specific patterns like \"combine\", \"merge\", \"concat\" with audio context\n\nLet me start with broad searches.",
+          "metadata": {
+            "anthropic": {
+              "signature": "732f0472da3476c7687164f3454682b4ea0ad8222f51656fbee31649ceabac41"
+            }
+          },
+          "time": {
+            "start": 1773837684595,
+            "end": 1773837688795
+          },
+          "id": "prt_d00f70f73001wsPaZhdnyPSivE",
+          "sessionID": "ses_2ff0904ecffeJZ42k2DBgWcSEA",
+          "messageID": "msg_d00f6fb2b001Q9QPev7TZaOwi4"
+        },
+        {
+          "type": "text",
+          "text": "\nI'll search the codebase for audio-related files using multiple search strategies.",
+          "time": {
+            "start": 1773837688799,
+            "end": 1773837688799
+          },
+          "id": "prt_d00f71fdd001pKA0Ta803fL3F7",
+          "sessionID": "ses_2ff0904ecffeJZ42k2DBgWcSEA",
+          "messageID": "msg_d00f6fb2b001Q9QPev7TZaOwi4"
+        },
+        {
+          "type": "tool",
+          "callID": "call_function_23lj9n4wm40q_1",
+          "tool": "glob",
+          "state": {
+            "status": "completed",
+            "input": {
+              "pattern": "**/*audio*"
+            },
+            "output": "/home/tejasree/visual-task/visual-interaction/frontend/lib/widgets/audio_chunk_player.dart",
+            "title": "",
+            "metadata": {
+              "count": 1,
+              "truncated": false
+            },
+            "time": {
+              "start": 1773837689630,
+              "end": 1773837689647
+            }
+          },
+          "id": "prt_d00f71fe2001V4be3kqou1GbDq",
+          "sessionID": "ses_2ff0904ecffeJZ42k2DBgWcSEA",
+          "messageID": "msg_d00f6fb2b001Q9QPev7TZaOwi4"
+        },
+        {
+          "type": "tool",
+          "callID": "call_function_23lj9n4wm40q_2",
+          "tool": "glob",
+          "state": {
+            "status": "completed",
+            "input": {
+              "pattern": "**/*speech*"
+            },
+            "output": "/home/tejasree/visual-task/visual-interaction/backend/services/speech_service.py\n/home/tejasree/visual-task/visual-interaction/frontend/lib/services/speech_service.dart",
+            "title": "",
+            "metadata": {
+              "count": 2,
+              "truncated": false
+            },
+            "time": {
+              "start": 1773837690544,
+              "end": 1773837690566
+            }
+          },
+          "id": "prt_d00f72320001Chwy3iK1y1T6CJ",
+          "sessionID": "ses_2ff0904ecffeJZ42k2DBgWcSEA",
+          "messageID": "msg_d00f6fb2b001Q9QPev7TZaOwi4"
+        },
+        {
+          "type": "tool",
+          "callID": "call_function_23lj9n4wm40q_3",
+          "tool": "glob",
+          "state": {
+            "status": "completed",
+            "input": {
+              "pattern": "**/*tts*"
+            },
+            "output": "No files found",
+            "title": "",
+            "metadata": {
+              "count": 0,
+              "truncated": false
+            },
+            "time": {
+              "start": 1773837690548,
+              "end": 1773837690568
+            }
+          },
+          "id": "prt_d00f726b1001EpXdDcMNB2sR8G",
+          "sessionID": "ses_2ff0904ecffeJZ42k2DBgWcSEA",
+          "messageID": "msg_d00f6fb2b001Q9QPev7TZaOwi4"
+        },
+        {
+          "type": "tool",
+          "callID": "call_function_23lj9n4wm40q_4",
+          "tool": "grep",
+          "state": {
+            "status": "completed",
+            "input": {
+              "include": "*.py",
+              "pattern": "audio.*chunk|chunk.*audio"
+            },
+            "output": "Found 12 matches\n/home/tejasree/visual-task/visual-interaction/backend/routes/simulation_routes.py:\n  Line 10: from services.speech_service import generate_explanation_text, synthesize_speech, generate_explanation_text_telugu, generate_chunked_explanations, synthesize_chunk, combine_audio_chunks\n  Line 100: def get_audio_chunks():\n  Line 128:         audio_url = chunk.audio_url_te if language == \"te-IN\" else chunk.audio_url_en\n  Line 134:         combined_audio_url = combine_audio_chunks(audio_urls)\n  Line 146: def get_single_chunk_audio(chunk_id):\n  Line 182: def combine_audio_chunks_endpoint():\n  Line 190:     combined_audio = combine_audio_chunks(audio_urls)\n  Line 193:         return jsonify({'error': 'Failed to combine audio chunks. Make sure pydub is installed.'}), 500\n\n/home/tejasree/visual-task/visual-interaction/backend/services/speech_service.py:\n  Line 386:             chunk.audio_url_te = result[\"audio_url\"]\n  Line 388:             chunk.audio_url_en = result[\"audio_url\"]\n  Line 415: def combine_audio_chunks(audio_urls: List[str]) -> Optional[str]:\n  Line 417:         print(\"pydub not installed. Cannot combine audio chunks.\")",
+            "title": "audio.*chunk|chunk.*audio",
+            "metadata": {
+              "matches": 12,
+              "truncated": false
+            },
+            "time": {
+              "start": 1773837691317,
+              "end": 1773837691351
+            }
+          },
+          "id": "prt_d00f726b6001DhBsif4f1PFhRt",
+          "sessionID": "ses_2ff0904ecffeJZ42k2DBgWcSEA",
+          "messageID": "msg_d00f6fb2b001Q9QPev7TZaOwi4"
+        },
+        {
+          "type": "tool",
+          "callID": "call_function_23lj9n4wm40q_5",
+          "tool": "grep",
+          "state": {
+            "status": "completed",
+            "input": {
+              "include": "*.py",
+              "pattern": "combine.*audio|audio.*combine|merge.*audio|audio.*merge|concat.*audio|audio.*concat"
+            },
+            "output": "Found 14 matches\n/home/tejasree/visual-task/visual-interaction/backend/routes/simulation_routes.py:\n  Line 10: from services.speech_service import generate_explanation_text, synthesize_speech, generate_explanation_text_telugu, generate_chunked_explanations, synthesize_chunk, combine_audio_chunks\n  Line 132:     combined_audio_url = None\n  Line 134:         combined_audio_url = combine_audio_chunks(audio_urls)\n  Line 135:         print(f\"Combined audio created: {'success' if combined_audio_url else 'failed'}\")\n  Line 136:         logger.info(f\"Combined audio: {'success' if combined_audio_url else 'failed'}\")\n  Line 141:         'combined_audio_url': combined_audio_url\n  Line 182: def combine_audio_chunks_endpoint():\n  Line 190:     combined_audio = combine_audio_chunks(audio_urls)\n  Line 192:     if combined_audio is None:\n  Line 193:         return jsonify({'error': 'Failed to combine audio chunks. Make sure pydub is installed.'}), 500\n  Line 196:         'combined_audio_url': combined_audio\n\n/home/tejasree/visual-task/visual-interaction/backend/services/speech_service.py:\n  Line 415: def combine_audio_chunks(audio_urls: List[str]) -> Optional[str]:\n  Line 417:         print(\"pydub not installed. Cannot combine audio chunks.\")\n  Line 433:             combined += audio",
+            "title": "combine.*audio|audio.*combine|merge.*audio|audio.*merge|concat.*audio|audio.*concat",
+            "metadata": {
+              "matches": 14,
+              "truncated": false
+            },
+            "time": {
+              "start": 1773837693157,
+              "end": 1773837693180
+            }
+          },
+          "id": "prt_d00f729b8001n6MvlAEx1MerqX",
+          "sessionID": "ses_2ff0904ecffeJZ42k2DBgWcSEA",
+          "messageID": "msg_d00f6fb2b001Q9QPev7TZaOwi4"
+        },
+        {
+          "type": "tool",
+          "callID": "call_function_23lj9n4wm40q_6",
+          "tool": "grep",
+          "state": {
+            "status": "completed",
+            "input": {
+              "include": "*.py",
+              "pattern": "TTS|text.to.speech|speech.synthesis"
+            },
+            "output": "Found 5 matches\n/home/tejasree/visual-task/visual-interaction/backend/routes/simulation_routes.py:\n  Line 73:     print(f\"Calling Sarvam TTS API...\")\n  Line 74:     logger.info(\"Calling Sarvam TTS API...\")\n  Line 76:     print(f\"TTS completed: audio_url={'present' if speech_result.get('audio_url') else 'NOT present'}\")\n  Line 77:     logger.info(f\"TTS: audio_url={'present' if speech_result.get('audio_url') else 'NOT present'}\")\n\n/home/tejasree/visual-task/visual-interaction/backend/services/speech_service.py:\n  Line 20: SARVAM_API_URL = \"https://api.sarvam.ai/text-to-speech\"",
+            "title": "TTS|text.to.speech|speech.synthesis",
+            "metadata": {
+              "matches": 5,
+              "truncated": false
+            },
+            "time": {
+              "start": 1773837693650,
+              "end": 1773837693685
+            }
+          },
+          "id": "prt_d00f730ea001C9Lix6jSLcmaZQ",
+          "sessionID": "ses_2ff0904ecffeJZ42k2DBgWcSEA",
+          "messageID": "msg_d00f6fb2b001Q9QPev7TZaOwi4"
+        },
+        {
+          "type": "step-finish",
+          "reason": "tool-calls",
+          "snapshot": "6a2fbe4e97354d5196a098a79075194aac5569da",
+          "cost": 0,
+          "tokens": {
+            "total": 5423,
+            "input": 42,
+            "output": 359,
+            "reasoning": 0,
+            "cache": {
+              "read": 0,
+              "write": 5022
+            }
+          },
+          "id": "prt_d00f732fa001nLi1aFzF9Ekikk",
+          "sessionID": "ses_2ff0904ecffeJZ42k2DBgWcSEA",
+          "messageID": "msg_d00f6fb2b001Q9QPev7TZaOwi4"
+        }
+      ]
+    },
+    {
+      "info": {
+        "role": "assistant",
+        "time": {
+          "created": 1773837693748,
+          "completed": 1773837702049
+        },
+        "parentID": "msg_d00f6fb1b0018ect2v8t7AjHfs",
+        "modelID": "big-pickle",
+        "providerID": "opencode",
+        "mode": "explore",
+        "agent": "explore",
+        "path": {
+          "cwd": "/home/tejasree/visual-task/visual-interaction",
+          "root": "/home/tejasree/visual-task/visual-interaction"
+        },
+        "cost": 0,
+        "tokens": {
+          "total": 6601,
+          "input": 880,
+          "output": 335,
+          "reasoning": 0,
+          "cache": {
+            "read": 4942,
+            "write": 444
+          }
+        },
+        "finish": "tool-calls",
+        "id": "msg_d00f73334001HcWlhAJT2X9uOD",
+        "sessionID": "ses_2ff0904ecffeJZ42k2DBgWcSEA"
+      },
+      "parts": [
+        {
+          "type": "step-start",
+          "snapshot": "6a2fbe4e97354d5196a098a79075194aac5569da",
+          "id": "prt_d00f73943001v7aIG3Ms3Try20",
+          "sessionID": "ses_2ff0904ecffeJZ42k2DBgWcSEA",
+          "messageID": "msg_d00f73334001HcWlhAJT2X9uOD"
+        },
+        {
+          "type": "reasoning",
+          "text": "I found several relevant files. Let me now read the main audio-related files to understand their functionality better:\n\n1. `/home/tejasree/visual-task/visual-interaction/backend/services/speech_service.py` - This seems to be the main audio generation and chunking service\n2. `/home/tejasree/visual-task/visual-interaction/backend/routes/simulation_routes.py` - Uses the speech service\n3. `/home/tejasree/visual-task/visual-interaction/frontend/lib/widgets/audio_chunk_player.dart` - Frontend widget for playing audio\n4. `/home/tejasree/visual-task/visual-interaction/frontend/lib/services/speech_service.dart` - Frontend speech service\n\nLet me read these files to understand their audio-related functionality.",
+          "metadata": {
+            "anthropic": {
+              "signature": "349ab268ed0deb363f76612b2d5083473ef05c9e593325758204f62e0c4c2241"
+            }
+          },
+          "time": {
+            "start": 1773837695302,
+            "end": 1773837699256
+          },
+          "id": "prt_d00f73946001geqbIOPdIdoQ1p",
+          "sessionID": "ses_2ff0904ecffeJZ42k2DBgWcSEA",
+          "messageID": "msg_d00f73334001HcWlhAJT2X9uOD"
+        },
+        {
+          "type": "text",
+          "text": "I found several audio-related files. Let me read the main files to understand their functionality better.",
+          "time": {
+            "start": 1773837699264,
+            "end": 1773837699264
+          },
+          "id": "REDACTED",
+          "sessionID": "ses_2ff0904ecffeJZ42k2DBgWcSEA",
+          "messageID": "msg_d00f73334001HcWlhAJT2X9uOD"
+        },
+        {
+          "type": "tool",
+          "callID": "call_function_zy76xg1ke4uo_1",
+          "tool": "read",
+          "state": {
+            "status": "completed",
+            "input": {
+              "filePath": "/home/tejasree/visual-task/visual-interaction/backend/services/speech_service.py"
+            },
+            "output": "<path>/home/tejasree/visual-task/visual-interaction/backend/services/speech_service.py</path>\n<type>file</type>\n<content>1: import os\n2: import base64\n3: import requests\n4: import io\n5: from datetime import datetime\n6: from typing import Optional, List, Dict\n7: from dotenv import load_dotenv\n8: import math\n9: \n10: try:\n11:     from pydub import AudioSegment\n12:     PYDUB_AVAILABLE = True\n13: except ImportError:\n14:     PYDUB_AVAILABLE = False\n15: \n16: project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))\n17: env_path = os.path.join(project_root, '.env')\n18: load_dotenv(env_path)\n19: \n20: SARVAM_API_URL = \"https://api.sarvam.ai/text-to-speech\"\n21: \n22: \n23: class AudioChunk:\n24:     def __init__(self, chunk_id: str, title: str, title_te: str, text: str, \n25:                  text_te: str, category: str = \"general\"):\n26:         self.chunk_id = chunk_id\n27:         self.title = title\n28:         self.title_te = title_te\n29:         self.text = text\n30:         self.text_te = text_te\n31:         self.category = category\n32:         self.audio_url_en = None\n33:         self.audio_url_te = None\n34:     \n35:     def to_dict(self) -> dict:\n36:         return {\n37:             \"chunk_id\": self.chunk_id,\n38:             \"title\": self.title,\n39:             \"title_te\": self.title_te,\n40:             \"text\": self.text,\n41:             \"text_te\": self.text_te,\n42:             \"category\": self.category,\n43:             \"audio_url_en\": self.audio_url_en,\n44:             \"audio_url_te\": self.audio_url_te\n45:         }\n46: \n47: \n48: def _convert_formula_to_speech(formula: str) -> str:\n49:     if not formula:\n50:         return formula\n51:     return (formula\n52:             .replace('θ', 'theta')\n53:             .replace('²', ' squared')\n54:             .replace('³', ' cubed')\n55:             .replace('*', ' multiplied by ')\n56:             .replace('/', ' divided by ')\n57:             .replace('+', ' plus ')\n58:             .replace('-', ' minus ')\n59:             .replace('=', ' equals ')\n60:             .replace('(', ' open parenthesis ')\n61:             .replace(')', ' close parenthesis '))\n62: \n63: \n64: def get_api_key():\n65:     api_key = os.environ.get(\"SARVAM_API_KEY\")\n66:     if not api_key:\n67:         print(\"SARVAM_API_KEY not found. Please add SARVAM_API_KEY to your .env file.\")\n68:         print(\"Get your API key from: https://dashboard.sarvam.ai\")\n69:     return api_key\n70: \n71: \n72: def generate_explanation_text(angle: float, velocity: float, gravity: float, \n73:                                 prev_angle: Optional[float] = None, prev_velocity: Optional[float] = None, \n74:                                 prev_gravity: Optional[float] = None,\n75:                                 custom_formula: Optional[str] = None,\n76:                                 include_formula: bool = False) -> str:\n77:     parts = []\n78:     \n79:     if include_formula and custom_formula:\n80:         formula_speech = _convert_formula_to_speech(custom_formula)\n81:         parts.append(f\"The projectile motion formula being used is: {formula_speech}. \")\n82:         parts.append(\"This formula describes the relationship between the horizontal distance, vertical height, launch angle, initial velocity, and gravity. \")\n83:         parts.append(\"In this formula, y represents the vertical height, x represents the horizontal distance, theta represents the launch angle, v represents the initial velocity, and g represents gravitational acceleration. \")\n84:     \n85:     parts.append(f\"In this projectile motion simulation, the projectile is launched at an angle of {angle} degrees with an initial velocity of {velocity} meters per second under a gravitational acceleration of {gravity} meters per second squared.\")\n86:     \n87:     if prev_angle is not None and prev_angle != angle:\n88:         change = angle - prev_angle\n89:         direction = \"increased\" if change > 0 else \"decreased\"\n90:         parts.append(f\"The launch angle has {direction} from {prev_angle} to {angle} degrees. \")\n91:         if angle > prev_angle:\n92:             parts.append(f\"A higher angle means the projectile reaches a greater maximum height but travels a shorter distance. \")\n93:         else:\n94:             parts.append(f\"A lower angle means the projectile travels farther but reaches a lower maximum height. \")\n95:     \n96:     if prev_velocity is not None and prev_velocity != velocity:\n97:         change = velocity - prev_velocity\n98:         direction = \"increased\" if change > 0 else \"decreased\"\n99:         parts.append(f\"The initial velocity has {direction} from {prev_velocity} to {velocity} meters per second. \")\n100:         if velocity > prev_velocity:\n101:             parts.append(f\"Higher velocity means the projectile travels faster and reaches further. \")\n102:         else:\n103:             parts.append(f\"Lower velocity means the projectile travels slower and doesn't go as far. \")\n104:     \n105:     if prev_gravity is not None and prev_gravity != gravity:\n106:         change = gravity - prev_gravity\n107:         direction = \"increased\" if change > 0 else \"decreased\"\n108:         parts.append(f\"The gravitational acceleration has {direction} from {prev_gravity} to {gravity} meters per second squared. \")\n109:         if gravity > prev_gravity:\n110:             parts.append(f\"Stronger gravity pulls the projectile down faster, reducing both the flight time and the maximum height. \")\n111:         else:\n112:             parts.append(f\"Weaker gravity lets the projectile stay in the air longer and reach a higher maximum height. \")\n113:     \n114:     import sys\n115:     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))\n116:     from physics_service import calculate_trajectory\n117:     result = calculate_trajectory(angle, velocity, gravity)\n118:     \n119:     parts.append(f\"The maximum height reached is {result['max_height']} meters. \")\n120:     parts.append(f\"The total range or horizontal distance covered is {result['range']} meters. \")\n121:     parts.append(f\"The projectile remains in the air for {result['time_of_flight']} seconds.\")\n122:     \n123:     return \" \".join(parts)\n124: \n125: \n126: def synthesize_speech(text: str, target_language_code: str = \"en-IN\", \n127:                       speaker: str = \"arya\") -> dict:\n128:     api_key = get_api_key()\n129:     \n130:     if not api_key:\n131:         return {\"error\": \"API key missing\", \"audio_url\": None}\n132:     \n133:     headers = {\n134:         \"api-subscription-key\": api_key,\n135:         \"Content-Type\": \"application/json\"\n136:     }\n137:     \n138:     payload = {\n139:         \"inputs\": [text],\n140:         \"target_language_code\": target_language_code,\n141:         \"speaker\": \"shruti\",\n142:         \"model\": \"bulbul:v3\",\n143:         \"speech_sample_rate\": 16000\n144:     }\n145:     \n146:     try:\n147:         response = requests.post(SARVAM_API_URL, headers=headers, json=payload, timeout=30)\n148:         response.raise_for_status()\n149:         \n150:         result = response.json()\n151:         \n152:         if result.get(\"audios\") and len(result[\"audios\"]) > 0:\n153:             audio_base64 = result[\"audios\"][0]\n154:             audio_data_url = f\"data:audio/wav;base64,{audio_base64}\"\n155:             return {\n156:                 \"audio_url\": audio_data_url,\n157:                 \"request_id\": result.get(\"request_id\")\n158:             }\n159:         else:\n160:             return {\"error\": \"No audio returned from API\", \"audio_url\": None}\n161:             \n162:     except requests.exceptions.RequestException as e:\n163:         return {\"error\": str(e), \"audio_url\": None}\n164: \n165: \n166: def get_audio_stream(text: str):\n167:     result = synthesize_speech(text)\n168:     return result.get(\"audio_url\")\n169: \n170: \n171: def generate_explanation_text_telugu(angle: float, velocity: float, gravity: float, \n172:                                     prev_angle: Optional[float] = None, prev_velocity: Optional[float] = None, \n173:                                     prev_gravity: Optional[float] = None,\n174:                                     custom_formula: Optional[str] = None,\n175:                                     include_formula: bool = False) -> str:\n176:     import sys\n177:     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))\n178:     from physics_service import calculate_trajectory\n179:     result = calculate_trajectory(angle, velocity, gravity)\n180:     \n181:     parts = []\n182:     \n183:     angle_rad = angle * math.pi / 180\n184:     \n185:     if include_formula and custom_formula:\n186:         formula_speech = _convert_formula_to_speech(custom_formula)\n187:         parts.append(f\"Formula: {formula_speech}. \")\n188:     \n189:     parts.append(f\"Hello everyone! Niiku projectile motion ni explanation ivvutu. \")\n190:     parts.append(f\"Ipudu i simulation lo, projectile {angle} degrees angle daari, {velocity} m/s velocity tho launch avutundi. \")\n191:     parts.append(f\"Ekkada velocity ni two components lo split cheyyali. Horizontal component = {velocity * math.cos(angle_rad):.2f} m/s. Vertical component = {velocity * math.sin(angle_rad):.2f} m/s. \")\n192:     parts.append(f\"Horizontal motion lo, gravity effect ledu. Kabbati constant velocity tho move avutundi. Formula: x = v cosθ × t. \")\n193:     parts.append(f\"Vertical motion lo, gravity {gravity} m/s² impact undi. Upward movement lo velocity decrease avutundi, downward movement lo increase avutundi. Formula: y = v sinθ × t - ½gt². \")\n194:     \n195:     parts.append(f\"\\nOkay, ante results: \")\n196:     parts.append(f\"Maximum height = {result['max_height']:.2f} meters. \")\n197:     parts.append(f\"Total range = {result['range']:.2f} meters. \")\n198:     parts.append(f\"Time of flight = {result['time_of_flight']:.2f} seconds. \")\n199:     \n200:     if prev_angle is not None and prev_angle != angle:\n201:         diff = angle - prev_angle\n202:         if diff > 0:\n203:             parts.append(f\"\\nSo, angle increase ayyindi ante, vertical component increase avutundi. Horizontal component decrease avutundi. \")\n204:             parts.append(f\"Kabbati maximum height increase avutundi. Range decrease avutundi. \")\n205:             parts.append(f\"Remember: 45° max range ki ideal angle. \")\n206:         else:\n207:             parts.append(f\"\\nSo, angle decrease ayyindi ante, horizontal component increase avutundi. Vertical component decrease avutundi. \")\n208:             parts.append(f\"Kabbati range increase avutundi. Maximum height decrease avutundi. \")\n209:     \n210:     if prev_velocity is not None and prev_velocity != velocity:\n211:         diff = velocity - prev_velocity\n212:         if diff > 0:\n213:             parts.append(f\"\\nVelocity increase ayyindi ante, initial energy increase avutundi. \")\n214:             parts.append(f\"Both height and range increase avutundi. Physics ante, Range ∝ v² and Height ∝ v². \")\n215:         else:\n216:             parts.append(f\"\\nVelocity decrease ayyindi ante, initial energy decrease avutundi. \")\n217:             parts.append(f\"Both height and range decrease avutundi. \")\n218:     \n219:     if prev_gravity is not None and prev_gravity != gravity:\n220:         diff = gravity - prev_gravity\n221:         if diff > 0:\n222:             parts.append(f\"\\nGravity increase ayyindi ante, downward pull strong avutundi. \")\n223:             parts.append(f\"Flight time and maximum height both decrease avutundi. \")\n224:             parts.append(f\"Example: Moon lo gravity 1.6 m/s², Jupiter lo 24.8 m/s². Moon lo projectile more distance travel avutundi. \")\n225:         else:\n226:             parts.append(f\"\\nGravity decrease ayyindi ante, downward pull weak avutundi. \")\n227:             parts.append(f\"Flight time and maximum height both increase avutundi. \")\n228:     \n229:     return \" \".join(parts)\n230: \n231: \n232: def generate_chunked_explanations(angle: float, velocity: float, gravity: float,\n233:                                    prev_angle: Optional[float] = None, \n234:                                    prev_velocity: Optional[float] = None, \n235:                                    prev_gravity: Optional[float] = None,\n236:                                    custom_formula: Optional[str] = None,\n237:                                    include_formula: bool = False) -> List[AudioChunk]:\n238:     import sys\n239:     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))\n240:     from physics_service import calculate_trajectory\n241:     \n242:     result = calculate_trajectory(angle, velocity, gravity)\n243:     angle_rad = angle * math.pi / 180\n244:     vx = velocity * math.cos(angle_rad)\n245:     vy = velocity * math.sin(angle_rad)\n246:     \n247:     chunks = []\n248:     \n249:     chunks.append(AudioChunk(\n250:         chunk_id=\"intro\",\n251:         title=\"Introduction to Projectile Motion\",\n252:         title_te=\"ప్రొజెక్టైల్ మోషన్ పరిచయం\",\n253:         text=f\"Let's learn about projectile motion! When we launch an object at an angle, it follows a curved path called a trajectory. In this simulation, we launch a projectile at {angle} degrees with an initial velocity of {velocity} meters per second.\",\n254:         text_te=f\"Projectile motion theory ante, niiku explain cheyyali! Eppudaina object ni angle lo launch cheyyamante, adhi curved path lo travel avutundi. I simulation lo, projectile ni {angle} degrees angle lo, {velocity} m/s velocity tho launch cheyyagane.\",\n255:         category=\"concept\"\n256:     ))\n257:     \n258:     chunks.append(AudioChunk(\n259:         chunk_id=\"components\",\n260:         title=\"Velocity Components Explained\",\n261:         title_te=\"వెలాసిటీ కాంపొనెంట్స్ వివరణ\",\n262:         text=f\"The initial velocity gets split into two components. The horizontal component is {vx:.2f} m/s, and the vertical component is {vy:.2f} m/s. The horizontal component stays constant because there's no air resistance. The vertical component changes due to gravity.\",\n263:         text_te=f\"Ipudu initial velocity ni two components lo split cheyyali. Horizontal component = {vx:.2f} m/s. Vertical component = {vy:.2f} m/s. Horizontal motion lo, gravity effect ledu kabbati constant velocity tho move avutundi. Vertical motion lo k乳液 gravity {gravity} m/s² impact undi.\",\n264:         category=\"concept\"\n265:     ))\n266:     \n267:     chunks.append(AudioChunk(\n268:         chunk_id=\"formulas\",\n269:         title=\"Key Formulas\",\n270:         title_te=\"ముఖ్యమైన ఫార్ములాలు\",\n271:         text=f\"Remember these important formulas! For horizontal distance: x equals v cos theta times t. For vertical height: y equals v sin theta times t minus half g t squared. These help us calculate the projectile's position at any time.\",\n272:         text_te=f\"Eppudu formulas remember cheyyandi! Horizontal distance ki: x = v cosθ × t. Vertical height ki: y = v sinθ × t - ½gt². Ippudu maximum height, range, flight time formulas check cheyyamandi.\",\n273:         category=\"formula\"\n274:     ))\n275:     \n276:     chunks.append(AudioChunk(\n277:         chunk_id=\"results\",\n278:         title=\"Simulation Results\",\n279:         title_te=\"సిమ్యులేషన్ ఫలితాలు\",\n280:         text=f\"Here are your simulation results! Maximum height reached: {result['max_height']:.2f} meters. Total horizontal distance covered: {result['range']:.2f} meters. Time of flight: {result['time_of_flight']:.2f} seconds. These results depend on your angle and velocity settings.\",\n281:         text_te=f\"Ipudu results choodamandi! Maximum height = {result['max_height']:.2f} meters. Total range = {result['range']:.2f} meters. Time of flight = {result['time_of_flight']:.2f} seconds. Kabbati 45° angle maximum range ki ideal.\",\n282:         category=\"results\"\n283:     ))\n284:     \n285:     if prev_angle is not None and prev_angle != angle:\n286:         diff = angle - prev_angle\n287:         direction_en = \"increased\" if diff > 0 else \"decreased\"\n288:         direction_te = \"increase ayyindi\" if diff > 0 else \"decrease ayyindi\"\n289:         if diff > 0:\n290:             chunks.append(AudioChunk(\n291:                 chunk_id=\"angle_change_up\",\n292:                 title=\"Angle Increased Effect\",\n293:                 title_te=\"ఏంగిల్ పెరిగినప్పుడు\",\n294:                 text=f\"You increased the angle from {prev_angle} to {angle} degrees. Higher angle means the projectile goes higher but travels a shorter distance. The vertical component increases while horizontal component decreases.\",\n295:                 text_te=f\"Angle {prev_angle} నుండి {angle} degrees కి {direction_te}. Higher angle ante, projectile more height ki reach avutundi but short distance travel avutundi. Vertical component increase avutundi. Horizontal component decrease avutundi.\",\n296:                 category=\"change\"\n297:             ))\n298:         else:\n299:             chunks.append(AudioChunk(\n300:                 chunk_id=\"angle_change_down\",\n301:                 title=\"Angle Decreased Effect\",\n302:                 title_te=\"ఏంగిల్ తగ్గినప్పుడు\",\n303:                 text=f\"You decreased the angle from {prev_angle} to {angle} degrees. Lower angle means the projectile travels farther but reaches a lower maximum height. The horizontal component increases while vertical component decreases.\",\n304:                 text_te=f\"Angle {prev_angle} నుండి {angle} degrees కి {direction_te}. Lower angle ante, projectile more distance travel avutundi but low height ki reach avutundi. Horizontal component increase avutundi. Vertical component decrease avutundi.\",\n305:                 category=\"change\"\n306:             ))\n307:     \n308:     if prev_velocity is not None and prev_velocity != velocity:\n309:         diff = velocity - prev_velocity\n310:         direction_en = \"increased\" if diff > 0 else \"decreased\"\n311:         direction_te = \"increase ayyindi\" if diff > 0 else \"decrease ayyindi\"\n312:         if diff > 0:\n313:             chunks.append(AudioChunk(\n314:                 chunk_id=\"velocity_change_up\",\n315:                 title=\"Velocity Increased Effect\",\n316:                 title_te=\"వెలాసిటీ పెరిగినప్పుడు\",\n317:                 text=f\"You increased the velocity from {prev_velocity} to {velocity} meters per second. Higher velocity means the projectile has more initial energy, so both height and range increase. Remember: range and height are proportional to velocity squared!\",\n318:                 text_te=f\"Velocity {prev_velocity} నుండి {velocity} m/s కి {direction_te}. Higher velocity ante, projectile more initial energy undi. Kabbati both height and range increase avutundi. Physics lo, Range ∝ v² and Height ∝ v².\",\n319:                 category=\"change\"\n320:             ))\n321:         else:\n322:             chunks.append(AudioChunk(\n323:                 chunk_id=\"velocity_change_down\",\n324:                 title=\"Velocity Decreased Effect\",\n325:                 title_te=\"వెలాసిటీ తగ్గినప్పుడు\",\n326:                 text=f\"You decreased the velocity from {prev_velocity} to {velocity} meters per second. Lower velocity means less initial energy, so both height and range decrease.\",\n327:                 text_te=f\"Velocity {prev_velocity} నుండి {velocity} m/s కి {direction_te}. Lower velocity ante, initial energy decrease avutundi. Kabbati both height and range decrease avutundi.\",\n328:                 category=\"change\"\n329:             ))\n330:     \n331:     if prev_gravity is not None and prev_gravity != gravity:\n332:         diff = gravity - prev_gravity\n333:         direction_te = \"increase ayyindi\" if diff > 0 else \"decrease ayyindi\"\n334:         if diff > 0:\n335:             chunks.append(AudioChunk(\n336:                 chunk_id=\"gravity_change_up\",\n337:                 title=\"Gravity Increased Effect\",\n338:                 title_te=\"గ్రావిటీ పెరిగినప్పుడు\",\n339:                 text=f\"You increased gravity from {prev_gravity} to {gravity} meters per second squared. Stronger gravity pulls the projectile down faster, reducing both flight time and maximum height. Compare: Moon has 1.6 m/s², Earth has 9.81 m/s², Jupiter has 24.8 m/s²!\",\n340:                 text_te=f\"Gravity {prev_gravity} నుండి {gravity} m/s² కి {direction_te}. Stronger gravity ante, projectile fast ga ground ki vellipovali. Kabbati flight time and maximum height both decrease avutundi. Moon lo gravity 1.6, Jupiter lo 24.8.\",\n341:                 category=\"change\"\n342:             ))\n343:         else:\n344:             chunks.append(AudioChunk(\n345:                 chunk_id=\"gravity_change_down\",\n346:                 title=\"Gravity Decreased Effect\",\n347:                 title_te=\"గ్రావిటీ తగ్గినప్పుడు\",\n348:                 text=f\"You decreased gravity from {prev_gravity} to {gravity} meters per second squared. Weaker gravity means the projectile stays in the air longer and reaches a higher maximum height.\",\n349:                 text_te=f\"Gravity {prev_gravity} నుండి {gravity} m/s² కి {direction_te}. Weak gravity ante, projectile long time air lo undi and more height reach avutundi.\",\n350:                 category=\"change\"\n351:             ))\n352:     \n353:     chunks.append(AudioChunk(\n354:         chunk_id=\"summary\",\n355:         title=\"Key Takeaways\",\n356:         title_te=\"ముఖ్యమైన అంశాలు\",\n357:         text=f\"Let me summarize the key points! The angle determines how high and far the projectile goes. The velocity affects both height and range. Gravity pulls the projectile down. For maximum range on Earth, an angle of 45 degrees is ideal. Try different combinations to see how these parameters interact!\",\n358:         text_te=f\"Ipudu key points summarize cheyyamandi! Angle ante, projectile height and distance decide avutundi. Velocity ante, both height and range affect avutundi. Gravity ante, projectile ni ground ki pull cheyyutundi. Earth lo maximum range ki 45° ideal angle. Experimentation cheyyandi!\",\n359:         category=\"summary\"\n360:     ))\n361:     \n362:     if include_formula and custom_formula:\n363:         formula_speech = _convert_formula_to_speech(custom_formula)\n364:         chunks.append(AudioChunk(\n365:             chunk_id=\"custom_formula\",\n366:             title=\"Custom Formula Explanation\",\n367:             title_te=\"కస్టమ్ ఫార్ములా వివరణ\",\n368:             text=f\"You're using a custom formula: {formula_speech}. This formula describes the relationship between horizontal distance, vertical height, launch angle, initial velocity, and gravity. In this formula, y represents vertical height, x represents horizontal distance, theta represents launch angle, v represents velocity, and g represents gravity.\",\n369:             text_te=f\"Niiku custom formula use cheyyataaniki: {formula_speech}. I formula lo y = vertical height, x = horizontal distance, θ = launch angle, v = velocity, g = gravity.\",\n370:             category=\"formula\"\n371:         ))\n372:     \n373:     return chunks\n374: \n375: \n376: def synthesize_chunk(chunk: AudioChunk, language: str = \"en-IN\") -> AudioChunk:\n377:     if language == \"te-IN\":\n378:         text = chunk.text_te\n379:     else:\n380:         text = chunk.text\n381:     \n382:     result = synthesize_speech(text, target_language_code=language)\n383:     \n384:     if result.get(\"audio_url\"):\n385:         if language == \"te-IN\":\n386:             chunk.audio_url_te = result[\"audio_url\"]\n387:         else:\n388:             chunk.audio_url_en = result[\"audio_url\"]\n389:     \n390:     return chunk\n391: \n392: \n393: def generate_speech_explanation(angle: float, velocity: float, gravity: float,\n394:                                 prev_angle: Optional[float] = None, prev_velocity: Optional[float] = None,\n395:                                 prev_gravity: Optional[float] = None,\n396:                                 custom_formula: Optional[str] = None,\n397:                                 include_formula: bool = False,\n398:                                 language: str = \"en-IN\") -> dict:\n399:     if language == \"te-IN\":\n400:         explanation_text = generate_explanation_text_telugu(\n401:             angle, velocity, gravity,\n402:             prev_angle, prev_velocity, prev_gravity,\n403:             custom_formula, include_formula\n404:         )\n405:     else:\n406:         explanation_text = generate_explanation_text(\n407:             angle, velocity, gravity,\n408:             prev_angle, prev_velocity, prev_gravity,\n409:             custom_formula, include_formula\n410:         )\n411:     \n412:     return synthesize_speech(explanation_text, target_language_code=language)\n413: \n414: \n415: def combine_audio_chunks(audio_urls: List[str]) -> Optional[str]:\n416:     if not PYDUB_AVAILABLE:\n417:         print(\"pydub not installed. Cannot combine audio chunks.\")\n418:         return None\n419:     \n420:     if not audio_urls:\n421:         return None\n422:     \n423:     combined = AudioSegment.empty()\n424:     \n425:     for url in audio_urls:\n426:         if not url:\n427:             continue\n428:         \n429:         if url.startswith(\"data:audio\"):\n430:             base64_data = url.split(\",\")[1]\n431:             audio_bytes = base64.b64decode(base64_data)\n432:             audio = AudioSegment.from_wav(io.BytesIO(audio_bytes))\n433:             combined += audio\n434:     \n435:     output_buffer = io.BytesIO()\n436:     combined.export(output_buffer, format=\"wav\")\n437:     output_buffer.seek(0)\n438:     \n439:     audio_base64 = base64.b64encode(output_buffer.read()).decode(\"utf-8\")\n440:     return f\"data:audio/wav;base64,{audio_base64}\"\n\n(End of file - total 440 lines)\n</content>",
+            "title": "backend/services/speech_service.py",
+            "metadata": {
+              "preview": "import os\nimport base64\nimport requests\nimport io\nfrom datetime import datetime\nfrom typing import Optional, List, Dict\nfrom dotenv import load_dotenv\nimport math\n\ntry:\n    from pydub import AudioSegment\n    PYDUB_AVAILABLE = True\nexcept ImportError:\n    PYDUB_AVAILABLE = False\n\nproject_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))\nenv_path = os.path.join(project_root, '.env')\nload_dotenv(env_path)\n\nSARVAM_API_URL = \"https://api.sarvam.ai/text-to-speech\"",
+              "truncated": false,
+              "loaded": []
+            },
+            "time": {
+              "start": 1773837699991,
+              "end": 1773837700081
+            }
+          },
+          "id": "prt_d00f748c2001q8rBhy3rbtVISh",
+          "sessionID": "ses_2ff0904ecffeJZ42k2DBgWcSEA",
+          "messageID": "msg_d00f73334001HcWlhAJT2X9uOD"
+        },
+        {
+          "type": "tool",
+          "callID": "call_function_zy76xg1ke4uo_2",
+          "tool": "read",
+          "state": {
+            "status": "completed",
+            "input": {
+              "filePath": "/home/tejasree/visual-task/visual-interaction/backend/routes/simulation_routes.py"
+            },
+            "output": "<path>/home/tejasree/visual-task/visual-interaction/backend/routes/simulation_routes.py</path>\n<type>file</type>\n<content>1: import hashlib\n2: import logging\n3: from flask import Blueprint, request, jsonify\n4: \n5: logger = logging.getLogger(__name__)\n6: \n7: from services.cache_service import get_cached_result, set_cached_result\n8: from services.physics_service import calculate_trajectory\n9: from services.supabase_client import store_simulation\n10: from services.speech_service import generate_explanation_text, synthesize_speech, generate_explanation_text_telugu, generate_chunked_explanations, synthesize_chunk, combine_audio_chunks\n11: \n12: simulation_bp = Blueprint('simulation', __name__)\n13: \n14: \n15: def _generate_cache_key(angle, velocity, gravity, custom_formula=None):\n16:     key_str = f\"{angle}:{velocity}:{gravity}:{custom_formula or ''}\"\n17:     return f\"simulation:{hashlib.md5(key_str.encode()).hexdigest()}\"\n18: \n19: \n20: @simulation_bp.route('/simulation', methods=['POST'])\n21: @simulation_bp.route('/simulate', methods=['POST'])\n22: def simulate():\n23:     data = request.get_json() or {}\n24:     \n25:     text = data.get('text')\n26:     if text:\n27:         language = data.get('language', 'en-IN')\n28:         speech_result = synthesize_speech(text, target_language_code=language)\n29:         return jsonify({\n30:             'speech_audio_url': speech_result.get('audio_url'),\n31:             'error': speech_result.get('error')\n32:         })\n33:     \n34:     angle = data.get('angle')\n35:     velocity = data.get('velocity')\n36:     gravity = data.get('gravity')\n37:     custom_formula = data.get('custom_formula')\n38:     include_formula = data.get('include_formula', False)\n39:     language = data.get('language', 'en-IN')\n40:     \n41:     print(f\"\\n=== Slider Changed ===\")\n42:     print(f\"angle: {angle}, velocity: {velocity}, gravity: {gravity}\")\n43:     print(f\"custom_formula: {custom_formula}, include_formula: {include_formula}\")\n44:     logger.info(f\"Slider Changed: angle={angle}, velocity={velocity}, gravity={gravity}, custom_formula={custom_formula}\")\n45:     \n46:     cache_key = _generate_cache_key(angle, velocity, gravity, custom_formula)\n47:     \n48:     cached_result = get_cached_result(cache_key)\n49:     if cached_result:\n50:         print(f\"Cache: HIT → returning cached data\")\n51:         logger.info(\"Cache: HIT → returning cached data\")\n52:         return jsonify(cached_result)\n53:     \n54:     print(f\"Cache: MISS → calculating new data...\")\n55:     logger.info(\"Cache: MISS → calculating new data...\")\n56:     physics_result = calculate_trajectory(angle, velocity, gravity)\n57:     print(f\"Physics calculated: max_height={physics_result['max_height']}, range={physics_result['range']}\")\n58:     logger.info(f\"Physics: max_height={physics_result['max_height']}, range={physics_result['range']}\")\n59:     \n60:     if language == \"te-IN\":\n61:         explanation_text = generate_explanation_text_telugu(\n62:             angle, velocity, gravity,\n63:             custom_formula=custom_formula,\n64:             include_formula=include_formula\n65:         )\n66:     else:\n67:         explanation_text = generate_explanation_text(\n68:             angle, velocity, gravity,\n69:             custom_formula=custom_formula,\n70:             include_formula=include_formula\n71:         )\n72:     \n73:     print(f\"Calling Sarvam TTS API...\")\n74:     logger.info(\"Calling Sarvam TTS API...\")\n75:     speech_result = synthesize_speech(explanation_text, target_language_code=language)\n76:     print(f\"TTS completed: audio_url={'present' if speech_result.get('audio_url') else 'NOT present'}\")\n77:     logger.info(f\"TTS: audio_url={'present' if speech_result.get('audio_url') else 'NOT present'}\")\n78:     \n79:     store_simulation(angle, velocity, gravity)\n80:     print(f\"Saved to database\")\n81:     logger.info(\"Saved to database\")\n82:     \n83:     full_result = {\n84:         'trajectory': physics_result['trajectory'],\n85:         'max_height': physics_result['max_height'],\n86:         'range': physics_result['range'],\n87:         'time_of_flight': physics_result['time_of_flight'],\n88:         'explanation_text': explanation_text,\n89:         'speech_audio_url': speech_result.get('audio_url')\n90:     }\n91:     \n92:     set_cached_result(cache_key, full_result)\n93:     print(f\"Cached result saved\\n\")\n94:     logger.info(\"Cached result saved\")\n95:     \n96:     return jsonify(full_result)\n97: \n98: \n99: @simulation_bp.route('/chunks', methods=['POST'])\n100: def get_audio_chunks():\n101:     data = request.get_json() or {}\n102:     \n103:     angle = data.get('angle', 45)\n104:     velocity = data.get('velocity', 20)\n105:     gravity = data.get('gravity', 9.81)\n106:     custom_formula = data.get('custom_formula')\n107:     include_formula = data.get('include_formula', False)\n108:     language = data.get('language', 'te-IN')\n109:     \n110:     print(f\"\\n=== Chunked Audio Request ===\")\n111:     print(f\"angle: {angle}, velocity: {velocity}, gravity: {gravity}, language: {language}\")\n112:     logger.info(f\"Chunked audio request: angle={angle}, velocity={velocity}, gravity={gravity}, language={language}\")\n113:     \n114:     chunks = generate_chunked_explanations(\n115:         angle, velocity, gravity,\n116:         custom_formula=custom_formula,\n117:         include_formula=include_formula\n118:     )\n119:     \n120:     print(f\"Generated {len(chunks)} explanation chunks\")\n121:     logger.info(f\"Generated {len(chunks)} explanation chunks\")\n122:     \n123:     chunk_data = []\n124:     audio_urls = []\n125:     for chunk in chunks:\n126:         chunk = synthesize_chunk(chunk, language=language)\n127:         chunk_data.append(chunk.to_dict())\n128:         audio_url = chunk.audio_url_te if language == \"te-IN\" else chunk.audio_url_en\n129:         if audio_url:\n130:             audio_urls.append(audio_url)\n131:     \n132:     combined_audio_url = None\n133:     if audio_urls:\n134:         combined_audio_url = combine_audio_chunks(audio_urls)\n135:         print(f\"Combined audio created: {'success' if combined_audio_url else 'failed'}\")\n136:         logger.info(f\"Combined audio: {'success' if combined_audio_url else 'failed'}\")\n137:     \n138:     return jsonify({\n139:         'chunks': chunk_data,\n140:         'total_chunks': len(chunk_data),\n141:         'combined_audio_url': combined_audio_url\n142:     })\n143: \n144: \n145: @simulation_bp.route('/chunk/<chunk_id>', methods=['POST'])\n146: def get_single_chunk_audio(chunk_id):\n147:     data = request.get_json() or {}\n148:     \n149:     angle = data.get('angle', 45)\n150:     velocity = data.get('velocity', 20)\n151:     gravity = data.get('gravity', 9.81)\n152:     custom_formula = data.get('custom_formula')\n153:     include_formula = data.get('include_formula', False)\n154:     language = data.get('language', 'te-IN')\n155:     \n156:     print(f\"\\n=== Single Chunk Request: {chunk_id} ===\")\n157:     logger.info(f\"Single chunk request: chunk_id={chunk_id}, language={language}\")\n158:     \n159:     chunks = generate_chunked_explanations(\n160:         angle, velocity, gravity,\n161:         custom_formula=custom_formula,\n162:         include_formula=include_formula\n163:     )\n164:     \n165:     target_chunk = None\n166:     for chunk in chunks:\n167:         if chunk.chunk_id == chunk_id:\n168:             target_chunk = chunk\n169:             break\n170:     \n171:     if target_chunk is None:\n172:         return jsonify({'error': 'Chunk not found', 'chunk_id': chunk_id}), 404\n173:     \n174:     target_chunk = synthesize_chunk(target_chunk, language=language)\n175:     \n176:     return jsonify({\n177:         'chunk': target_chunk.to_dict()\n178:     })\n179: \n180: \n181: @simulation_bp.route('/combine-chunks', methods=['POST'])\n182: def combine_audio_chunks_endpoint():\n183:     data = request.get_json() or {}\n184:     \n185:     audio_urls = data.get('audio_urls', [])\n186:     \n187:     if not audio_urls:\n188:         return jsonify({'error': 'No audio URLs provided'}), 400\n189:     \n190:     combined_audio = combine_audio_chunks(audio_urls)\n191:     \n192:     if combined_audio is None:\n193:         return jsonify({'error': 'Failed to combine audio chunks. Make sure pydub is installed.'}), 500\n194:     \n195:     return jsonify({\n196:         'combined_audio_url': combined_audio\n197:     })\n\n(End of file - total 197 lines)\n</content>",
+            "title": "backend/routes/simulation_routes.py",
+            "metadata": {
+              "preview": "import hashlib\nimport logging\nfrom flask import Blueprint, request, jsonify\n\nlogger = logging.getLogger(__name__)\n\nfrom services.cache_service import get_cached_result, set_cached_result\nfrom services.physics_service import calculate_trajectory\nfrom services.supabase_client import store_simulation\nfrom services.speech_service import generate_explanation_text, synthesize_speech, generate_explanation_text_telugu, generate_chunked_explanations, synthesize_chunk, combine_audio_chunks\n\nsimulation_bp = Blueprint('simulation', __name__)\n\n\ndef _generate_cache_key(angle, velocity, gravity, custom_formula=None):\n    key_str = f\"{angle}:{velocity}:{gravity}:{custom_formula or ''}\"\n    return f\"simulation:{hashlib.md5(key_str.encode()).hexdigest()}\"\n\n\n@simulation_bp.route('/simulation', methods=['POST'])",
+              "truncated": false,
+              "loaded": []
+            },
+            "time": {
+              "start": 1773837700623,
+              "end": 1773837700635
+            }
+          },
+          "id": "prt_d00f74b9a001FfZEepgYsSoX1W",
+          "sessionID": "ses_2ff0904ecffeJZ42k2DBgWcSEA",
+          "messageID": "msg_d00f73334001HcWlhAJT2X9uOD"
+        },
+        {
+          "type": "tool",
+          "callID": "call_function_zy76xg1ke4uo_3",
+          "tool": "read",
+          "state": {
+            "status": "completed",
+            "input": {
+              "filePath": "/home/tejasree/visual-task/visual-interaction/frontend/lib/widgets/audio_chunk_player.dart"
+            },
+            "output": "<path>/home/tejasree/visual-task/visual-interaction/frontend/lib/widgets/audio_chunk_player.dart</path>\n<type>file</type>\n<content>1: import 'package:flutter/material.dart';\n2: import 'package:audioplayers/audioplayers.dart';\n3: import 'package:http/http.dart' as http;\n4: import 'dart:convert';\n5: import '../services/api_service.dart';\n6: \n7: class AudioChunkPlayer extends StatefulWidget {\n8:   final double angle;\n9:   final double velocity;\n10:   final double gravity;\n11:   final String? customFormula;\n12:   final String language;\n13: \n14:   const AudioChunkPlayer({\n15:     super.key,\n16:     required this.angle,\n17:     required this.velocity,\n18:     required this.gravity,\n19:     this.customFormula,\n20:     this.language = 'te-IN',\n21:   });\n22: \n23:   @override\n24:   State<AudioChunkPlayer> createState() => _AudioChunkPlayerState();\n25: }\n26: \n27: class _AudioChunkPlayerState extends State<AudioChunkPlayer> {\n28:   final AudioPlayer _audioPlayer = AudioPlayer();\n29:   String? _combinedAudioUrl;\n30:   bool _isLoading = true;\n31:   bool _isPlaying = false;\n32:   String _selectedLanguage = 'te-IN';\n33:   String? _explanationText;\n34: \n35:   @override\n36:   void initState() {\n37:     super.initState();\n38:     _selectedLanguage = widget.language;\n39:     _audioPlayer.onPlayerComplete.listen((_) {\n40:       if (mounted) {\n41:         setState(() {\n42:           _isPlaying = false;\n43:         });\n44:       }\n45:     });\n46:     _loadCombinedAudio();\n47:   }\n48: \n49:   @override\n50:   void didUpdateWidget(AudioChunkPlayer oldWidget) {\n51:     super.didUpdateWidget(oldWidget);\n52:     if (oldWidget.angle != widget.angle ||\n53:         oldWidget.velocity != widget.velocity ||\n54:         oldWidget.gravity != widget.gravity) {\n55:       _loadCombinedAudio();\n56:     }\n57:   }\n58: \n59:   @override\n60:   void dispose() {\n61:     _audioPlayer.dispose();\n62:     super.dispose();\n63:   }\n64: \n65:   Future<void> _loadCombinedAudio() async {\n66:     setState(() {\n67:       _isLoading = true;\n68:       _combinedAudioUrl = null;\n69:       _explanationText = null;\n70:     });\n71: \n72:     try {\n73:       final response = await http\n74:           .post(\n75:             Uri.parse('${ApiService.apiBaseUrl}/api/chunks'),\n76:             headers: {'Content-Type': 'application/json'},\n77:             body: jsonEncode({\n78:               'angle': widget.angle,\n79:               'velocity': widget.velocity,\n80:               'gravity': widget.gravity,\n81:               'custom_formula': widget.customFormula,\n82:               'include_formula': widget.customFormula != null &&\n83:                   widget.customFormula!.isNotEmpty,\n84:               'language': _selectedLanguage,\n85:             }),\n86:           )\n87:           .timeout(const Duration(seconds: 120));\n88: \n89:       if (response.statusCode == 200) {\n90:         final data = jsonDecode(response.body);\n91: \n92:         if (mounted) {\n93:           setState(() {\n94:             _combinedAudioUrl = data['combined_audio_url'];\n95:             _isLoading = false;\n96:             if (data['chunks'] != null && data['chunks'].isNotEmpty) {\n97:               final firstChunk = data['chunks'][0];\n98:               _explanationText = _selectedLanguage == 'te-IN'\n99:                   ? firstChunk['text_te']\n100:                   : firstChunk['text'];\n101:             }\n102:           });\n103:         }\n104:       } else {\n105:         if (mounted) {\n106:           setState(() {\n107:             _isLoading = false;\n108:           });\n109:           _showError('Failed to load explanation');\n110:         }\n111:       }\n112:     } catch (e) {\n113:       debugPrint('Error loading audio: $e');\n114:       if (mounted) {\n115:         setState(() {\n116:           _isLoading = false;\n117:         });\n118:         _showError('Error loading explanation');\n119:       }\n120:     }\n121:   }\n122: \n123:   Future<void> _playExplanation() async {\n124:     if (_combinedAudioUrl == null || _combinedAudioUrl!.isEmpty) {\n125:       _showError('Audio not available');\n126:       return;\n127:     }\n128: \n129:     if (_isPlaying) {\n130:       await _audioPlayer.stop();\n131:       setState(() {\n132:         _isPlaying = false;\n133:       });\n134:       return;\n135:     }\n136: \n137:     setState(() {\n138:       _isPlaying = true;\n139:     });\n140: \n141:     try {\n142:       await _audioPlayer.stop();\n143:       await _audioPlayer.play(UrlSource(_combinedAudioUrl!));\n144:     } catch (e) {\n145:       debugPrint('Error playing audio: $e');\n146:       setState(() {\n147:         _isPlaying = false;\n148:       });\n149:       _showError('Error playing audio');\n150:     }\n151:   }\n152: \n153:   Future<void> _stop() async {\n154:     await _audioPlayer.stop();\n155:     setState(() {\n156:       _isPlaying = false;\n157:     });\n158:   }\n159: \n160:   void _showError(String message) {\n161:     if (!mounted) return;\n162:     ScaffoldMessenger.of(context).showSnackBar(\n163:       SnackBar(\n164:         content: Text(message),\n165:         duration: const Duration(seconds: 2),\n166:       ),\n167:     );\n168:   }\n169: \n170:   void _toggleLanguage() {\n171:     setState(() {\n172:       _selectedLanguage = _selectedLanguage == 'te-IN' ? 'en-IN' : 'te-IN';\n173:     });\n174:     _loadCombinedAudio();\n175:   }\n176: \n177:   @override\n178:   Widget build(BuildContext context) {\n179:     return Card(\n180:       margin: const EdgeInsets.all(8),\n181:       child: Column(\n182:         crossAxisAlignment: CrossAxisAlignment.stretch,\n183:         children: [\n184:           Padding(\n185:             padding: const EdgeInsets.all(12),\n186:             child: Row(\n187:               children: [\n188:                 const Icon(Icons.audiotrack, color: Colors.deepPurple),\n189:                 const SizedBox(width: 8),\n190:                 Expanded(\n191:                   child: Text(\n192:                     'Projectile Motion Explanation',\n193:                     style: Theme.of(context).textTheme.titleMedium,\n194:                   ),\n195:                 ),\n196:                 TextButton.icon(\n197:                   onPressed: _toggleLanguage,\n198:                   icon: Icon(\n199:                     _selectedLanguage == 'te-IN'\n200:                         ? Icons.language\n201:                         : Icons.translate,\n202:                     size: 18,\n203:                   ),\n204:                   label: Text(\n205:                     _selectedLanguage == 'te-IN' ? 'తెలుగు' : 'English',\n206:                     style: const TextStyle(fontSize: 12),\n207:                   ),\n208:                 ),\n209:               ],\n210:             ),\n211:           ),\n212:           const Divider(height: 1),\n213:           if (_isLoading)\n214:             const Padding(\n215:               padding: EdgeInsets.all(32),\n216:               child: Center(\n217:                 child: Column(\n218:                   children: [\n219:                     CircularProgressIndicator(),\n220:                     SizedBox(height: 16),\n221:                     Text('Generating full explanation...'),\n222:                   ],\n223:                 ),\n224:               ),\n225:             )\n226:           else\n227:             Padding(\n228:               padding: const EdgeInsets.all(16),\n229:               child: Column(\n230:                 children: [\n231:                   if (_explanationText != null)\n232:                     Container(\n233:                       padding: const EdgeInsets.all(12),\n234:                       decoration: BoxDecoration(\n235:                         color: Colors.grey[100],\n236:                         borderRadius: BorderRadius.circular(8),\n237:                       ),\n238:                       child: Text(\n239:                         _explanationText!,\n240:                         style: const TextStyle(fontSize: 14),\n241:                         maxLines: 3,\n242:                         overflow: TextOverflow.ellipsis,\n243:                       ),\n244:                     ),\n245:                   const SizedBox(height: 16),\n246:                   Row(\n247:                     mainAxisAlignment: MainAxisAlignment.center,\n248:                     children: [\n249:                       ElevatedButton.icon(\n250:                         onPressed: _playExplanation,\n251:                         icon: Icon(_isPlaying ? Icons.pause : Icons.play_arrow),\n252:                         label: Text(\n253:                             _isPlaying ? 'Pause' : 'Play Full Explanation'),\n254:                         style: ElevatedButton.styleFrom(\n255:                           backgroundColor: Colors.deepPurple,\n256:                           foregroundColor: Colors.white,\n257:                           padding: const EdgeInsets.symmetric(\n258:                             horizontal: 24,\n259:                             vertical: 12,\n260:                           ),\n261:                         ),\n262:                       ),\n263:                       const SizedBox(width: 12),\n264:                       IconButton(\n265:                         onPressed: _stop,\n266:                         icon: const Icon(Icons.stop),\n267:                         tooltip: 'Stop',\n268:                         style: IconButton.styleFrom(\n269:                           backgroundColor: Colors.grey[200],\n270:                         ),\n271:                       ),\n272:                       IconButton(\n273:                         onPressed: _loadCombinedAudio,\n274:                         icon: const Icon(Icons.refresh),\n275:                         tooltip: 'Refresh',\n276:                         style: IconButton.styleFrom(\n277:                           backgroundColor: Colors.grey[200],\n278:                         ),\n279:                       ),\n280:                     ],\n281:                   ),\n282:                 ],\n283:               ),\n284:             ),\n285:         ],\n286:       ),\n287:     );\n288:   }\n289: }\n\n(End of file - total 289 lines)\n</content>",
+            "title": "frontend/lib/widgets/audio_chunk_player.dart",
+            "metadata": {
+              "preview": "import 'package:flutter/material.dart';\nimport 'package:audioplayers/audioplayers.dart';\nimport 'package:http/http.dart' as http;\nimport 'dart:convert';\nimport '../services/api_service.dart';\n\nclass AudioChunkPlayer extends StatefulWidget {\n  final double angle;\n  final double velocity;\n  final double gravity;\n  final String? customFormula;\n  final String language;\n\n  const AudioChunkPlayer({\n    super.key,\n    required this.angle,\n    required this.velocity,\n    required this.gravity,\n    this.customFormula,\n    this.language = 'te-IN',",
+              "truncated": false,
+              "loaded": []
+            },
+            "time": {
+              "start": 1773837701398,
+              "end": 1773837701518
+            }
+          },
+          "id": "prt_d00f74e12001vZTTwfsYTULuha",
+          "sessionID": "ses_2ff0904ecffeJZ42k2DBgWcSEA",
+          "messageID": "msg_d00f73334001HcWlhAJT2X9uOD"
+        },
+        {
+          "type": "tool",
+          "callID": "call_function_zy76xg1ke4uo_4",
+          "tool": "read",
+          "state": {
+            "status": "completed",
+            "input": {
+              "filePath": "/home/tejasree/visual-task/visual-interaction/frontend/lib/services/speech_service.dart"
+            },
+            "output": "<path>/home/tejasree/visual-task/visual-interaction/frontend/lib/services/speech_service.dart</path>\n<type>file</type>\n<content>1: import 'package:flutter/material.dart';\n2: import 'package:flutter_tts/flutter_tts.dart';\n3: import 'package:http/http.dart' as http;\n4: import 'dart:convert';\n5: import 'dart:math' as math;\n6: import 'package:audioplayers/audioplayers.dart';\n7: import 'api_service.dart';\n8: \n9: class SpeechService {\n10:   static String get baseUrl => ApiService.apiBaseUrl;\n11:   final AudioPlayer _audioPlayer = AudioPlayer();\n12:   final FlutterTts _flutterTts = FlutterTts();\n13:   bool _useBackendTts = true;\n14:   Function? _onComplete;\n15: \n16:   SpeechService() {\n17:     _initTts();\n18:     _audioPlayer.onPlayerComplete.listen((_) {\n19:       _onComplete?.call();\n20:     });\n21:   }\n22: \n23:   Future<void> _initTts() async {\n24:     await _flutterTts.setLanguage(\"te-IN\");\n25:     await _flutterTts.setSpeechRate(0.5);\n26:     await _flutterTts.setVolume(1.0);\n27:     await _flutterTts.setPitch(1.0);\n28:   }\n29: \n30:   void setOnComplete(Function callback) {\n31:     _onComplete = callback;\n32:   }\n33: \n34:   Future<void> speakWithFormula({\n35:     required double angle,\n36:     required double velocity,\n37:     required double gravity,\n38:     required String customFormula,\n39:     String language = 'te-IN',\n40:   }) async {\n41:     if (_useBackendTts) {\n42:       try {\n43:         final response = await http\n44:             .post(\n45:               Uri.parse('$baseUrl/api/simulate'),\n46:               headers: {'Content-Type': 'application/json'},\n47:               body: jsonEncode({\n48:                 'text': '',\n49:                 'angle': angle,\n50:                 'velocity': velocity,\n51:                 'gravity': gravity,\n52:                 'custom_formula': customFormula,\n53:                 'include_formula': true,\n54:                 'language': language,\n55:               }),\n56:             )\n57:             .timeout(const Duration(seconds: 15));\n58: \n59:         if (response.statusCode == 200) {\n60:           final data = jsonDecode(response.body);\n61:           final audioUrl = data['speech_audio_url'];\n62:           if (audioUrl != null && audioUrl.isNotEmpty) {\n63:             await _audioPlayer.play(UrlSource(audioUrl));\n64:             return;\n65:           }\n66:         }\n67:       } catch (e) {\n68:         debugPrint('Backend TTS failed: $e');\n69:       }\n70:     }\n71: \n72:     final formulaText = _convertFormulaToSpeech(customFormula);\n73:     final explanation = 'Formula: $formulaText. '\n74:         'Ipudu i simulation lo, projectile $angle degrees angle daari, '\n75:         '$velocity m/s velocity tho launch avutundi. '\n76:         'Maximum height: ${(velocity * velocity * math.sin(angle * math.pi / 180) * math.sin(angle * math.pi / 180)) / (2 * gravity)}. '\n77:         'Range: ${(velocity * velocity * math.sin(2 * angle * math.pi / 180)) / gravity}.';\n78: \n79:     debugPrint('Using fallback TTS with formula');\n80:     await _flutterTts.speak(explanation);\n81:   }\n82: \n83:   String _convertFormulaToSpeech(String formula) {\n84:     return formula\n85:         .replaceAll('θ', 'theta')\n86:         .replaceAll('²', ' squared ')\n87:         .replaceAll('³', ' cubed ')\n88:         .replaceAll('*', ' multiplied by ')\n89:         .replaceAll('/', ' divided by ')\n90:         .replaceAll('+', ' plus ')\n91:         .replaceAll('-', ' minus ')\n92:         .replaceAll('=', ' equals ')\n93:         .replaceAll('(', ' open parenthesis ')\n94:         .replaceAll(')', ' close parenthesis ')\n95:         .replaceAll('x ', ' x ')\n96:         .replaceAll(' v ', ' v ')\n97:         .replaceAll(' g ', ' g ')\n98:         .replaceAll(' tan ', ' tangent ')\n99:         .replaceAll(' cos ', ' cosine ')\n100:         .replaceAll(' sin ', ' sine ');\n101:   }\n102: \n103:   Future<void> speak(String text) async {\n104:     if (_useBackendTts) {\n105:       try {\n106:         final response = await http\n107:             .post(\n108:               Uri.parse('$baseUrl/api/simulate'),\n109:               headers: {'Content-Type': 'application/json'},\n110:               body: jsonEncode({\n111:                 'text': text,\n112:               }),\n113:             )\n114:             .timeout(const Duration(seconds: 15));\n115: \n116:         if (response.statusCode == 200) {\n117:           final data = jsonDecode(response.body);\n118:           final audioUrl = data['speech_audio_url'];\n119:           if (audioUrl != null && audioUrl.isNotEmpty) {\n120:             await _audioPlayer.play(UrlSource(audioUrl));\n121:             return;\n122:           }\n123:         }\n124:       } catch (e) {\n125:         debugPrint('Backend TTS failed: $e');\n126:       }\n127:     }\n128: \n129:     debugPrint('Using fallback TTS');\n130:     await _flutterTts.speak(text);\n131:   }\n132: \n133:   Future<void> stop() async {\n134:     await _audioPlayer.stop();\n135:     await _flutterTts.stop();\n136:   }\n137: \n138:   void dispose() {\n139:     _audioPlayer.dispose();\n140:     _flutterTts.stop();\n141:   }\n142: }\n\n(End of file - total 142 lines)\n</content>",
+            "title": "frontend/lib/services/speech_service.dart",
+            "metadata": {
+              "preview": "import 'package:flutter/material.dart';\nimport 'package:flutter_tts/flutter_tts.dart';\nimport 'package:http/http.dart' as http;\nimport 'dart:convert';\nimport 'dart:math' as math;\nimport 'package:audioplayers/audioplayers.dart';\nimport 'api_service.dart';\n\nclass SpeechService {\n  static String get baseUrl => ApiService.apiBaseUrl;\n  final AudioPlayer _audioPlayer = AudioPlayer();\n  final FlutterTts _flutterTts = FlutterTts();\n  bool _useBackendTts = true;\n  Function? _onComplete;\n\n  SpeechService() {\n    _initTts();\n    _audioPlayer.onPlayerComplete.listen((_) {\n      _onComplete?.call();\n    });",
+              "truncated": false,
+              "loaded": []
+            },
+            "time": {
+              "start": 1773837701872,
+              "end": 1773837701930
+            }
+          },
+          "id": "prt_d00f75118001vo1BCMg8VSbAEh",
+          "sessionID": "ses_2ff0904ecffeJZ42k2DBgWcSEA",
+          "messageID": "msg_d00f73334001HcWlhAJT2X9uOD"
+        },
+        {
+          "type": "step-finish",
+          "reason": "tool-calls",
+          "snapshot": "6a2fbe4e97354d5196a098a79075194aac5569da",
+          "cost": 0,
+          "tokens": {
+            "total": 6601,
+            "input": 880,
+            "output": 335,
+            "reasoning": 0,
+            "cache": {
+              "read": 4942,
+              "write": 444
+            }
+          },
+          "id": "prt_d00f75331001TcLbIRjRFkMQN7",
+          "sessionID": "ses_2ff0904ecffeJZ42k2DBgWcSEA",
+          "messageID": "msg_d00f73334001HcWlhAJT2X9uOD"
+        }
+      ]
+    },
+    {
+      "info": {
+        "role": "assistant",
+        "time": {
+          "created": 1773837702092,
+          "completed": 1773837708081
+        },
+        "parentID": "msg_d00f6fb1b0018ect2v8t7AjHfs",
+        "modelID": "big-pickle",
+        "providerID": "opencode",
+        "mode": "explore",
+        "agent": "explore",
+        "path": {
+          "cwd": "/home/tejasree/visual-task/visual-interaction",
+          "root": "/home/tejasree/visual-task/visual-interaction"
+        },
+        "cost": 0,
+        "tokens": {
+          "total": 18941,
+          "input": 12222,
+          "output": 155,
+          "reasoning": 0,
+          "cache": {
+            "read": 5022,
+            "write": 1542
+          }
+        },
+        "finish": "tool-calls",
+        "id": "msg_d00f753cb001T0Wk9ZF6Cvnacb",
+        "sessionID": "ses_2ff0904ecffeJZ42k2DBgWcSEA"
+      },
+      "parts": [
+        {
+          "type": "step-start",
+          "snapshot": "6a2fbe4e97354d5196a098a79075194aac5569da",
+          "id": "prt_d00f75fce001y2S99rEQswqSVQ",
+          "sessionID": "ses_2ff0904ecffeJZ42k2DBgWcSEA",
+          "messageID": "msg_d00f753cb001T0Wk9ZF6Cvnacb"
+        },
+        {
+          "type": "reasoning",
+          "text": "Now I have a good understanding of the audio-related files. Let me also search for any additional files that might be related to audio handling or that I might have missed.",
+          "metadata": {
+            "anthropic": {
+              "signature": "bc0e651712212f387313207273c4b787be16f5c0b59cfdd3febd9163c1d34c19"
+            }
+          },
+          "time": {
+            "start": 1773837705172,
+            "end": 1773837706371
+          },
+          "id": "prt_d00f75fd4001LAFdF8Sp8CJ9BO",
+          "sessionID": "ses_2ff0904ecffeJZ42k2DBgWcSEA",
+          "messageID": "msg_d00f753cb001T0Wk9ZF6Cvnacb"
+        },
+        {
+          "type": "text",
+          "text": "\nLet me search for any additional audio-related patterns or files that might have been missed.",
+          "time": {
+            "start": 1773837706379,
+            "end": 1773837706379
+          },
+          "id": "prt_d00f76485001SFkR3Bk6eHeCJ8",
+          "sessionID": "ses_2ff0904ecffeJZ42k2DBgWcSEA",
+          "messageID": "msg_d00f753cb001T0Wk9ZF6Cvnacb"
+        },
+        {
+          "type": "tool",
+          "callID": "call_function_zugs7du6ztbp_1",
+          "tool": "grep",
+          "state": {
+            "status": "completed",
+            "input": {
+              "include": "*.dart",
+              "pattern": "AudioPlayer|audioplayers|audio_player"
+            },
+            "output": "Found 4 matches\n/home/tejasree/visual-task/visual-interaction/frontend/lib/widgets/audio_chunk_player.dart:\n  Line 2: import 'package:audioplayers/audioplayers.dart';\n  Line 28:   final AudioPlayer _audioPlayer = AudioPlayer();\n\n/home/tejasree/visual-task/visual-interaction/frontend/lib/services/speech_service.dart:\n  Line 6: import 'package:audioplayers/audioplayers.dart';\n  Line 11:   final AudioPlayer _audioPlayer = AudioPlayer();",
+            "title": "AudioPlayer|audioplayers|audio_player",
+            "metadata": {
+              "matches": 4,
+              "truncated": false
+            },
+            "time": {
+              "start": 1773837706823,
+              "end": 1773837706847
+            }
+          },
+          "id": "prt_d00f7648d001iGIzPpchpnMVML",
+          "sessionID": "ses_2ff0904ecffeJZ42k2DBgWcSEA",
+          "messageID": "msg_d00f753cb001T0Wk9ZF6Cvnacb"
+        },
+        {
+          "type": "tool",
+          "callID": "call_function_zugs7du6ztbp_2",
+          "tool": "grep",
+          "state": {
+            "status": "completed",
+            "input": {
+              "include": "*.dart",
+              "pattern": "AudioSegment|pydub|base64"
+            },
+            "output": "No files found",
+            "title": "AudioSegment|pydub|base64",
+            "metadata": {
+              "matches": 0,
+              "truncated": false
+            },
+            "time": {
+              "start": 1773837707960,
+              "end": 1773837708006
+            }
+          },
+          "id": "prt_d00f7664b0014oXAHteZqvcjDN",
+          "sessionID": "ses_2ff0904ecffeJZ42k2DBgWcSEA",
+          "messageID": "msg_d00f753cb001T0Wk9ZF6Cvnacb"
+        },
+        {
+          "type": "tool",
+          "callID": "call_function_zugs7du6ztbp_3",
+          "tool": "glob",
+          "state": {
+            "status": "completed",
+            "input": {
+              "pattern": "**/*chunk*"
+            },
+            "output": "/home/tejasree/visual-task/visual-interaction/frontend/lib/widgets/audio_chunk_player.dart",
+            "title": "",
+            "metadata": {
+              "count": 1,
+              "truncated": false
+            },
+            "time": {
+              "start": 1773837707985,
+              "end": 1773837708017
+            }
+          },
+          "id": "REDACTED",
+          "sessionID": "ses_2ff0904ecffeJZ42k2DBgWcSEA",
+          "messageID": "msg_d00f753cb001T0Wk9ZF6Cvnacb"
+        },
+        {
+          "type": "step-finish",
+          "reason": "tool-calls",
+          "snapshot": "6a2fbe4e97354d5196a098a79075194aac5569da",
+          "cost": 0,
+          "tokens": {
+            "total": 18941,
+            "input": 12222,
+            "output": 155,
+            "reasoning": 0,
+            "cache": {
+              "read": 5022,
+              "write": 1542
+            }
+          },
+          "id": "prt_d00f76af40011rtMv3bVGZbAFS",
+          "sessionID": "ses_2ff0904ecffeJZ42k2DBgWcSEA",
+          "messageID": "msg_d00f753cb001T0Wk9ZF6Cvnacb"
+        }
+      ]
+    },
+    {
+      "info": {
+        "role": "assistant",
+        "time": {
+          "created": 1773837708086,
+          "completed": 1773837727105
+        },
+        "parentID": "msg_d00f6fb1b0018ect2v8t7AjHfs",
+        "modelID": "big-pickle",
+        "providerID": "opencode",
+        "mode": "explore",
+        "agent": "explore",
+        "path": {
+          "cwd": "/home/tejasree/visual-task/visual-interaction",
+          "root": "/home/tejasree/visual-task/visual-interaction"
+        },
+        "cost": 0,
+        "tokens": {
+          "total": 19992,
+          "input": 190,
+          "output": 898,
+          "reasoning": 0,
+          "cache": {
+            "read": 6224,
+            "write": 12680
+          }
+        },
+        "finish": "stop",
+        "id": "msg_d00f76b36001zA89q73dXSlaag",
+        "sessionID": "ses_2ff0904ecffeJZ42k2DBgWcSEA"
+      },
+      "parts": [
+        {
+          "type": "step-start",
+          "snapshot": "6a2fbe4e97354d5196a098a79075194aac5569da",
+          "id": "prt_d00f77284001pdM5SQfDqVfJpZ",
+          "sessionID": "ses_2ff0904ecffeJZ42k2DBgWcSEA",
+          "messageID": "msg_d00f76b36001zA89q73dXSlaag"
+        },
+        {
+          "type": "reasoning",
+          "text": "I have found all the relevant audio-related files. Let me now compile my findings into a comprehensive summary for the user.",
+          "metadata": {
+            "anthropic": {
+              "signature": "26798eeb35dfd143086c5297f1f3f11c4e16f3644315b19ccd50760ec8d716bc"
+            }
+          },
+          "time": {
+            "start": 1773837709958,
+            "end": 1773837710435
+          },
+          "id": "prt_d00f77286001PmTUZfKBDolI7n",
+          "sessionID": "ses_2ff0904ecffeJZ42k2DBgWcSEA",
+          "messageID": "msg_d00f76b36001zA89q73dXSlaag"
+        },
+        {
+          "type": "text",
+          "text": "I have completed my search of the codebase. Here is a summary of all files related to audio generation, audio chunking, and combining audio chunks:\n\n---\n\n## Summary of Audio-Related Files\n\n### 1. Backend Audio Generation & Processing\n\n#### `/home/tejasree/visual-task/visual-interaction/backend/services/speech_service.py`\n**Purpose:** Main backend service for audio generation (TTS), text-to-speech synthesis, and audio chunking.\n\n**Key Functions:**\n- **`synthesize_speech(text, target_language_code, speaker)`** - Uses the Sarvam AI TTS API to convert text to speech. Supports English (en-IN) and Telugu (te-IN) languages.\n- **`generate_explanation_text()`** - Generates English explanation text for projectile motion simulation results.\n- **`generate_explanation_text_telugu()`** - Generates Telugu explanation text for projectile motion simulation results.\n- **`generate_chunked_explanations()`** - Creates multiple `AudioChunk` objects (intro, velocity components, formulas, results, parameter changes, summary, custom formula) for segmented audio playback.\n- **`synthesize_chunk()`** - Synthesizes audio for a single `AudioChunk` object.\n- **`combine_audio_chunks(audio_urls)`** - **Combines multiple audio chunks into a single audio file** using pydub's `AudioSegment`. Decodes base64-encoded audio, concatenates them sequentially, and returns a combined base64 audio URL.\n- **`_convert_formula_to_speech()`** - Converts mathematical formulas to speech-friendly text.\n\n---\n\n### 2. Backend API Routes\n\n#### `/home/tejasree/visual-task/visual-interaction/backend/routes/simulation_routes.py`\n**Purpose:** Flask API endpoints that handle audio generation and chunking requests.\n\n**Key Endpoints:**\n- **`POST /api/simulate`** - Generates single TTS audio for simulation results.\n- **`POST /api/chunks`** - Generates multiple audio chunks and combines them. Returns individual chunks + combined audio URL.\n- **`POST /api/chunk/<chunk_id>`** - Generates audio for a single specific chunk.\n- **`POST /api/combine-chunks`** - Endpoint to combine a list of audio URLs into one audio file.\n\n---\n\n### 3. Frontend Audio Widget\n\n#### `/home/tejasree/visual-task/visual-interaction/frontend/lib/widgets/audio_chunk_player.dart`\n**Purpose:** Flutter widget for playing combined audio chunks on the frontend.\n\n**Key Features:**\n- Calls the `/api/chunks` endpoint to get combined audio.\n- Uses `AudioPlayer` from `audioplayers` package to play audio.\n- Supports language toggle between English and Telugu.\n- Provides play, pause, stop, and refresh controls.\n- Displays explanation text alongside audio controls.\n\n---\n\n### 4. Frontend Speech Service\n\n#### `/home/tejasree/visual-task/visual-interaction/frontend/lib/services/speech_service.dart`\n**Purpose:** Flutter service for text-to-speech functionality on the frontend.\n\n**Key Features:**\n- Uses `AudioPlayer` to play audio from backend TTS URLs.\n- Uses `FlutterTts` as a fallback TTS engine when backend is unavailable.\n- **`speak()`** - Sends text to backend TTS API or uses fallback.\n- **`speakWithFormula()`** - Generates TTS with custom physics formulas.\n- **`_convertFormulaToSpeech()`** - Converts mathematical formulas to speech-friendly text.\n- Supports both backend TTS (Sarvam API) and local Flutter TTS fallback.\n\n---\n\n## Audio Workflow Summary\n\n1. **Audio Generation:** Backend `speech_service.py` sends text to Sarvam AI TTS API → returns base64-encoded WAV audio\n2. **Audio Chunking:** `generate_chunked_explanations()` creates multiple chunks for different explanation sections\n3. **Audio Synthesis:** Each chunk is synthesized via `synthesize_chunk()` → individual audio URLs stored in `AudioChunk` objects\n4. **Audio Combining:** `combine_audio_chunks()` merges all base64 audio chunks sequentially using pydub → returns single combined audio URL\n5. **Frontend Playback:** Flutter `AudioChunkPlayer` widget plays the combined audio using `AudioPlayer`",
+          "time": {
+            "start": 1773837727031,
+            "end": 1773837727031
+          },
+          "id": "prt_d00f77465001NPs2Eq6Ls5aB6D",
+          "sessionID": "ses_2ff0904ecffeJZ42k2DBgWcSEA",
+          "messageID": "msg_d00f76b36001zA89q73dXSlaag"
+        },
+        {
+          "type": "step-finish",
+          "reason": "stop",
+          "snapshot": "6a2fbe4e97354d5196a098a79075194aac5569da",
+          "cost": 0,
+          "tokens": {
+            "total": 19992,
+            "input": 190,
+            "output": 898,
+            "reasoning": 0,
+            "cache": {
+              "read": 6224,
+              "write": 12680
+            }
+          },
+          "id": "prt_d00f7b553001jnu1qtlbzKDnr4",
+          "sessionID": "ses_2ff0904ecffeJZ42k2DBgWcSEA",
+          "messageID": "msg_d00f76b36001zA89q73dXSlaag"
+        }
+      ]
+    }
+  ]
+}

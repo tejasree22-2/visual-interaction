@@ -1,0 +1,25 @@
+{
+  "cli_version": "0.5.0",
+  "checkpoint_id": "9a7cccfd18d7",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "backend/routes/simulation_routes.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/9a/7cccfd18d7/0/metadata.json",
+      "transcript": "/9a/7cccfd18d7/0/full.jsonl",
+      "content_hash": "/9a/7cccfd18d7/0/content_hash.txt",
+      "prompt": "/9a/7cccfd18d7/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 13334,
+    "cache_creation_tokens": 19688,
+    "cache_read_tokens": 16188,
+    "output_tokens": 1747,
+    "api_call_count": 4
+  }
+}
