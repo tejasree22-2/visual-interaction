@@ -360,128 +360,13 @@ def generate_chunked_explanations(angle: float, velocity: float, gravity: float,
     chunks = []
     
     chunks.append(AudioChunk(
-        chunk_id="intro",
-        title="Introduction to Projectile Motion",
-        title_te="ప్రొజెక్టైల్ మోషన్ పరిచయం",
-        text=f"Let's learn about projectile motion! When we launch an object at an angle, it follows a curved path called a trajectory. In this simulation, we launch a projectile at {_number_to_words(angle)} degrees with an initial velocity of {_number_to_words(velocity)} meters per second.",
-        text_te=f"Projectile motion theory ante, niiku explain cheyyali! Eppudaina object ni angle lo launch cheyyamante, adhi curved path lo travel avutundi. I simulation lo, projectile ni {angle} degrees angle lo, {velocity} m/s velocity tho launch cheyyagane.",
-        category="concept"
+        chunk_id="main",
+        title="Projectile Motion Basics",
+        title_te="ప్రొజెక్టైల్ మోషన్ ప్రాథమికాలు",
+        text=f"Let's learn about projectile motion! When we launch an object at {angle} degrees with velocity {velocity} meters per second, it follows a curved path called trajectory. The initial velocity splits into two components: horizontal component {vx:.2f} m/s and vertical component {vy:.2f} m/s. The key formulas are: x equals v cos theta times t for horizontal distance, and y equals v sin theta times t minus half g t squared for vertical height. Your simulation results: maximum height {result['max_height']:.2f} meters, total range {result['range']:.2f} meters, and time of flight {result['time_of_flight']:.2f} seconds. Remember: 45 degrees gives maximum range on Earth!",
+        text_te=f"Niiku projectile motion explanation ivvutu! Eppudu projectile ni {angle} degrees angle lo, {velocity} m/s velocity tho launch cheyyagane. Initial velocity ni two components lo split cheyyali. Sideways component = {vx:.2f} m/s, vertical component = {vy:.2f} m/s. Key formulas: horizontal distance ki x = v cos theta times t, vertical height ki y = v sin theta times t minus half g t squared. Results: maximum height = {result['max_height']:.2f} meters, total range = {result['range']:.2f} meters, time of flight = {result['time_of_flight']:.2f} seconds. Earth lo maximum range ki 45 degrees ideal angle!",
+        category="main"
     ))
-    
-    chunks.append(AudioChunk(
-        chunk_id="components",
-        title="Velocity Components Explained",
-        title_te="వెలాసిటీ కాంపొనెంట్స్ వివరణ",
-        text=f"The initial velocity gets split into two parts. The first part, which acts sideways, is {_number_to_words(vx)} m/s, and the second part, which acts up and down, is {_number_to_words(vy)} m/s. The sideways acting part stays the same throughout because there's no air resistance. The up and down acting part changes due to gravity.",
-        text_te=f"Ipudu initial velocity ni two components lo split cheyyali. Sideways component = {vx:.2f} m/s. Vertical component = {vy:.2f} m/s. Sideways motion lo gravity effect ledu kabbati constant velocity tho move avutundi. Vertical motion lo gravity {gravity} m/s² impact undi.",
-        category="concept"
-    ))
-    
-    chunks.append(AudioChunk(
-        chunk_id="formulas",
-        title="Key Formulas",
-        title_te="ముఖ్యమైన ఫార్ములాలు",
-        text=f"Remember these important formulas! For the distance traveled: x equals v cos theta times t. For vertical height: y equals v sin theta times t minus half g t squared. These help us calculate the projectile's position at any time.",
-        text_te=f"Eppudu formulas remember cheyyandi! Sideways distance ki: x = v cos theta times t. Vertical height ki: y = v sin theta times t minus half g t squared. Ippudu maximum height, range, flight time formulas check cheyyamandi.",
-        category="formula"
-    ))
-    
-    chunks.append(AudioChunk(
-        chunk_id="results",
-        title="Simulation Results",
-        title_te="సిమ్యులేషన్ ఫలితాలు",
-        text=f"Here are your simulation results! Maximum height reached: {_number_to_words(result['max_height'])} meters. Total distance covered: {_number_to_words(result['range'])} meters. Time of flight: {_number_to_words(result['time_of_flight'])} seconds. These results depend on your angle and velocity settings.",
-        text_te=f"Ipudu results choodamandi! Maximum height = {result['max_height']:.2f} meters. Total range = {result['range']:.2f} meters. Time of flight = {result['time_of_flight']:.2f} seconds. Kabbati 45° angle maximum range ki ideal.",
-        category="results"
-    ))
-    
-    if prev_angle is not None and prev_angle != angle:
-        diff = angle - prev_angle
-        direction_en = "increased" if diff > 0 else "decreased"
-        direction_te = "increase ayyindi" if diff > 0 else "decrease ayyindi"
-        if diff > 0:
-            chunks.append(AudioChunk(
-                chunk_id="angle_change_up",
-                title="Angle Increased Effect",
-                title_te="ఏంగిల్ పెరిగినప్పుడు",
-                text=f"You increased the angle from {_number_to_words(prev_angle)} to {_number_to_words(angle)} degrees. Higher angle means the projectile goes higher but travels a shorter distance. The up and down part increases while the sideways part decreases.",
-                text_te=f"Angle {prev_angle} నుండి {angle} degrees కి {direction_te}. Higher angle ante, projectile more height ki reach avutundi but short distance travel avutundi. Vertical component increase avutundi. Sideways component decrease avutundi.",
-                category="change"
-            ))
-        else:
-            chunks.append(AudioChunk(
-                chunk_id="angle_change_down",
-                title="Angle Decreased Effect",
-                title_te="ఏంగిల్ తగ్గినప్పుడు",
-                text=f"You decreased the angle from {_number_to_words(prev_angle)} to {_number_to_words(angle)} degrees. Lower angle means the projectile travels farther but reaches a lower maximum height. The sideways part increases while the up and down part decreases.",
-                text_te=f"Angle {prev_angle} నుండి {angle} degrees కి {direction_te}. Lower angle ante, projectile more distance travel avutundi but low height ki reach avutundi. Sideways component increase avutundi. Vertical component decrease avutundi.",
-                category="change"
-            ))
-    
-    if prev_velocity is not None and prev_velocity != velocity:
-        diff = velocity - prev_velocity
-        direction_en = "increased" if diff > 0 else "decreased"
-        direction_te = "increase ayyindi" if diff > 0 else "decrease ayyindi"
-        if diff > 0:
-            chunks.append(AudioChunk(
-                chunk_id="velocity_change_up",
-                title="Velocity Increased Effect",
-                title_te="వెలాసిటీ పెరిగినప్పుడు",
-                text=f"You increased the velocity from {_number_to_words(prev_velocity)} to {_number_to_words(velocity)} meters per second. Higher velocity means the projectile has more initial energy, so both height and range increase. Remember: range and height are proportional to velocity squared!",
-                text_te=f"Velocity {prev_velocity} నుండి {velocity} m/s కి {direction_te}. Higher velocity ante, projectile more initial energy undi. Kabbati both height and range increase avutundi. Physics lo, Range ∝ v² and Height ∝ v².",
-                category="change"
-            ))
-        else:
-            chunks.append(AudioChunk(
-                chunk_id="velocity_change_down",
-                title="Velocity Decreased Effect",
-                title_te="వెలాసిటీ తగ్గినప్పుడు",
-                text=f"You decreased the velocity from {_number_to_words(prev_velocity)} to {_number_to_words(velocity)} meters per second. Lower velocity means less initial energy, so both height and range decrease.",
-                text_te=f"Velocity {prev_velocity} నుండి {velocity} m/s కి {direction_te}. Lower velocity ante, initial energy decrease avutundi. Kabbati both height and range decrease avutundi.",
-                category="change"
-            ))
-    
-    if prev_gravity is not None and prev_gravity != gravity:
-        diff = gravity - prev_gravity
-        direction_te = "increase ayyindi" if diff > 0 else "decrease ayyindi"
-        if diff > 0:
-            chunks.append(AudioChunk(
-                chunk_id="gravity_change_up",
-                title="Gravity Increased Effect",
-                title_te="గ్రావిటీ పెరిగినప్పుడు",
-                text=f"You increased gravity from {_number_to_words(prev_gravity)} to {_number_to_words(gravity)} meters per second squared. Stronger gravity pulls the projectile down faster, reducing both flight time and maximum height. Compare: Moon has {_number_to_words(1.6)} m/s², Earth has {_number_to_words(9.81)} m/s², Jupiter has {_number_to_words(24.8)} m/s²!",
-                text_te=f"Gravity {prev_gravity} నుండి {gravity} m/s² కి {direction_te}. Stronger gravity ante, projectile fast ga ground ki vellipovali. Kabbati flight time and maximum height both decrease avutundi. Moon lo gravity 1.6, Jupiter lo 24.8.",
-                category="change"
-            ))
-        else:
-            chunks.append(AudioChunk(
-                chunk_id="gravity_change_down",
-                title="Gravity Decreased Effect",
-                title_te="గ్రావిటీ తగ్గినప్పుడు",
-                text=f"You decreased gravity from {_number_to_words(prev_gravity)} to {_number_to_words(gravity)} meters per second squared. Weaker gravity means the projectile stays in the air longer and reaches a higher maximum height.",
-                text_te=f"Gravity {prev_gravity} నుండి {gravity} m/s² కి {direction_te}. Weak gravity ante, projectile long time air lo undi and more height reach avutundi.",
-                category="change"
-            ))
-    
-    chunks.append(AudioChunk(
-        chunk_id="summary",
-        title="Key Takeaways",
-        title_te="ముఖ్యమైన అంశాలు",
-        text=f"Let me summarize the key points! The angle determines how high and far the projectile goes. The velocity affects both height and range. Gravity pulls the projectile down. For maximum range on Earth, an angle of 45 degrees is ideal. Try different combinations to see how these parameters interact!",
-        text_te=f"Ipudu key points summarize cheyyamandi! Angle ante, projectile height and distance decide avutundi. Velocity ante, both height and range affect avutundi. Gravity ante, projectile ni ground ki pull cheyyutundi. Earth lo maximum range ki 45° ideal angle. Experimentation cheyyandi!",
-        category="summary"
-    ))
-    
-    if include_formula and custom_formula:
-        formula_speech = _convert_formula_to_speech(custom_formula)
-        chunks.append(AudioChunk(
-            chunk_id="custom_formula",
-            title="Custom Formula Explanation",
-            title_te="కస్టమ్ ఫార్ములా వివరణ",
-            text=f"You're using a custom formula: {formula_speech}. This formula describes the relationship between the sideways distance, vertical height, launch angle, initial velocity, and gravity. In this formula, y represents vertical height, x represents sideways distance, theta represents launch angle, v represents velocity, and g represents gravity.",
-            text_te=f"Niiku custom formula use cheyyataaniki: {formula_speech}. I formula lo y = vertical height, x = sideways distance, theta = launch angle, v = velocity, g = gravity.",
-            category="formula"
-        ))
     
     return chunks
 
