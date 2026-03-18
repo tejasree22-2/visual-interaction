@@ -125,7 +125,7 @@ def generate_explanation_text(angle: float, velocity: float, gravity: float,
 
 
 def synthesize_speech(text: str, target_language_code: str = "en-IN", 
-                      speaker: str = "arya") -> dict:
+                      speaker: str = "arya", max_retries: int = 3) -> dict:
     api_key = get_api_key()
     
     if not api_key:
@@ -144,32 +144,47 @@ def synthesize_speech(text: str, target_language_code: str = "en-IN",
         "speech_sample_rate": 16000
     }
     
-    try:
-        response = requests.post(SARVAM_API_URL, headers=headers, json=payload, timeout=60)
-        response.raise_for_status()
-        
-        result = response.json()
-        
-        if result.get("audios") and len(result["audios"]) > 0:
-            audio_base64 = result["audios"][0]
-            if not audio_base64 or len(audio_base64) < 1000:
-                print(f"Warning: Suspiciously short audio data for text: {text[:50]}...")
-                return {"error": "Audio data too short", "audio_url": None}
-            audio_data_url = f"data:audio/wav;base64,{audio_base64}"
-            return {
-                "audio_url": audio_data_url,
-                "request_id": result.get("request_id")
-            }
-        else:
-            print(f"Warning: No audio returned from API for text: {text[:50]}...")
-            return {"error": "No audio returned from API", "audio_url": None}
+    for attempt in range(max_retries):
+        try:
+            response = requests.post(SARVAM_API_URL, headers=headers, json=payload, timeout=60)
+            response.raise_for_status()
             
-    except requests.exceptions.RequestException as e:
-        print(f"Error calling Sarvam API: {e}")
-        return {"error": str(e), "audio_url": None}
-    except Exception as e:
-        print(f"Unexpected error in synthesize_speech: {e}")
-        return {"error": str(e), "audio_url": None}
+            result = response.json()
+            
+            if result.get("audios") and len(result["audios"]) > 0:
+                audio_base64 = result["audios"][0]
+                if not audio_base64 or len(audio_base64) < 500:
+                    print(f"Warning: Suspiciously short audio data for text: {text[:50]}... (attempt {attempt + 1}/{max_retries})")
+                    if attempt < max_retries - 1:
+                        import time
+                        time.sleep(1)
+                        continue
+                    return {"error": "Audio data too short", "audio_url": None}
+                audio_data_url = f"data:audio/wav;base64,{audio_base64}"
+                return {
+                    "audio_url": audio_data_url,
+                    "request_id": result.get("request_id")
+                }
+            else:
+                print(f"Warning: No audio returned from API for text: {text[:50]}... (attempt {attempt + 1}/{max_retries})")
+                if attempt < max_retries - 1:
+                    import time
+                    time.sleep(1)
+                    continue
+                return {"error": "No audio returned from API", "audio_url": None}
+                
+        except requests.exceptions.RequestException as e:
+            print(f"Error calling Sarvam API (attempt {attempt + 1}/{max_retries}): {e}")
+            if attempt < max_retries - 1:
+                import time
+                time.sleep(2)
+                continue
+            return {"error": str(e), "audio_url": None}
+        except Exception as e:
+            print(f"Unexpected error in synthesize_speech: {e}")
+            return {"error": str(e), "audio_url": None}
+    
+    return {"error": "Max retries exceeded", "audio_url": None}
 
 
 def get_audio_stream(text: str):
@@ -450,9 +465,8 @@ def combine_audio_chunks(audio_urls: List[str]) -> Optional[str]:
                     base64_data = url.split(",", 1)[1]
                     audio_bytes = base64.b64decode(base64_data)
                     
-                    if not audio_bytes or len(audio_bytes) < 1000:
-                        print(f"Warning: Suspiciously small audio data for chunk {i}: {len(audio_bytes)} bytes")
-                        continue
+                    if not audio_bytes or len(audio_bytes) < 500:
+                        print(f"Warning: Suspiciously small audio data for chunk {i}: {len(audio_bytes) if audio_bytes else 0} bytes, attempting to process anyway")
                 except Exception as e:
                     print(f"Warning: Failed to decode base64 for chunk {i}: {e}")
                     continue
@@ -477,13 +491,16 @@ def combine_audio_chunks(audio_urls: List[str]) -> Optional[str]:
                         audio_length_ms = len(audio)
                         
                         if valid_chunks > 0 and len(combined_seg) > 0:
-                            overlap_duration = min(50, len(combined_seg), audio_length_ms)
-                            combined_seg = combined_seg.append(audio, crossfade=overlap_duration)
+                            overlap_duration = min(30, len(combined_seg) // 4, audio_length_ms // 4)
+                            if overlap_duration > 0:
+                                combined_seg = combined_seg.append(audio, crossfade=overlap_duration)
+                            else:
+                                combined_seg += audio
                         else:
                             combined_seg += audio
                         
                         if i < len(audio_urls) - 1:
-                            silence_duration_ms = 200
+                            silence_duration_ms = 100
                             silence = AudioSegment.silent(duration=silence_duration_ms, frame_rate=target_sample_rate)
                             combined_seg += silence
                         
