@@ -19,6 +19,12 @@
       "transcript": "/8c/278db4cded/1/full.jsonl",
       "content_hash": "/8c/278db4cded/1/content_hash.txt",
       "prompt": "/8c/278db4cded/1/prompt.txt"
+    },
+    {
+      "metadata": "/8c/278db4cded/2/metadata.json",
+      "transcript": "/8c/278db4cded/2/full.jsonl",
+      "content_hash": "/8c/278db4cded/2/content_hash.txt",
+      "prompt": ""
     }
   ],
   "token_usage": {
