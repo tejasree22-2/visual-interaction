@@ -1,0 +1,41 @@
+while running the backend through pyton3 app.py then while changing the values nothing showen the debugger what happening
+
+---
+
+and what about sarvam text to speech not shown in the browser
+
+---
+
+ok
+
+---
+
+is any errors
+
+---
+
+once check the whole functionality works properly
+
+---
+
+i have doubt that when user changes the values with slides then it will store in the database right
+
+---
+
+then why the simulation table in the backend
+
+---
+
+now i will say what exactly i want when the user change the controls again the same values are entered it go to cache redis and bring that values and sarvam api should work all this need to connect to the backend routes
+
+---
+
+that some thing will shown when debugger right
+
+---
+
+no when we run backend the debugger is on and when changes done we can see right in backend
+
+---
+
+once check full flow
