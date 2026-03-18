@@ -80,8 +80,8 @@ def generate_explanation_text(angle: float, velocity: float, gravity: float,
     if include_formula and custom_formula:
         formula_speech = _convert_formula_to_speech(custom_formula)
         parts.append(f"The projectile motion formula being used is: {formula_speech}. ")
-        parts.append("This formula describes the relationship between the horizontal distance, vertical height, launch angle, initial velocity, and gravity. ")
-        parts.append("In this formula, y represents the vertical height, x represents the horizontal distance, theta represents the launch angle, v represents the initial velocity, and g represents gravitational acceleration. ")
+        parts.append("This formula describes the relationship between the sideways distance, vertical height, launch angle, initial velocity, and gravity. ")
+        parts.append("In this formula, y represents the vertical height, x represents the sideways distance, theta represents the launch angle, v represents the initial velocity, and g represents gravitational acceleration. ")
     
     parts.append(f"In this projectile motion simulation, the projectile is launched at an angle of {angle} degrees with an initial velocity of {velocity} meters per second under a gravitational acceleration of {gravity} meters per second squared.")
     
@@ -118,7 +118,7 @@ def generate_explanation_text(angle: float, velocity: float, gravity: float,
     result = calculate_trajectory(angle, velocity, gravity)
     
     parts.append(f"The maximum height reached is {result['max_height']} meters. ")
-    parts.append(f"The total range or horizontal distance covered is {result['range']} meters. ")
+    parts.append(f"The total range or distance covered is {result['range']} meters. ")
     parts.append(f"The projectile remains in the air for {result['time_of_flight']} seconds.")
     
     return " ".join(parts)
@@ -197,8 +197,8 @@ def generate_explanation_text_telugu(angle: float, velocity: float, gravity: flo
     
     parts.append(f"Hello everyone! Niiku projectile motion ni explanation ivvutu. ")
     parts.append(f"Ipudu i simulation lo, projectile {angle} degrees angle daari, {velocity} m/s velocity tho launch avutundi. ")
-    parts.append(f"Ekkada velocity ni two components lo split cheyyali. Horizontal component = {velocity * math.cos(angle_rad):.2f} m/s. Vertical component = {velocity * math.sin(angle_rad):.2f} m/s. ")
-    parts.append(f"Horizontal motion lo, gravity effect ledu. Kabbati constant velocity tho move avutundi. Formula: x = v cosθ × t. ")
+    parts.append(f"Ekkada velocity ni two components lo split cheyyali. Sideways component = {velocity * math.cos(angle_rad):.2f} m/s. Vertical component = {velocity * math.sin(angle_rad):.2f} m/s. ")
+    parts.append(f"Regarding sideways motion, gravity effect ledu. Kabbati constant velocity tho move avutundi. Formula: x = v cos theta times t. ")
     parts.append(f"Vertical motion lo, gravity {gravity} m/s² impact undi. Upward movement lo velocity decrease avutundi, downward movement lo increase avutundi. Formula: y = v sinθ × t - ½gt². ")
     
     parts.append(f"\nOkay, ante results: ")
@@ -209,11 +209,11 @@ def generate_explanation_text_telugu(angle: float, velocity: float, gravity: flo
     if prev_angle is not None and prev_angle != angle:
         diff = angle - prev_angle
         if diff > 0:
-            parts.append(f"\nSo, angle increase ayyindi ante, vertical component increase avutundi. Horizontal component decrease avutundi. ")
+            parts.append(f"\nSo, angle increase ayyindi ante, vertical component increase avutundi. Sideways component decrease avutundi. ")
             parts.append(f"Kabbati maximum height increase avutundi. Range decrease avutundi. ")
             parts.append(f"Remember: 45° max range ki ideal angle. ")
         else:
-            parts.append(f"\nSo, angle decrease ayyindi ante, horizontal component increase avutundi. Vertical component decrease avutundi. ")
+            parts.append(f"\nSo, angle decrease ayyindi ante, sideways component increase avutundi. Vertical component decrease avutundi. ")
             parts.append(f"Kabbati range increase avutundi. Maximum height decrease avutundi. ")
     
     if prev_velocity is not None and prev_velocity != velocity:
@@ -268,8 +268,8 @@ def generate_chunked_explanations(angle: float, velocity: float, gravity: float,
         chunk_id="components",
         title="Velocity Components Explained",
         title_te="వెలాసిటీ కాంపొనెంట్స్ వివరణ",
-        text=f"The initial velocity gets split into two components. The horizontal component is {vx:.2f} m/s, and the vertical component is {vy:.2f} m/s. The horizontal component stays constant because there's no air resistance. The vertical component changes due to gravity.",
-        text_te=f"Ipudu initial velocity ni two components lo split cheyyali. Horizontal component = {vx:.2f} m/s. Vertical component = {vy:.2f} m/s. Horizontal motion lo, gravity effect ledu kabbati constant velocity tho move avutundi. Vertical motion lo k乳液 gravity {gravity} m/s² impact undi.",
+        text=f"The initial velocity gets split into two parts. The first part, which acts sideways, is {vx:.2f} m/s, and the second part, which acts up and down, is {vy:.2f} m/s. The sideways acting part stays the same throughout because there's no air resistance. The up and down acting part changes due to gravity.",
+        text_te=f"Ipudu initial velocity ni two components lo split cheyyali. Sideways component = {vx:.2f} m/s. Vertical component = {vy:.2f} m/s. Sideways motion lo gravity effect ledu kabbati constant velocity tho move avutundi. Vertical motion lo gravity {gravity} m/s² impact undi.",
         category="concept"
     ))
     
@@ -277,8 +277,8 @@ def generate_chunked_explanations(angle: float, velocity: float, gravity: float,
         chunk_id="formulas",
         title="Key Formulas",
         title_te="ముఖ్యమైన ఫార్ములాలు",
-        text=f"Remember these important formulas! For horizontal distance: x equals v cos theta times t. For vertical height: y equals v sin theta times t minus half g t squared. These help us calculate the projectile's position at any time.",
-        text_te=f"Eppudu formulas remember cheyyandi! Horizontal distance ki: x = v cosθ × t. Vertical height ki: y = v sinθ × t - ½gt². Ippudu maximum height, range, flight time formulas check cheyyamandi.",
+        text=f"Remember these important formulas! For the distance traveled: x equals v cos theta times t. For vertical height: y equals v sin theta times t minus half g t squared. These help us calculate the projectile's position at any time.",
+        text_te=f"Eppudu formulas remember cheyyandi! Sideways distance ki: x = v cos theta times t. Vertical height ki: y = v sin theta times t minus half g t squared. Ippudu maximum height, range, flight time formulas check cheyyamandi.",
         category="formula"
     ))
     
@@ -286,7 +286,7 @@ def generate_chunked_explanations(angle: float, velocity: float, gravity: float,
         chunk_id="results",
         title="Simulation Results",
         title_te="సిమ్యులేషన్ ఫలితాలు",
-        text=f"Here are your simulation results! Maximum height reached: {result['max_height']:.2f} meters. Total horizontal distance covered: {result['range']:.2f} meters. Time of flight: {result['time_of_flight']:.2f} seconds. These results depend on your angle and velocity settings.",
+        text=f"Here are your simulation results! Maximum height reached: {result['max_height']:.2f} meters. Total distance covered: {result['range']:.2f} meters. Time of flight: {result['time_of_flight']:.2f} seconds. These results depend on your angle and velocity settings.",
         text_te=f"Ipudu results choodamandi! Maximum height = {result['max_height']:.2f} meters. Total range = {result['range']:.2f} meters. Time of flight = {result['time_of_flight']:.2f} seconds. Kabbati 45° angle maximum range ki ideal.",
         category="results"
     ))
@@ -300,8 +300,8 @@ def generate_chunked_explanations(angle: float, velocity: float, gravity: float,
                 chunk_id="angle_change_up",
                 title="Angle Increased Effect",
                 title_te="ఏంగిల్ పెరిగినప్పుడు",
-                text=f"You increased the angle from {prev_angle} to {angle} degrees. Higher angle means the projectile goes higher but travels a shorter distance. The vertical component increases while horizontal component decreases.",
-                text_te=f"Angle {prev_angle} నుండి {angle} degrees కి {direction_te}. Higher angle ante, projectile more height ki reach avutundi but short distance travel avutundi. Vertical component increase avutundi. Horizontal component decrease avutundi.",
+                text=f"You increased the angle from {prev_angle} to {angle} degrees. Higher angle means the projectile goes higher but travels a shorter distance. The up and down part increases while the sideways part decreases.",
+                text_te=f"Angle {prev_angle} నుండి {angle} degrees కి {direction_te}. Higher angle ante, projectile more height ki reach avutundi but short distance travel avutundi. Vertical component increase avutundi. Sideways component decrease avutundi.",
                 category="change"
             ))
         else:
@@ -309,8 +309,8 @@ def generate_chunked_explanations(angle: float, velocity: float, gravity: float,
                 chunk_id="angle_change_down",
                 title="Angle Decreased Effect",
                 title_te="ఏంగిల్ తగ్గినప్పుడు",
-                text=f"You decreased the angle from {prev_angle} to {angle} degrees. Lower angle means the projectile travels farther but reaches a lower maximum height. The horizontal component increases while vertical component decreases.",
-                text_te=f"Angle {prev_angle} నుండి {angle} degrees కి {direction_te}. Lower angle ante, projectile more distance travel avutundi but low height ki reach avutundi. Horizontal component increase avutundi. Vertical component decrease avutundi.",
+                text=f"You decreased the angle from {prev_angle} to {angle} degrees. Lower angle means the projectile travels farther but reaches a lower maximum height. The sideways part increases while the up and down part decreases.",
+                text_te=f"Angle {prev_angle} నుండి {angle} degrees కి {direction_te}. Lower angle ante, projectile more distance travel avutundi but low height ki reach avutundi. Sideways component increase avutundi. Vertical component decrease avutundi.",
                 category="change"
             ))
     
@@ -374,8 +374,8 @@ def generate_chunked_explanations(angle: float, velocity: float, gravity: float,
             chunk_id="custom_formula",
             title="Custom Formula Explanation",
             title_te="కస్టమ్ ఫార్ములా వివరణ",
-            text=f"You're using a custom formula: {formula_speech}. This formula describes the relationship between horizontal distance, vertical height, launch angle, initial velocity, and gravity. In this formula, y represents vertical height, x represents horizontal distance, theta represents launch angle, v represents velocity, and g represents gravity.",
-            text_te=f"Niiku custom formula use cheyyataaniki: {formula_speech}. I formula lo y = vertical height, x = horizontal distance, θ = launch angle, v = velocity, g = gravity.",
+            text=f"You're using a custom formula: {formula_speech}. This formula describes the relationship between the sideways distance, vertical height, launch angle, initial velocity, and gravity. In this formula, y represents vertical height, x represents sideways distance, theta represents launch angle, v represents velocity, and g represents gravity.",
+            text_te=f"Niiku custom formula use cheyyataaniki: {formula_speech}. I formula lo y = vertical height, x = sideways distance, theta = launch angle, v = velocity, g = gravity.",
             category="formula"
         ))
     
