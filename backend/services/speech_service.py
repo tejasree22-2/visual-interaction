@@ -145,7 +145,7 @@ def synthesize_speech(text: str, target_language_code: str = "en-IN",
     }
     
     try:
-        response = requests.post(SARVAM_API_URL, headers=headers, json=payload, timeout=30)
+        response = requests.post(SARVAM_API_URL, headers=headers, json=payload, timeout=60)
         response.raise_for_status()
         
         result = response.json()
@@ -442,59 +442,58 @@ def combine_audio_chunks(audio_urls: List[str]) -> Optional[str]:
                 print(f"Warning: Empty URL for chunk {i}")
                 continue
             
+            audio = None
+            audio_bytes = None
+            
             if url.startswith("data:audio"):
-                base64_data = url.split(",")[1]
-                audio_bytes = base64.b64decode(base64_data)
-                
                 try:
-                    wav_reader = wave.open(io.BytesIO(audio_bytes), 'rb')
-                    wav_reader.close()
+                    base64_data = url.split(",", 1)[1]
+                    audio_bytes = base64.b64decode(base64_data)
                     
+                    if not audio_bytes or len(audio_bytes) < 1000:
+                        print(f"Warning: Suspiciously small audio data for chunk {i}: {len(audio_bytes)} bytes")
+                        continue
+                except Exception as e:
+                    print(f"Warning: Failed to decode base64 for chunk {i}: {e}")
+                    continue
+            
+            if audio_bytes:
+                try:
                     audio = AudioSegment.from_wav(io.BytesIO(audio_bytes))
-                    
-                    if audio.frame_rate != target_sample_rate:
-                        audio = audio.set_frame_rate(target_sample_rate)
-                    if audio.channels != target_channels:
-                        audio = audio.set_channels(target_channels)
-                    
-                    if i > 0 and len(combined_seg) > 0:
-                        crossfade_duration = min(100, len(combined_seg), len(audio))
-                        combined_seg = combined_seg.append(audio, crossfade=crossfade_duration)
-                    else:
-                        combined_seg += audio
-                    
-                    if i < len(audio_urls) - 1:
-                        silence_duration_ms = 300
-                        silence = AudioSegment.silent(duration=silence_duration_ms, frame_rate=target_sample_rate)
-                        combined_seg += silence
-                    valid_chunks += 1
-                except wave.Error as e:
-                    print(f"Warning: Could not parse WAV for chunk {i}: {e}. Retrying with different approach...")
+                except Exception:
                     try:
                         audio = AudioSegment.from_file(io.BytesIO(audio_bytes), format="wav")
+                    except Exception as e:
+                        print(f"Warning: Could not parse audio for chunk {i}: {e}")
+                        continue
+                
+                if audio:
+                    try:
                         if audio.frame_rate != target_sample_rate:
                             audio = audio.set_frame_rate(target_sample_rate)
                         if audio.channels != target_channels:
                             audio = audio.set_channels(target_channels)
                         
-                        if i > 0 and len(combined_seg) > 0:
-                            crossfade_duration = min(100, len(combined_seg), len(audio))
-                            combined_seg = combined_seg.append(audio, crossfade=crossfade_duration)
+                        audio_length_ms = len(audio)
+                        
+                        if valid_chunks > 0 and len(combined_seg) > 0:
+                            overlap_duration = min(50, len(combined_seg), audio_length_ms)
+                            combined_seg = combined_seg.append(audio, crossfade=overlap_duration)
                         else:
                             combined_seg += audio
                         
                         if i < len(audio_urls) - 1:
-                            silence_duration_ms = 300
+                            silence_duration_ms = 200
                             silence = AudioSegment.silent(duration=silence_duration_ms, frame_rate=target_sample_rate)
                             combined_seg += silence
+                        
                         valid_chunks += 1
-                        print(f"Chunk {i} recovered successfully")
-                    except Exception as retry_error:
-                        print(f"Failed to recover chunk {i}: {retry_error}")
+                        print(f"Chunk {i} processed successfully, length: {audio_length_ms}ms")
+                    except Exception as e:
+                        print(f"Error combining chunk {i}: {e}")
                         continue
-                except Exception as e:
-                    print(f"Error processing chunk {i}: {e}")
-                    continue
+        
+        print(f"Total valid chunks combined: {valid_chunks}/{len(audio_urls)}")
         
         if valid_chunks == 0:
             print("No valid audio chunks to combine")
@@ -504,6 +503,8 @@ def combine_audio_chunks(audio_urls: List[str]) -> Optional[str]:
             print("Combined audio is empty")
             return None
         
+        print(f"Final combined audio length: {len(combined_seg)}ms")
+        
         combined_seg = combined_seg.set_frame_rate(target_sample_rate)
         combined_seg = combined_seg.set_channels(target_channels)
         
@@ -512,6 +513,7 @@ def combine_audio_chunks(audio_urls: List[str]) -> Optional[str]:
         output_buffer.seek(0)
         
         audio_base64 = base64.b64encode(output_buffer.read()).decode("utf-8")
+        print(f"Combined audio base64 length: {len(audio_base64)}")
         return f"data:audio/wav;base64,{audio_base64}"
     except Exception as e:
         print(f"Error combining audio chunks: {e}")

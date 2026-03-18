@@ -122,12 +122,22 @@ def get_audio_chunks():
     
     chunk_data = []
     audio_urls = []
+    failed_chunks = 0
     for chunk in chunks:
-        chunk = synthesize_chunk(chunk, language=language)
-        chunk_data.append(chunk.to_dict())
-        audio_url = chunk.audio_url_te if language == "te-IN" else chunk.audio_url_en
-        if audio_url:
-            audio_urls.append(audio_url)
+        try:
+            chunk = synthesize_chunk(chunk, language=language)
+            chunk_data.append(chunk.to_dict())
+            audio_url = chunk.audio_url_te if language == "te-IN" else chunk.audio_url_en
+            if audio_url:
+                audio_urls.append(audio_url)
+            else:
+                print(f"Warning: No audio generated for chunk {chunk.chunk_id}")
+                failed_chunks += 1
+        except Exception as e:
+            print(f"Error synthesizing chunk {chunk.chunk_id}: {e}")
+            failed_chunks += 1
+    
+    print(f"Audio chunks: {len(audio_urls)} successful, {failed_chunks} failed out of {len(chunks)} total")
     
     combined_audio_url = None
     if audio_urls:
