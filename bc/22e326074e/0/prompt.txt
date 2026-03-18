@@ -1,0 +1,1 @@
+i don't want edit formula and the projectile is not working both in 2d and 3d and while slides move the values must change automatically
