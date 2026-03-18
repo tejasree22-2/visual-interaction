@@ -152,15 +152,23 @@ def synthesize_speech(text: str, target_language_code: str = "en-IN",
         
         if result.get("audios") and len(result["audios"]) > 0:
             audio_base64 = result["audios"][0]
+            if not audio_base64 or len(audio_base64) < 1000:
+                print(f"Warning: Suspiciously short audio data for text: {text[:50]}...")
+                return {"error": "Audio data too short", "audio_url": None}
             audio_data_url = f"data:audio/wav;base64,{audio_base64}"
             return {
                 "audio_url": audio_data_url,
                 "request_id": result.get("request_id")
             }
         else:
+            print(f"Warning: No audio returned from API for text: {text[:50]}...")
             return {"error": "No audio returned from API", "audio_url": None}
             
     except requests.exceptions.RequestException as e:
+        print(f"Error calling Sarvam API: {e}")
+        return {"error": str(e), "audio_url": None}
+    except Exception as e:
+        print(f"Unexpected error in synthesize_speech: {e}")
         return {"error": str(e), "audio_url": None}
 
 
@@ -431,6 +439,7 @@ def combine_audio_chunks(audio_urls: List[str]) -> Optional[str]:
         
         for i, url in enumerate(audio_urls):
             if not url:
+                print(f"Warning: Empty URL for chunk {i}")
                 continue
             
             if url.startswith("data:audio"):
@@ -450,16 +459,39 @@ def combine_audio_chunks(audio_urls: List[str]) -> Optional[str]:
                     
                     combined_seg += audio
                     
-                    silence_duration_ms = 300
-                    silence = AudioSegment.silent(duration=silence_duration_ms, frame_rate=target_sample_rate)
-                    combined_seg += silence
+                    if i < len(audio_urls) - 1:
+                        silence_duration_ms = 500
+                        silence = AudioSegment.silent(duration=silence_duration_ms, frame_rate=target_sample_rate)
+                        combined_seg += silence
                     valid_chunks += 1
                 except wave.Error as e:
-                    print(f"Warning: Could not parse WAV for chunk {i}: {e}")
+                    print(f"Warning: Could not parse WAV for chunk {i}: {e}. Retrying with different approach...")
+                    try:
+                        audio = AudioSegment.from_file(io.BytesIO(audio_bytes), format="wav")
+                        if audio.frame_rate != target_sample_rate:
+                            audio = audio.set_frame_rate(target_sample_rate)
+                        if audio.channels != target_channels:
+                            audio = audio.set_channels(target_channels)
+                        combined_seg += audio
+                        if i < len(audio_urls) - 1:
+                            silence_duration_ms = 500
+                            silence = AudioSegment.silent(duration=silence_duration_ms, frame_rate=target_sample_rate)
+                            combined_seg += silence
+                        valid_chunks += 1
+                        print(f"Chunk {i} recovered successfully")
+                    except Exception as retry_error:
+                        print(f"Failed to recover chunk {i}: {retry_error}")
+                        continue
+                except Exception as e:
+                    print(f"Error processing chunk {i}: {e}")
                     continue
         
         if valid_chunks == 0:
             print("No valid audio chunks to combine")
+            return None
+        
+        if len(combined_seg) == 0:
+            print("Combined audio is empty")
             return None
         
         output_buffer = io.BytesIO()
@@ -471,4 +503,6 @@ def combine_audio_chunks(audio_urls: List[str]) -> Optional[str]:
         return f"data:audio/wav;base64,{audio_base64}"
     except Exception as e:
         print(f"Error combining audio chunks: {e}")
+        import traceback
+        traceback.print_exc()
         return None
