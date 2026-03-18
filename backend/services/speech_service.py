@@ -62,6 +62,66 @@ def _convert_formula_to_speech(formula: str) -> str:
             .replace(')', ' close parenthesis '))
 
 
+def _number_to_words(num: float) -> str:
+    if num == int(num):
+        num_int = int(num)
+        if num_int < 0:
+            return "minus " + _int_to_words(-num_int)
+        return _int_to_words(num_int)
+    
+    parts = str(num).split('.')
+    integer_part = int(parts[0])
+    decimal_part = parts[1]
+    
+    result = _number_to_words(float(integer_part)) if integer_part != 0 else "zero"
+    result += " point " + " ".join(_digit_to_word(d) for d in decimal_part)
+    return result
+
+
+def _int_to_words(n: int) -> str:
+    if n < 0:
+        return "minus " + _int_to_words(-n)
+    if n == 0:
+        return "zero"
+    
+    ones = ["", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine",
+            "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen",
+            "seventeen", "eighteen", "nineteen"]
+    tens = ["", "", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety"]
+    
+    if n < 20:
+        return ones[n]
+    elif n < 100:
+        return tens[n // 10] + ("-" + ones[n % 10] if n % 10 != 0 else "")
+    elif n < 1000:
+        return ones[n // 100] + " hundred" + (" " + _int_to_words(n % 100) if n % 100 != 0 else "")
+    elif n < 1000000:
+        return _int_to_words(n // 1000) + " thousand" + (" " + _int_to_words(n % 1000) if n % 1000 != 0 else "")
+    elif n < 1000000000:
+        return _int_to_words(n // 1000000) + " million" + (" " + _int_to_words(n % 1000000) if n % 1000000 != 0 else "")
+    else:
+        return _int_to_words(n // 1000000000) + " billion" + (" " + _int_to_words(n % 1000000000) if n % 1000000000 != 0 else "")
+
+
+def _digit_to_word(d: str) -> str:
+    return ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"][int(d)]
+
+
+def convert_numbers_to_words(text: str) -> str:
+    import re
+    pattern = r'[-+]?\d*\.\d+|\d+'
+    
+    def replace_number(match):
+        num_str = match.group()
+        try:
+            num = float(num_str)
+            return _number_to_words(num)
+        except ValueError:
+            return num_str
+    
+    return re.sub(pattern, replace_number, text)
+
+
 def get_api_key():
     api_key = os.environ.get("SARVAM_API_KEY")
     if not api_key:
@@ -83,12 +143,12 @@ def generate_explanation_text(angle: float, velocity: float, gravity: float,
         parts.append("This formula describes the relationship between the sideways distance, vertical height, launch angle, initial velocity, and gravity. ")
         parts.append("In this formula, y represents the vertical height, x represents the sideways distance, theta represents the launch angle, v represents the initial velocity, and g represents gravitational acceleration. ")
     
-    parts.append(f"In this projectile motion simulation, the projectile is launched at an angle of {angle} degrees with an initial velocity of {velocity} meters per second under a gravitational acceleration of {gravity} meters per second squared.")
+    parts.append(f"In this projectile motion simulation, the projectile is launched at an angle of {_number_to_words(angle)} degrees with an initial velocity of {_number_to_words(velocity)} meters per second under a gravitational acceleration of {_number_to_words(gravity)} meters per second squared.")
     
     if prev_angle is not None and prev_angle != angle:
         change = angle - prev_angle
         direction = "increased" if change > 0 else "decreased"
-        parts.append(f"The launch angle has {direction} from {prev_angle} to {angle} degrees. ")
+        parts.append(f"The launch angle has {direction} from {_number_to_words(prev_angle)} to {_number_to_words(angle)} degrees. ")
         if angle > prev_angle:
             parts.append(f"A higher angle means the projectile reaches a greater maximum height but travels a shorter distance. ")
         else:
@@ -97,7 +157,7 @@ def generate_explanation_text(angle: float, velocity: float, gravity: float,
     if prev_velocity is not None and prev_velocity != velocity:
         change = velocity - prev_velocity
         direction = "increased" if change > 0 else "decreased"
-        parts.append(f"The initial velocity has {direction} from {prev_velocity} to {velocity} meters per second. ")
+        parts.append(f"The initial velocity has {direction} from {_number_to_words(prev_velocity)} to {_number_to_words(velocity)} meters per second. ")
         if velocity > prev_velocity:
             parts.append(f"Higher velocity means the projectile travels faster and reaches further. ")
         else:
@@ -106,7 +166,7 @@ def generate_explanation_text(angle: float, velocity: float, gravity: float,
     if prev_gravity is not None and prev_gravity != gravity:
         change = gravity - prev_gravity
         direction = "increased" if change > 0 else "decreased"
-        parts.append(f"The gravitational acceleration has {direction} from {prev_gravity} to {gravity} meters per second squared. ")
+        parts.append(f"The gravitational acceleration has {direction} from {_number_to_words(prev_gravity)} to {_number_to_words(gravity)} meters per second squared. ")
         if gravity > prev_gravity:
             parts.append(f"Stronger gravity pulls the projectile down faster, reducing both the flight time and the maximum height. ")
         else:
@@ -117,9 +177,9 @@ def generate_explanation_text(angle: float, velocity: float, gravity: float,
     from physics_service import calculate_trajectory
     result = calculate_trajectory(angle, velocity, gravity)
     
-    parts.append(f"The maximum height reached is {result['max_height']} meters. ")
-    parts.append(f"The total range or distance covered is {result['range']} meters. ")
-    parts.append(f"The projectile remains in the air for {result['time_of_flight']} seconds.")
+    parts.append(f"The maximum height reached is {_number_to_words(result['max_height'])} meters. ")
+    parts.append(f"The total range or distance covered is {_number_to_words(result['range'])} meters. ")
+    parts.append(f"The projectile remains in the air for {_number_to_words(result['time_of_flight'])} seconds.")
     
     return " ".join(parts)
 
@@ -303,7 +363,7 @@ def generate_chunked_explanations(angle: float, velocity: float, gravity: float,
         chunk_id="intro",
         title="Introduction to Projectile Motion",
         title_te="ప్రొజెక్టైల్ మోషన్ పరిచయం",
-        text=f"Let's learn about projectile motion! When we launch an object at an angle, it follows a curved path called a trajectory. In this simulation, we launch a projectile at {angle} degrees with an initial velocity of {velocity} meters per second.",
+        text=f"Let's learn about projectile motion! When we launch an object at an angle, it follows a curved path called a trajectory. In this simulation, we launch a projectile at {_number_to_words(angle)} degrees with an initial velocity of {_number_to_words(velocity)} meters per second.",
         text_te=f"Projectile motion theory ante, niiku explain cheyyali! Eppudaina object ni angle lo launch cheyyamante, adhi curved path lo travel avutundi. I simulation lo, projectile ni {angle} degrees angle lo, {velocity} m/s velocity tho launch cheyyagane.",
         category="concept"
     ))
@@ -312,7 +372,7 @@ def generate_chunked_explanations(angle: float, velocity: float, gravity: float,
         chunk_id="components",
         title="Velocity Components Explained",
         title_te="వెలాసిటీ కాంపొనెంట్స్ వివరణ",
-        text=f"The initial velocity gets split into two parts. The first part, which acts sideways, is {vx:.2f} m/s, and the second part, which acts up and down, is {vy:.2f} m/s. The sideways acting part stays the same throughout because there's no air resistance. The up and down acting part changes due to gravity.",
+        text=f"The initial velocity gets split into two parts. The first part, which acts sideways, is {_number_to_words(vx)} m/s, and the second part, which acts up and down, is {_number_to_words(vy)} m/s. The sideways acting part stays the same throughout because there's no air resistance. The up and down acting part changes due to gravity.",
         text_te=f"Ipudu initial velocity ni two components lo split cheyyali. Sideways component = {vx:.2f} m/s. Vertical component = {vy:.2f} m/s. Sideways motion lo gravity effect ledu kabbati constant velocity tho move avutundi. Vertical motion lo gravity {gravity} m/s² impact undi.",
         category="concept"
     ))
@@ -330,7 +390,7 @@ def generate_chunked_explanations(angle: float, velocity: float, gravity: float,
         chunk_id="results",
         title="Simulation Results",
         title_te="సిమ్యులేషన్ ఫలితాలు",
-        text=f"Here are your simulation results! Maximum height reached: {result['max_height']:.2f} meters. Total distance covered: {result['range']:.2f} meters. Time of flight: {result['time_of_flight']:.2f} seconds. These results depend on your angle and velocity settings.",
+        text=f"Here are your simulation results! Maximum height reached: {_number_to_words(result['max_height'])} meters. Total distance covered: {_number_to_words(result['range'])} meters. Time of flight: {_number_to_words(result['time_of_flight'])} seconds. These results depend on your angle and velocity settings.",
         text_te=f"Ipudu results choodamandi! Maximum height = {result['max_height']:.2f} meters. Total range = {result['range']:.2f} meters. Time of flight = {result['time_of_flight']:.2f} seconds. Kabbati 45° angle maximum range ki ideal.",
         category="results"
     ))
@@ -344,7 +404,7 @@ def generate_chunked_explanations(angle: float, velocity: float, gravity: float,
                 chunk_id="angle_change_up",
                 title="Angle Increased Effect",
                 title_te="ఏంగిల్ పెరిగినప్పుడు",
-                text=f"You increased the angle from {prev_angle} to {angle} degrees. Higher angle means the projectile goes higher but travels a shorter distance. The up and down part increases while the sideways part decreases.",
+                text=f"You increased the angle from {_number_to_words(prev_angle)} to {_number_to_words(angle)} degrees. Higher angle means the projectile goes higher but travels a shorter distance. The up and down part increases while the sideways part decreases.",
                 text_te=f"Angle {prev_angle} నుండి {angle} degrees కి {direction_te}. Higher angle ante, projectile more height ki reach avutundi but short distance travel avutundi. Vertical component increase avutundi. Sideways component decrease avutundi.",
                 category="change"
             ))
@@ -353,7 +413,7 @@ def generate_chunked_explanations(angle: float, velocity: float, gravity: float,
                 chunk_id="angle_change_down",
                 title="Angle Decreased Effect",
                 title_te="ఏంగిల్ తగ్గినప్పుడు",
-                text=f"You decreased the angle from {prev_angle} to {angle} degrees. Lower angle means the projectile travels farther but reaches a lower maximum height. The sideways part increases while the up and down part decreases.",
+                text=f"You decreased the angle from {_number_to_words(prev_angle)} to {_number_to_words(angle)} degrees. Lower angle means the projectile travels farther but reaches a lower maximum height. The sideways part increases while the up and down part decreases.",
                 text_te=f"Angle {prev_angle} నుండి {angle} degrees కి {direction_te}. Lower angle ante, projectile more distance travel avutundi but low height ki reach avutundi. Sideways component increase avutundi. Vertical component decrease avutundi.",
                 category="change"
             ))
@@ -367,7 +427,7 @@ def generate_chunked_explanations(angle: float, velocity: float, gravity: float,
                 chunk_id="velocity_change_up",
                 title="Velocity Increased Effect",
                 title_te="వెలాసిటీ పెరిగినప్పుడు",
-                text=f"You increased the velocity from {prev_velocity} to {velocity} meters per second. Higher velocity means the projectile has more initial energy, so both height and range increase. Remember: range and height are proportional to velocity squared!",
+                text=f"You increased the velocity from {_number_to_words(prev_velocity)} to {_number_to_words(velocity)} meters per second. Higher velocity means the projectile has more initial energy, so both height and range increase. Remember: range and height are proportional to velocity squared!",
                 text_te=f"Velocity {prev_velocity} నుండి {velocity} m/s కి {direction_te}. Higher velocity ante, projectile more initial energy undi. Kabbati both height and range increase avutundi. Physics lo, Range ∝ v² and Height ∝ v².",
                 category="change"
             ))
@@ -376,7 +436,7 @@ def generate_chunked_explanations(angle: float, velocity: float, gravity: float,
                 chunk_id="velocity_change_down",
                 title="Velocity Decreased Effect",
                 title_te="వెలాసిటీ తగ్గినప్పుడు",
-                text=f"You decreased the velocity from {prev_velocity} to {velocity} meters per second. Lower velocity means less initial energy, so both height and range decrease.",
+                text=f"You decreased the velocity from {_number_to_words(prev_velocity)} to {_number_to_words(velocity)} meters per second. Lower velocity means less initial energy, so both height and range decrease.",
                 text_te=f"Velocity {prev_velocity} నుండి {velocity} m/s కి {direction_te}. Lower velocity ante, initial energy decrease avutundi. Kabbati both height and range decrease avutundi.",
                 category="change"
             ))
@@ -389,7 +449,7 @@ def generate_chunked_explanations(angle: float, velocity: float, gravity: float,
                 chunk_id="gravity_change_up",
                 title="Gravity Increased Effect",
                 title_te="గ్రావిటీ పెరిగినప్పుడు",
-                text=f"You increased gravity from {prev_gravity} to {gravity} meters per second squared. Stronger gravity pulls the projectile down faster, reducing both flight time and maximum height. Compare: Moon has 1.6 m/s², Earth has 9.81 m/s², Jupiter has 24.8 m/s²!",
+                text=f"You increased gravity from {_number_to_words(prev_gravity)} to {_number_to_words(gravity)} meters per second squared. Stronger gravity pulls the projectile down faster, reducing both flight time and maximum height. Compare: Moon has {_number_to_words(1.6)} m/s², Earth has {_number_to_words(9.81)} m/s², Jupiter has {_number_to_words(24.8)} m/s²!",
                 text_te=f"Gravity {prev_gravity} నుండి {gravity} m/s² కి {direction_te}. Stronger gravity ante, projectile fast ga ground ki vellipovali. Kabbati flight time and maximum height both decrease avutundi. Moon lo gravity 1.6, Jupiter lo 24.8.",
                 category="change"
             ))
@@ -398,7 +458,7 @@ def generate_chunked_explanations(angle: float, velocity: float, gravity: float,
                 chunk_id="gravity_change_down",
                 title="Gravity Decreased Effect",
                 title_te="గ్రావిటీ తగ్గినప్పుడు",
-                text=f"You decreased gravity from {prev_gravity} to {gravity} meters per second squared. Weaker gravity means the projectile stays in the air longer and reaches a higher maximum height.",
+                text=f"You decreased gravity from {_number_to_words(prev_gravity)} to {_number_to_words(gravity)} meters per second squared. Weaker gravity means the projectile stays in the air longer and reaches a higher maximum height.",
                 text_te=f"Gravity {prev_gravity} నుండి {gravity} m/s² కి {direction_te}. Weak gravity ante, projectile long time air lo undi and more height reach avutundi.",
                 category="change"
             ))
@@ -426,13 +486,16 @@ def generate_chunked_explanations(angle: float, velocity: float, gravity: float,
     return chunks
 
 
-def synthesize_chunk(chunk: AudioChunk, language: str = "en-IN") -> AudioChunk:
+def synthesize_chunk(chunk: AudioChunk, language: str = "en-IN", save_to_file: bool = True) -> AudioChunk:
     if language == "te-IN":
         text = chunk.text_te
     else:
         text = chunk.text
     
-    result = synthesize_speech(text, target_language_code=language)
+    if save_to_file:
+        result = synthesize_speech(text, target_language_code=language, save_file=True)
+    else:
+        result = synthesize_speech(text, target_language_code=language)
     
     if result.get("audio_url"):
         if language == "te-IN":
@@ -483,6 +546,8 @@ def combine_audio_chunks(audio_urls: List[str], output_format: str = "mp3") -> O
         target_channels = 1
         valid_chunks = 0
         
+        media_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "media")
+        
         for i, url in enumerate(audio_urls):
             if not url:
                 print(f"Warning: Empty URL for chunk {i}")
@@ -491,13 +556,24 @@ def combine_audio_chunks(audio_urls: List[str], output_format: str = "mp3") -> O
             audio = None
             audio_bytes = None
             
-            if url.startswith("data:audio"):
+            if url.startswith("/media/"):
+                file_path = os.path.join(media_dir, os.path.basename(url))
+                if os.path.exists(file_path):
+                    try:
+                        audio = AudioSegment.from_file(file_path)
+                    except Exception as e:
+                        print(f"Warning: Could not load audio file {file_path}: {e}")
+                        continue
+                else:
+                    print(f"Warning: Audio file not found: {file_path}")
+                    continue
+            elif url.startswith("data:audio"):
                 try:
                     base64_data = url.split(",", 1)[1]
                     audio_bytes = base64.b64decode(base64_data)
                     
                     if not audio_bytes or len(audio_bytes) < 500:
-                        print(f"Warning: Suspiciously small audio data for chunk {i}: {len(audio_bytes) if audio_bytes else 0} bytes, attempting to process anyway")
+                        print(f"Warning: Suspiciously small audio data for chunk {i}: {len(audio_bytes) if audio_bytes else 0} bytes")
                 except Exception as e:
                     print(f"Warning: Failed to decode base64 for chunk {i}: {e}")
                     continue
@@ -511,35 +587,35 @@ def combine_audio_chunks(audio_urls: List[str], output_format: str = "mp3") -> O
                     except Exception as e:
                         print(f"Warning: Could not parse audio for chunk {i}: {e}")
                         continue
-                
-                if audio:
-                    try:
-                        if audio.frame_rate != target_sample_rate:
-                            audio = audio.set_frame_rate(target_sample_rate)
-                        if audio.channels != target_channels:
-                            audio = audio.set_channels(target_channels)
-                        
-                        audio_length_ms = len(audio)
-                        
-                        if valid_chunks > 0 and len(combined_seg) > 0:
-                            overlap_duration = 150
-                            if overlap_duration > 0:
-                                combined_seg = combined_seg.append(audio, crossfade=overlap_duration)
-                            else:
-                                combined_seg += audio
+            
+            if audio:
+                try:
+                    if audio.frame_rate != target_sample_rate:
+                        audio = audio.set_frame_rate(target_sample_rate)
+                    if audio.channels != target_channels:
+                        audio = audio.set_channels(target_channels)
+                    
+                    audio_length_ms = len(audio)
+                    
+                    if valid_chunks > 0 and len(combined_seg) > 0:
+                        overlap_duration = 150
+                        if overlap_duration > 0:
+                            combined_seg = combined_seg.append(audio, crossfade=overlap_duration)
                         else:
                             combined_seg += audio
-                        
-                        if i < len(audio_urls) - 1:
-                            silence_duration_ms = 300
-                            silence = AudioSegment.silent(duration=silence_duration_ms, frame_rate=target_sample_rate)
-                            combined_seg += silence
-                        
-                        valid_chunks += 1
-                        print(f"Chunk {i} processed successfully, length: {audio_length_ms}ms")
-                    except Exception as e:
-                        print(f"Error combining chunk {i}: {e}")
-                        continue
+                    else:
+                        combined_seg += audio
+                    
+                    if i < len(audio_urls) - 1:
+                        silence_duration_ms = 300
+                        silence = AudioSegment.silent(duration=silence_duration_ms, frame_rate=target_sample_rate)
+                        combined_seg += silence
+                    
+                    valid_chunks += 1
+                    print(f"Chunk {i} processed successfully, length: {audio_length_ms}ms")
+                except Exception as e:
+                    print(f"Error combining chunk {i}: {e}")
+                    continue
         
         print(f"Total valid chunks combined: {valid_chunks}/{len(audio_urls)}")
         
@@ -557,7 +633,6 @@ def combine_audio_chunks(audio_urls: List[str], output_format: str = "mp3") -> O
         combined_seg = combined_seg.set_channels(target_channels)
         
         audio_hash = hashlib.md5(str(audio_urls).encode()).hexdigest()[:16]
-        media_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "media")
         os.makedirs(media_dir, exist_ok=True)
         
         if output_format == "mp3":

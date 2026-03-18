@@ -79,10 +79,10 @@ class SpeechService {
 
     final formulaText = _convertFormulaToSpeech(customFormula);
     final explanation = 'Formula: $formulaText. '
-        'Ipudu i simulation lo, projectile $angle degrees angle daari, '
-        '$velocity m/s velocity tho launch avutundi. '
-        'Maximum height: ${(velocity * velocity * math.sin(angle * math.pi / 180) * math.sin(angle * math.pi / 180)) / (2 * gravity)}. '
-        'Range: ${(velocity * velocity * math.sin(2 * angle * math.pi / 180)) / gravity}.';
+        'Ipudu i simulation lo, projectile ${_numberToWords(angle)} degrees angle daari, '
+        '${_numberToWords(velocity)} m/s velocity tho launch avutundi. '
+        'Maximum height: ${_numberToWords((velocity * velocity * math.sin(angle * math.pi / 180) * math.sin(angle * math.pi / 180)) / (2 * gravity))}. '
+        'Range: ${_numberToWords((velocity * velocity * math.sin(2 * angle * math.pi / 180)) / gravity)}.';
 
     debugPrint('Using fallback TTS with formula');
     await _flutterTts.speak(explanation);
@@ -106,6 +106,95 @@ class SpeechService {
         .replaceAll(' tan ', ' tangent ')
         .replaceAll(' cos ', ' cosine ')
         .replaceAll(' sin ', ' sine ');
+  }
+
+  String _numberToWords(double num) {
+    if (num == num.roundToDouble() && num.abs() < 1000000000000) {
+      return _intToWords(num.round());
+    }
+
+    final parts = num.toString().split('.');
+    final integerPart = int.parse(parts[0]);
+    final decimalPart = parts[1];
+
+    String result = integerPart == 0 ? 'zero' : _intToWords(integerPart);
+    result +=
+        ' point ' + decimalPart.split('').map((d) => _digitToWord(d)).join(' ');
+    return result;
+  }
+
+  String _intToWords(int n) {
+    if (n < 0) return 'minus ${_intToWords(-n)}';
+    if (n == 0) return 'zero';
+
+    final ones = [
+      '',
+      'one',
+      'two',
+      'three',
+      'four',
+      'five',
+      'six',
+      'seven',
+      'eight',
+      'nine',
+      'ten',
+      'eleven',
+      'twelve',
+      'thirteen',
+      'fourteen',
+      'fifteen',
+      'sixteen',
+      'seventeen',
+      'eighteen',
+      'nineteen'
+    ];
+    final tens = [
+      '',
+      '',
+      'twenty',
+      'thirty',
+      'forty',
+      'fifty',
+      'sixty',
+      'seventy',
+      'eighty',
+      'ninety'
+    ];
+
+    if (n < 20) return ones[n];
+    if (n < 100) {
+      return tens[n ~/ 10] + (n % 10 != 0 ? '-${ones[n % 10]}' : '');
+    }
+    if (n < 1000) {
+      return '${ones[n ~/ 100]} hundred' +
+          (n % 100 != 0 ? ' ${_intToWords(n % 100)}' : '');
+    }
+    if (n < 1000000) {
+      return '${_intToWords(n ~/ 1000)} thousand' +
+          (n % 1000 != 0 ? ' ${_intToWords(n % 1000)}' : '');
+    }
+    if (n < 1000000000) {
+      return '${_intToWords(n ~/ 1000000)} million' +
+          (n % 1000000 != 0 ? ' ${_intToWords(n % 1000000)}' : '');
+    }
+    return '${_intToWords(n ~/ 1000000000)} billion' +
+        (n % 1000000000 != 0 ? ' ${_intToWords(n % 1000000000)}' : '');
+  }
+
+  String _digitToWord(String d) {
+    return [
+      'zero',
+      'one',
+      'two',
+      'three',
+      'four',
+      'five',
+      'six',
+      'seven',
+      'eight',
+      'nine'
+    ][int.parse(d)];
   }
 
   Future<void> speak(String text) async {
