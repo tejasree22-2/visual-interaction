@@ -1,0 +1,34 @@
+{
+  "cli_version": "0.5.0",
+  "checkpoint_id": "9a7cccfd18d7",
+  "session_id": "ses_2ff172916ffeQUcsd0UdO2YADN",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-18T12:48:30.480519636Z",
+  "branch": "main",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "backend/routes/simulation_routes.py"
+  ],
+  "agent": "OpenCode",
+  "model": "big-pickle",
+  "turn_id": "75dc36ae4b15",
+  "token_usage": {
+    "input_tokens": 24431,
+    "cache_creation_tokens": 42379,
+    "cache_read_tokens": 454607,
+    "output_tokens": 4829,
+    "api_call_count": 17
+  },
+  "session_metrics": {
+    "turn_count": 2
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-18T12:48:30.400799749Z",
+    "agent_lines": 12,
+    "human_added": 48,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 60,
+    "agent_percentage": 20
+  }
+}
