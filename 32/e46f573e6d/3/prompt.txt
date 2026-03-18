@@ -1,0 +1,7 @@
+Explore the codebase in /home/tejasree/visual-task/visual-interaction to understand:
+1. The overall project structure (frontend/backend)
+2. Find files related to text-to-speech functionality
+3. Find files related to backend connections/sockets
+4. Look for any UI components, especially buttons
+
+Return a summary of the project structure and relevant files found.
