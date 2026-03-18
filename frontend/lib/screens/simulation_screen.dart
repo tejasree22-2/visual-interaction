@@ -18,6 +18,13 @@ class _SimulationScreenState extends State<SimulationScreen> {
   final SimulationModel _model = SimulationModel();
   final SpeechService _speechService = SpeechService();
   bool _is3DView = false;
+  bool _isPlaying = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _speechService.setOnComplete(_onAudioComplete);
+  }
 
   @override
   void dispose() {
@@ -31,18 +38,33 @@ class _SimulationScreenState extends State<SimulationScreen> {
     });
   }
 
-  void _playExplanation() {
-    final angle = _model.angle.toStringAsFixed(1);
-    final velocity = _model.velocity.toStringAsFixed(1);
-    final gravity = _model.gravity.toStringAsFixed(1);
-    final formula = _model.customFormula;
+  Future<void> _playExplanation() async {
+    if (_isPlaying) {
+      await _speechService.stop();
+      setState(() {
+        _isPlaying = false;
+      });
+    } else {
+      final formula = _model.customFormula;
+      await _speechService.speakWithFormula(
+        angle: _model.angle,
+        velocity: _model.velocity,
+        gravity: _model.gravity,
+        customFormula: formula,
+        language: 'te-IN',
+      );
+      setState(() {
+        _isPlaying = true;
+      });
+    }
+  }
 
-    _speechService.speakWithFormula(
-      angle: _model.angle,
-      velocity: _model.velocity,
-      gravity: _model.gravity,
-      customFormula: formula,
-    );
+  void _onAudioComplete() {
+    if (mounted) {
+      setState(() {
+        _isPlaying = false;
+      });
+    }
   }
 
   @override
@@ -81,9 +103,9 @@ class _SimulationScreenState extends State<SimulationScreen> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _playExplanation,
-        icon: const Icon(Icons.volume_up),
-        label: const Text('Text to Speech'),
-        tooltip: 'Play audio explanation',
+        icon: Icon(_isPlaying ? Icons.stop : Icons.volume_up),
+        label: Text(_isPlaying ? 'Stop' : 'Telugu Explanation'),
+        tooltip: _isPlaying ? 'Stop explanation' : 'Play Telugu explanation',
       ),
     );
   }

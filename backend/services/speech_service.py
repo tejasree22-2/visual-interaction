@@ -135,15 +135,64 @@ def get_audio_stream(text: str):
     return result.get("audio_url")
 
 
+def generate_explanation_text_telugu(angle: float, velocity: float, gravity: float, 
+                                    prev_angle: Optional[float] = None, prev_velocity: Optional[float] = None, 
+                                    prev_gravity: Optional[float] = None,
+                                    custom_formula: Optional[str] = None,
+                                    include_formula: bool = False) -> str:
+    parts = []
+    
+    if include_formula and custom_formula:
+        formula_speech = _convert_formula_to_speech(custom_formula)
+        parts.append(f"బుల్లెట్‌ motion ఫార్ములా: {formula_speech}. ")
+        parts.append("ఈ ఫార్ములాలో y అనగా vertical height, x horizontal distance, theta launch angle, v initial velocity, g gravitational acceleration. ")
+    
+    parts.append(f"ఈ projectile motion simulation లో, object {angle} డిగ్రীల launch angleతో, {velocity} meters per second velocityతో, {gravity} meters per second squared gravityతో launch occur.")
+    
+    import sys
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    from physics_service import calculate_trajectory
+    result = calculate_trajectory(angle, velocity, gravity)
+    
+    parts.append(f"maximum height: {result['max_height']} meters. ")
+    parts.append(f"range (horizontal distance): {result['range']} meters. ")
+    parts.append(f"time of flight: {result['time_of_flight']} seconds.")
+    
+    if prev_angle is not None and prev_angle != angle:
+        change = angle - prev_angle
+        direction = "increase" if change > 0 else "decrease"
+        parts.append(f"Launch angle {direction} from {prev_angle} to {angle} degrees. ")
+    
+    if prev_velocity is not None and prev_velocity != velocity:
+        change = velocity - prev_velocity
+        direction = "increase" if change > 0 else "decrease"
+        parts.append(f"Initial velocity {direction} from {prev_velocity} to {velocity} meters per second. ")
+    
+    if prev_gravity is not None and prev_gravity != gravity:
+        change = gravity - prev_gravity
+        direction = "increase" if change > 0 else "decrease"
+        parts.append(f"Gravity {direction} from {prev_gravity} to {gravity} meters per second squared. ")
+    
+    return " ".join(parts)
+
+
 def generate_speech_explanation(angle: float, velocity: float, gravity: float,
                                 prev_angle: Optional[float] = None, prev_velocity: Optional[float] = None,
                                 prev_gravity: Optional[float] = None,
                                 custom_formula: Optional[str] = None,
-                                include_formula: bool = False) -> dict:
-    explanation_text = generate_explanation_text(
-        angle, velocity, gravity,
-        prev_angle, prev_velocity, prev_gravity,
-        custom_formula, include_formula
-    )
+                                include_formula: bool = False,
+                                language: str = "en-IN") -> dict:
+    if language == "te-IN":
+        explanation_text = generate_explanation_text_telugu(
+            angle, velocity, gravity,
+            prev_angle, prev_velocity, prev_gravity,
+            custom_formula, include_formula
+        )
+    else:
+        explanation_text = generate_explanation_text(
+            angle, velocity, gravity,
+            prev_angle, prev_velocity, prev_gravity,
+            custom_formula, include_formula
+        )
     
-    return synthesize_speech(explanation_text)
+    return synthesize_speech(explanation_text, target_language_code=language)

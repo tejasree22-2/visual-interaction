@@ -10,16 +10,24 @@ class SpeechService {
   final AudioPlayer _audioPlayer = AudioPlayer();
   final FlutterTts _flutterTts = FlutterTts();
   bool _useBackendTts = true;
+  Function? _onComplete;
 
   SpeechService() {
     _initTts();
+    _audioPlayer.onPlayerComplete.listen((_) {
+      _onComplete?.call();
+    });
   }
 
   Future<void> _initTts() async {
-    await _flutterTts.setLanguage("en-US");
+    await _flutterTts.setLanguage("te-IN");
     await _flutterTts.setSpeechRate(0.5);
     await _flutterTts.setVolume(1.0);
     await _flutterTts.setPitch(1.0);
+  }
+
+  void setOnComplete(Function callback) {
+    _onComplete = callback;
   }
 
   Future<void> speakWithFormula({
@@ -27,6 +35,7 @@ class SpeechService {
     required double velocity,
     required double gravity,
     required String customFormula,
+    String language = 'te-IN',
   }) async {
     if (_useBackendTts) {
       try {
@@ -41,6 +50,7 @@ class SpeechService {
                 'gravity': gravity,
                 'custom_formula': customFormula,
                 'include_formula': true,
+                'language': language,
               }),
             )
             .timeout(const Duration(seconds: 15));

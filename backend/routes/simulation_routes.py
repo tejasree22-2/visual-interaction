@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 from services.cache_service import get_cached_result, set_cached_result
 from services.physics_service import calculate_trajectory
 from services.supabase_client import store_simulation
-from services.speech_service import generate_explanation_text, synthesize_speech
+from services.speech_service import generate_explanation_text, synthesize_speech, generate_explanation_text_telugu
 
 simulation_bp = Blueprint('simulation', __name__)
 
@@ -24,7 +24,8 @@ def simulate():
     
     text = data.get('text')
     if text:
-        speech_result = synthesize_speech(text)
+        language = data.get('language', 'en-IN')
+        speech_result = synthesize_speech(text, target_language_code=language)
         return jsonify({
             'speech_audio_url': speech_result.get('audio_url'),
             'error': speech_result.get('error')
@@ -35,6 +36,7 @@ def simulate():
     gravity = data.get('gravity')
     custom_formula = data.get('custom_formula')
     include_formula = data.get('include_formula', False)
+    language = data.get('language', 'en-IN')
     
     print(f"\n=== Slider Changed ===")
     print(f"angle: {angle}, velocity: {velocity}, gravity: {gravity}")
@@ -55,14 +57,22 @@ def simulate():
     print(f"Physics calculated: max_height={physics_result['max_height']}, range={physics_result['range']}")
     logger.info(f"Physics: max_height={physics_result['max_height']}, range={physics_result['range']}")
     
-    explanation_text = generate_explanation_text(
-        angle, velocity, gravity,
-        custom_formula=custom_formula,
-        include_formula=include_formula
-    )
+    if language == "te-IN":
+        explanation_text = generate_explanation_text_telugu(
+            angle, velocity, gravity,
+            custom_formula=custom_formula,
+            include_formula=include_formula
+        )
+    else:
+        explanation_text = generate_explanation_text(
+            angle, velocity, gravity,
+            custom_formula=custom_formula,
+            include_formula=include_formula
+        )
+    
     print(f"Calling Sarvam TTS API...")
     logger.info("Calling Sarvam TTS API...")
-    speech_result = synthesize_speech(explanation_text)
+    speech_result = synthesize_speech(explanation_text, target_language_code=language)
     print(f"TTS completed: audio_url={'present' if speech_result.get('audio_url') else 'NOT present'}")
     logger.info(f"TTS: audio_url={'present' if speech_result.get('audio_url') else 'NOT present'}")
     
