@@ -13,6 +13,7 @@ class SimulationModel extends ChangeNotifier {
   String _speechAudioUrl = '';
 
   SimulationModel() {
+    _updateFormula();
     _fetchFromBackend();
   }
 
@@ -57,6 +58,7 @@ class SimulationModel extends ChangeNotifier {
   void setAngle(double value) {
     debugPrint('Slider changed: angle = $value');
     _angle = value;
+    _updateFormula();
     notifyListeners();
     _fetchFromBackend();
   }
@@ -64,6 +66,7 @@ class SimulationModel extends ChangeNotifier {
   void setVelocity(double value) {
     debugPrint('Slider changed: velocity = $value');
     _velocity = value;
+    _updateFormula();
     notifyListeners();
     _fetchFromBackend();
   }
@@ -71,8 +74,14 @@ class SimulationModel extends ChangeNotifier {
   void setGravity(double value) {
     debugPrint('Slider changed: gravity = $value');
     _gravity = value;
+    _updateFormula();
     notifyListeners();
     _fetchFromBackend();
+  }
+
+  void _updateFormula() {
+    _customFormula =
+        'y = x * tan(${_angle.toStringAsFixed(1)}°) - (${_gravity.toStringAsFixed(1)} * x²) / (2 * ${_velocity.toStringAsFixed(1)}² * cos²(${_angle.toStringAsFixed(1)}°))';
   }
 
   void setCustomFormula(String formula) {
