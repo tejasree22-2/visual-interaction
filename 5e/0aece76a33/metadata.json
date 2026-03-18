@@ -1,0 +1,27 @@
+{
+  "cli_version": "0.5.0",
+  "checkpoint_id": "5e0aece76a33",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "backend/routes/simulation_routes.py",
+    "backend/services/speech_service.py",
+    "frontend/lib/screens/simulation_screen.dart"
+  ],
+  "sessions": [
+    {
+      "metadata": "/5e/0aece76a33/0/metadata.json",
+      "transcript": "/5e/0aece76a33/0/full.jsonl",
+      "content_hash": "/5e/0aece76a33/0/content_hash.txt",
+      "prompt": "/5e/0aece76a33/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 45472,
+    "cache_creation_tokens": 59432,
+    "cache_read_tokens": 1209205,
+    "output_tokens": 13633,
+    "api_call_count": 39
+  }
+}
