@@ -1,6 +1,7 @@
 import hashlib
 import logging
 from flask import Blueprint, request, jsonify
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 logger = logging.getLogger(__name__)
 
@@ -10,6 +11,8 @@ from services.supabase_client import store_simulation
 from services.speech_service import generate_explanation_text, synthesize_speech, generate_explanation_text_telugu, generate_chunked_explanations, synthesize_chunk, combine_audio_chunks
 
 simulation_bp = Blueprint('simulation', __name__)
+
+MAX_WORKERS = 4
 
 
 def _generate_cache_key(angle, velocity, gravity, custom_formula=None):
@@ -120,22 +123,31 @@ def get_audio_chunks():
     print(f"Generated {len(chunks)} explanation chunks")
     logger.info(f"Generated {len(chunks)} explanation chunks")
     
+    def synthesize_single_chunk(chunk):
+        try:
+            return synthesize_chunk(chunk, language=language)
+        except Exception as e:
+            print(f"Error synthesizing chunk {chunk.chunk_id}: {e}")
+            return None
+    
     chunk_data = []
     audio_urls = []
     failed_chunks = 0
-    for chunk in chunks:
-        try:
-            chunk = synthesize_chunk(chunk, language=language)
-            chunk_data.append(chunk.to_dict())
-            audio_url = chunk.audio_url_te if language == "te-IN" else chunk.audio_url_en
-            if audio_url:
-                audio_urls.append(audio_url)
+    
+    with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
+        futures = {executor.submit(synthesize_single_chunk, chunk): chunk for chunk in chunks}
+        for future in as_completed(futures):
+            chunk = future.result()
+            if chunk:
+                chunk_data.append(chunk.to_dict())
+                audio_url = chunk.audio_url_te if language == "te-IN" else chunk.audio_url_en
+                if audio_url:
+                    audio_urls.append(audio_url)
+                else:
+                    print(f"Warning: No audio generated for chunk {chunk.chunk_id}")
+                    failed_chunks += 1
             else:
-                print(f"Warning: No audio generated for chunk {chunk.chunk_id}")
                 failed_chunks += 1
-        except Exception as e:
-            print(f"Error synthesizing chunk {chunk.chunk_id}: {e}")
-            failed_chunks += 1
     
     print(f"Audio chunks: {len(audio_urls)} successful, {failed_chunks} failed out of {len(chunks)} total")
     
