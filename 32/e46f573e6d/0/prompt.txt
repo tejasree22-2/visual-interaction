@@ -1,0 +1,12 @@
+Search the codebase to find files related to:
+1. Formula editor - look for components that handle formula editing, math formulas, or graph rendering
+2. Text to speech functionality
+
+Find the relevant files and report back:
+- File paths for formula editor components
+- File paths for text to speech functionality
+- How the formula is currently being handled
+- How the graph is currently rendered
+- How text to speech currently works
+
+Be thorough and search for keywords like: formula, graph, text to speech, speech, audio, TTS, math, equation, editor
