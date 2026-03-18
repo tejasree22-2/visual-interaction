@@ -1,10 +1,17 @@
 import os
 import base64
 import requests
+import io
 from datetime import datetime
 from typing import Optional, List, Dict
 from dotenv import load_dotenv
 import math
+
+try:
+    from pydub import AudioSegment
+    PYDUB_AVAILABLE = True
+except ImportError:
+    PYDUB_AVAILABLE = False
 
 project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 env_path = os.path.join(project_root, '.env')
@@ -403,3 +410,31 @@ def generate_speech_explanation(angle: float, velocity: float, gravity: float,
         )
     
     return synthesize_speech(explanation_text, target_language_code=language)
+
+
+def combine_audio_chunks(audio_urls: List[str]) -> Optional[str]:
+    if not PYDUB_AVAILABLE:
+        print("pydub not installed. Cannot combine audio chunks.")
+        return None
+    
+    if not audio_urls:
+        return None
+    
+    combined = AudioSegment.empty()
+    
+    for url in audio_urls:
+        if not url:
+            continue
+        
+        if url.startswith("data:audio"):
+            base64_data = url.split(",")[1]
+            audio_bytes = base64.b64decode(base64_data)
+            audio = AudioSegment.from_wav(io.BytesIO(audio_bytes))
+            combined += audio
+    
+    output_buffer = io.BytesIO()
+    combined.export(output_buffer, format="wav")
+    output_buffer.seek(0)
+    
+    audio_base64 = base64.b64encode(output_buffer.read()).decode("utf-8")
+    return f"data:audio/wav;base64,{audio_base64}"

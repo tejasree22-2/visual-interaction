@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 from services.cache_service import get_cached_result, set_cached_result
 from services.physics_service import calculate_trajectory
 from services.supabase_client import store_simulation
-from services.speech_service import generate_explanation_text, synthesize_speech, generate_explanation_text_telugu, generate_chunked_explanations, synthesize_chunk
+from services.speech_service import generate_explanation_text, synthesize_speech, generate_explanation_text_telugu, generate_chunked_explanations, synthesize_chunk, combine_audio_chunks
 
 simulation_bp = Blueprint('simulation', __name__)
 
@@ -164,4 +164,23 @@ def get_single_chunk_audio(chunk_id):
     
     return jsonify({
         'chunk': target_chunk.to_dict()
+    })
+
+
+@simulation_bp.route('/combine-chunks', methods=['POST'])
+def combine_audio_chunks_endpoint():
+    data = request.get_json() or {}
+    
+    audio_urls = data.get('audio_urls', [])
+    
+    if not audio_urls:
+        return jsonify({'error': 'No audio URLs provided'}), 400
+    
+    combined_audio = combine_audio_chunks(audio_urls)
+    
+    if combined_audio is None:
+        return jsonify({'error': 'Failed to combine audio chunks. Make sure pydub is installed.'}), 500
+    
+    return jsonify({
+        'combined_audio_url': combined_audio
     })
