@@ -1,0 +1,13 @@
+go through my application and check the flow is correct or not end to end
+
+---
+
+fix issues
+
+---
+
+the flow end to end is there to include backend
+
+---
+
+now the end to end flow works right

@@ -1,0 +1,40 @@
+{
+  "cli_version": "0.5.0",
+  "checkpoint_id": "4e66ebcb4d75",
+  "session_id": "ses_30093c1b6ffe7zr25Ovwr3rQTw",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-18T05:44:15.955530444Z",
+  "branch": "main",
+  "checkpoints_count": 4,
+  "files_touched": [
+    "backend/routes/simulation_routes.py",
+    "frontend/lib/models/simulation_model.dart",
+    "frontend/lib/screens/simulation_screen.dart",
+    "frontend/lib/services/api_service.dart",
+    "frontend/lib/services/speech_service.dart",
+    "frontend/lib/widgets/graph_2d.dart",
+    "frontend/lib/widgets/graph_3d.dart"
+  ],
+  "agent": "OpenCode",
+  "model": "big-pickle",
+  "turn_id": "d9dddd4a1917",
+  "token_usage": {
+    "input_tokens": 25053,
+    "cache_creation_tokens": 48813,
+    "cache_read_tokens": 1321380,
+    "output_tokens": 9925,
+    "api_call_count": 45
+  },
+  "session_metrics": {
+    "turn_count": 4
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-18T05:44:15.722055811Z",
+    "agent_lines": 60,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 60,
+    "agent_percentage": 100
+  }
+}
