@@ -1,0 +1,9 @@
+go through all my project and edit README.md file
+
+---
+
+not frontend/README.md file only README.md file
+
+---
+
+general README file what should have for an application those
