@@ -121,13 +121,24 @@ def get_audio_chunks():
     logger.info(f"Generated {len(chunks)} explanation chunks")
     
     chunk_data = []
+    audio_urls = []
     for chunk in chunks:
         chunk = synthesize_chunk(chunk, language=language)
         chunk_data.append(chunk.to_dict())
+        audio_url = chunk.audio_url_te if language == "te-IN" else chunk.audio_url_en
+        if audio_url:
+            audio_urls.append(audio_url)
+    
+    combined_audio_url = None
+    if audio_urls:
+        combined_audio_url = combine_audio_chunks(audio_urls)
+        print(f"Combined audio created: {'success' if combined_audio_url else 'failed'}")
+        logger.info(f"Combined audio: {'success' if combined_audio_url else 'failed'}")
     
     return jsonify({
         'chunks': chunk_data,
-        'total_chunks': len(chunk_data)
+        'total_chunks': len(chunk_data),
+        'combined_audio_url': combined_audio_url
     })
 
 

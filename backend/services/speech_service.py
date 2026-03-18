@@ -11,6 +11,7 @@ try:
     from pydub import AudioSegment
     PYDUB_AVAILABLE = True
 except ImportError:
+    AudioSegment = None
     PYDUB_AVAILABLE = False
 
 project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -413,28 +414,57 @@ def generate_speech_explanation(angle: float, velocity: float, gravity: float,
 
 
 def combine_audio_chunks(audio_urls: List[str]) -> Optional[str]:
-    if not PYDUB_AVAILABLE:
+    if not PYDUB_AVAILABLE or AudioSegment is None:
         print("pydub not installed. Cannot combine audio chunks.")
         return None
     
     if not audio_urls:
         return None
     
-    combined = AudioSegment.empty()
-    
-    for url in audio_urls:
-        if not url:
-            continue
+    try:
+        import wave
         
-        if url.startswith("data:audio"):
-            base64_data = url.split(",")[1]
-            audio_bytes = base64.b64decode(base64_data)
-            audio = AudioSegment.from_wav(io.BytesIO(audio_bytes))
-            combined += audio
-    
-    output_buffer = io.BytesIO()
-    combined.export(output_buffer, format="wav")
-    output_buffer.seek(0)
-    
-    audio_base64 = base64.b64encode(output_buffer.read()).decode("utf-8")
-    return f"data:audio/wav;base64,{audio_base64}"
+        combined_seg = AudioSegment.empty()
+        target_sample_rate = 16000
+        target_channels = 1
+        valid_chunks = 0
+        
+        for i, url in enumerate(audio_urls):
+            if not url:
+                continue
+            
+            if url.startswith("data:audio"):
+                base64_data = url.split(",")[1]
+                audio_bytes = base64.b64decode(base64_data)
+                
+                try:
+                    wav_reader = wave.open(io.BytesIO(audio_bytes), 'rb')
+                    wav_reader.close()
+                    
+                    audio = AudioSegment.from_wav(io.BytesIO(audio_bytes))
+                    
+                    if audio.frame_rate != target_sample_rate:
+                        audio = audio.set_frame_rate(target_sample_rate)
+                    if audio.channels != target_channels:
+                        audio = audio.set_channels(target_channels)
+                    
+                    combined_seg += audio
+                    valid_chunks += 1
+                except wave.Error as e:
+                    print(f"Warning: Could not parse WAV for chunk {i}: {e}")
+                    continue
+        
+        if valid_chunks == 0:
+            print("No valid audio chunks to combine")
+            return None
+        
+        output_buffer = io.BytesIO()
+        combined_seg.set_frame_rate(target_sample_rate)
+        combined_seg.export(output_buffer, format="wav")
+        output_buffer.seek(0)
+        
+        audio_base64 = base64.b64encode(output_buffer.read()).decode("utf-8")
+        return f"data:audio/wav;base64,{audio_base64}"
+    except Exception as e:
+        print(f"Error combining audio chunks: {e}")
+        return None
