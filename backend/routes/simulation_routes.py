@@ -1,5 +1,8 @@
 import hashlib
+import logging
 from flask import Blueprint, request, jsonify
+
+logger = logging.getLogger(__name__)
 
 from services.cache_service import get_cached_result, set_cached_result
 from services.physics_service import calculate_trajectory
@@ -32,25 +35,46 @@ def simulate():
     velocity = data.get('velocity')
     gravity = data.get('gravity')
     
+    print(f"\n=== Slider Changed ===")
+    print(f"angle: {angle}, velocity: {velocity}, gravity: {gravity}")
+    logger.info(f"Slider Changed: angle={angle}, velocity={velocity}, gravity={gravity}")
+    
     cache_key = _generate_cache_key(angle, velocity, gravity)
     
     cached_result = get_cached_result(cache_key)
     if cached_result:
-        physics_result = cached_result
-    else:
-        physics_result = calculate_trajectory(angle, velocity, gravity)
-        set_cached_result(cache_key, physics_result)
+        print(f"Cache: HIT → returning cached data")
+        logger.info("Cache: HIT → returning cached data")
+        return jsonify(cached_result)
     
-    store_simulation(angle, velocity, gravity)
+    print(f"Cache: MISS → calculating new data...")
+    logger.info("Cache: MISS → calculating new data...")
+    physics_result = calculate_trajectory(angle, velocity, gravity)
+    print(f"Physics calculated: max_height={physics_result['max_height']}, range={physics_result['range']}")
+    logger.info(f"Physics: max_height={physics_result['max_height']}, range={physics_result['range']}")
     
     explanation_text = generate_explanation_text(angle, velocity, gravity)
+    print(f"Calling Sarvam TTS API...")
+    logger.info("Calling Sarvam TTS API...")
     speech_result = synthesize_speech(explanation_text)
+    print(f"TTS completed: audio_url={'present' if speech_result.get('audio_url') else 'NOT present'}")
+    logger.info(f"TTS: audio_url={'present' if speech_result.get('audio_url') else 'NOT present'}")
     
-    return jsonify({
+    store_simulation(angle, velocity, gravity)
+    print(f"Saved to database")
+    logger.info("Saved to database")
+    
+    full_result = {
         'trajectory': physics_result['trajectory'],
         'max_height': physics_result['max_height'],
         'range': physics_result['range'],
         'time_of_flight': physics_result['time_of_flight'],
         'explanation_text': explanation_text,
         'speech_audio_url': speech_result.get('audio_url')
-    })
+    }
+    
+    set_cached_result(cache_key, full_result)
+    print(f"Cached result saved\n")
+    logger.info("Cached result saved")
+    
+    return jsonify(full_result)

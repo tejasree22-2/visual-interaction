@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:audioplayers/audioplayers.dart';
 
 class SpeechService {
   static const String baseUrl = 'http://172.20.199.176:5000';
+  final AudioPlayer _audioPlayer = AudioPlayer();
 
   Future<void> speak(String text) async {
     try {
@@ -19,8 +21,7 @@ class SpeechService {
         final data = jsonDecode(response.body);
         final audioUrl = data['speech_audio_url'];
         if (audioUrl != null) {
-          // For now, just print - we can add audio playback later
-          debugPrint('Audio URL received: $audioUrl');
+          await _audioPlayer.play(UrlSource(audioUrl));
         }
       }
     } catch (e) {
@@ -28,7 +29,11 @@ class SpeechService {
     }
   }
 
-  Future<void> stop() async {}
+  Future<void> stop() async {
+    await _audioPlayer.stop();
+  }
 
-  void dispose() {}
+  void dispose() {
+    _audioPlayer.dispose();
+  }
 }
