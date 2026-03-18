@@ -123,29 +123,21 @@ class _ProjectilePainter extends CustomPainter {
       axisPaint,
     );
 
-    final path = Path();
-    final angleRad = model.angle * math.pi / 180;
-    final v = model.velocity;
-    final g = model.gravity;
+    final trajectory = model.trajectory;
+    if (trajectory.isEmpty) return;
 
-    final maxRange = (v * v * math.sin(2 * angleRad)) / g;
-    final maxHeight =
-        (v * v * math.sin(angleRad) * math.sin(angleRad)) / (2 * g);
-
-    final flightTime = 2 * v * math.sin(angleRad) / g;
+    final maxRange = model.range > 0 ? model.range : 1.0;
+    final maxHeight = model.maxHeightBackend > 0 ? model.maxHeightBackend : 1.0;
 
     const padding = 40.0;
     final scaleX = (size.width - padding) / maxRange;
     final scaleY = (size.height - padding) / maxHeight;
 
+    final path = Path();
     bool first = true;
-    for (double t = 0; t <= flightTime; t += 0.01) {
-      final x = v * math.cos(angleRad) * t;
-      final y = v * math.sin(angleRad) * t - 0.5 * g * t * t;
-
-      final screenX = 20 + x * scaleX;
-      final screenY = size.height - 20 - y * scaleY;
-
+    for (final point in trajectory) {
+      final screenX = 20 + point[0] * scaleX;
+      final screenY = size.height - 20 - point[1] * scaleY;
       if (first) {
         path.moveTo(screenX, screenY);
         first = false;
@@ -156,7 +148,11 @@ class _ProjectilePainter extends CustomPainter {
 
     canvas.drawPath(path, paint);
 
+    final flightTime = model.timeOfFlight > 0 ? model.timeOfFlight : 1.0;
     final t = flightTime * animationValue;
+    final angleRad = model.angle * math.pi / 180;
+    final v = model.velocity;
+    final g = model.gravity;
     final ballX = v * math.cos(angleRad) * t;
     final ballY = v * math.sin(angleRad) * t - 0.5 * g * t * t;
 

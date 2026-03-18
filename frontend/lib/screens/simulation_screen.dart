@@ -3,6 +3,7 @@ import '../widgets/control_panel.dart';
 import '../widgets/graph_2d.dart';
 import '../widgets/graph_3d.dart';
 import '../widgets/view_toggle.dart';
+import '../widgets/formula_editor.dart';
 import '../services/speech_service.dart';
 import '../models/simulation_model.dart';
 
@@ -70,6 +71,8 @@ class _SimulationScreenState extends State<SimulationScreen> {
               child: Column(
                 children: [
                   ViewToggle(onToggle: _toggleView, value: _is3DView),
+                  const SizedBox(height: 16),
+                  FormulaEditor(model: _model),
                   const SizedBox(height: 16),
                   ControlPanel(model: _model),
                 ],

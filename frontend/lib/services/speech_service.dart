@@ -3,9 +3,10 @@ import 'package:flutter_tts/flutter_tts.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:audioplayers/audioplayers.dart';
+import 'api_service.dart';
 
 class SpeechService {
-  static const String baseUrl = 'http://172.20.199.176:5000';
+  static String get baseUrl => ApiService.apiBaseUrl;
   final AudioPlayer _audioPlayer = AudioPlayer();
   final FlutterTts _flutterTts = FlutterTts();
   bool _useBackendTts = true;

@@ -1,9 +1,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import '../services/api_service.dart';
 
 class SimulationModel extends ChangeNotifier {
-  static const String baseUrl = 'http://172.20.199.176:5000';
+  static String get baseUrl => ApiService.apiBaseUrl;
 
   double _angle = 45.0;
   double _velocity = 20.0;
@@ -11,6 +12,10 @@ class SimulationModel extends ChangeNotifier {
   String _customFormula = 'y = x * tan(θ) - (g * x²) / (2 * v² * cos²(θ))';
   String _explanationText = '';
   String _speechAudioUrl = '';
+  List<List<double>> _trajectory = [];
+  double _maxHeight = 0;
+  double _range = 0;
+  double _timeOfFlight = 0;
 
   SimulationModel() {
     _updateFormula();
@@ -23,6 +28,10 @@ class SimulationModel extends ChangeNotifier {
   String get customFormula => _customFormula;
   String get explanationText => _explanationText;
   String get speechAudioUrl => _speechAudioUrl;
+  List<List<double>> get trajectory => _trajectory;
+  double get maxHeightBackend => _maxHeight;
+  double get range => _range;
+  double get timeOfFlight => _timeOfFlight;
 
   Future<void> _fetchFromBackend() async {
     try {
@@ -44,8 +53,16 @@ class SimulationModel extends ChangeNotifier {
         final data = jsonDecode(response.body);
         _explanationText = data['explanation_text'] ?? '';
         _speechAudioUrl = data['speech_audio_url'] ?? '';
+        _trajectory = (data['trajectory'] as List<dynamic>?)
+                ?.map(
+                    (e) => [(e[0] as num).toDouble(), (e[1] as num).toDouble()])
+                .toList() ??
+            [];
+        _maxHeight = (data['max_height'] as num?)?.toDouble() ?? 0;
+        _range = (data['range'] as num?)?.toDouble() ?? 0;
+        _timeOfFlight = (data['time_of_flight'] as num?)?.toDouble() ?? 0;
         debugPrint(
-            'Response received: audio_url=${_speechAudioUrl.isNotEmpty ? "present" : "not present"}');
+            'Response received: audio_url=${_speechAudioUrl.isNotEmpty ? "present" : "not present"}, trajectory_points=${_trajectory.length}');
         notifyListeners();
       } else {
         debugPrint('Error: HTTP ${response.statusCode}');

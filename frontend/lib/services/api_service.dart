@@ -2,7 +2,9 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  static const String baseUrl = 'http://172.20.199.176:5000';
+  static const String baseUrl = 'http://10.0.2.2:5000';
+
+  static String get apiBaseUrl => baseUrl;
 
   Future<Map<String, dynamic>> getSimulationData(
       Map<String, dynamic> params) async {
@@ -18,7 +20,7 @@ class ApiService {
     }
   }
 
-  Future<List<double>> calculateTrajectory({
+  Future<List<List<double>>> calculateTrajectory({
     required double angle,
     required double velocity,
     required double gravity,
@@ -28,6 +30,10 @@ class ApiService {
       'velocity': velocity,
       'gravity': gravity,
     });
-    return List<double>.from(result['trajectory'] ?? []);
+    final trajectoryData = result['trajectory'];
+    if (trajectoryData == null) return [];
+    return (trajectoryData as List<dynamic>)
+        .map((e) => [(e[0] as num).toDouble(), (e[1] as num).toDouble()])
+        .toList();
   }
 }

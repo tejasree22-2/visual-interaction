@@ -12,8 +12,8 @@ from services.speech_service import generate_explanation_text, synthesize_speech
 simulation_bp = Blueprint('simulation', __name__)
 
 
-def _generate_cache_key(angle, velocity, gravity):
-    key_str = f"{angle}:{velocity}:{gravity}"
+def _generate_cache_key(angle, velocity, gravity, custom_formula=None):
+    key_str = f"{angle}:{velocity}:{gravity}:{custom_formula or ''}"
     return f"simulation:{hashlib.md5(key_str.encode()).hexdigest()}"
 
 
@@ -41,7 +41,7 @@ def simulate():
     print(f"custom_formula: {custom_formula}, include_formula: {include_formula}")
     logger.info(f"Slider Changed: angle={angle}, velocity={velocity}, gravity={gravity}, custom_formula={custom_formula}")
     
-    cache_key = _generate_cache_key(angle, velocity, gravity)
+    cache_key = _generate_cache_key(angle, velocity, gravity, custom_formula)
     
     cached_result = get_cached_result(cache_key)
     if cached_result:
