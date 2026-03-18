@@ -3,7 +3,7 @@
   "checkpoint_id": "32e46f573e6d",
   "strategy": "manual-commit",
   "branch": "main",
-  "checkpoints_count": 4,
+  "checkpoints_count": 6,
   "files_touched": [
     "backend/routes/simulation_routes.py",
     "backend/services/speech_service.py",
@@ -39,13 +39,19 @@
       "transcript": "/32/e46f573e6d/3/full.jsonl",
       "content_hash": "/32/e46f573e6d/3/content_hash.txt",
       "prompt": "/32/e46f573e6d/3/prompt.txt"
+    },
+    {
+      "metadata": "/32/e46f573e6d/4/metadata.json",
+      "transcript": "/32/e46f573e6d/4/full.jsonl",
+      "content_hash": "/32/e46f573e6d/4/content_hash.txt",
+      "prompt": "/32/e46f573e6d/4/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 60439,
-    "cache_creation_tokens": 76890,
-    "cache_read_tokens": 990559,
-    "output_tokens": 13372,
-    "api_call_count": 58
+    "input_tokens": 69542,
+    "cache_creation_tokens": 103736,
+    "cache_read_tokens": 1311764,
+    "output_tokens": 18418,
+    "api_call_count": 77
   }
 }
