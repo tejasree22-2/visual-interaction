@@ -1,0 +1,32 @@
+{
+  "cli_version": "0.5.0",
+  "checkpoint_id": "9a7cccfd18d7",
+  "session_id": "ses_2ff0925d4ffethPidVthN4AgzM",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-18T12:48:30.380125662Z",
+  "branch": "main",
+  "checkpoints_count": 0,
+  "files_touched": [
+    "backend/routes/simulation_routes.py",
+    "backend/services/speech_service.py"
+  ],
+  "agent": "OpenCode",
+  "model": "big-pickle",
+  "turn_id": "2bd667f663d8",
+  "token_usage": {
+    "input_tokens": 36242,
+    "cache_creation_tokens": 41105,
+    "cache_read_tokens": 621395,
+    "output_tokens": 7582,
+    "api_call_count": 25
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-18T12:48:30.130136155Z",
+    "agent_lines": 0,
+    "human_added": 30,
+    "human_modified": 18,
+    "human_removed": 0,
+    "total_committed": 42,
+    "agent_percentage": 0
+  }
+}
