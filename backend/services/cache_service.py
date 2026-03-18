@@ -3,6 +3,8 @@ import json
 
 _redis_client = None
 
+CACHE_TTL = 3600
+
 
 def _get_redis_client():
     global _redis_client
@@ -32,8 +34,8 @@ def get_cached_result(key):
         return None
     
     try:
-        cached: str | None = client.get(key)  # type: ignore[assignment]
-        if cached:
+        cached = client.get(key)
+        if cached and isinstance(cached, str):
             return json.loads(cached)
     except Exception as e:
         print(f"Cache read error: {e}")
@@ -46,7 +48,7 @@ def set_cached_result(key, value):
         return
     
     try:
-        client.set(key, json.dumps(value))
+        client.setex(key, CACHE_TTL, json.dumps(value))
     except Exception as e:
         print(f"Cache write error: {e}")
 

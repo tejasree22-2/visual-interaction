@@ -126,7 +126,8 @@ def generate_explanation_text(angle: float, velocity: float, gravity: float,
 
 def synthesize_speech(text: str, target_language_code: str = "en-IN", 
                       speaker: str = "arya", max_retries: int = 3,
-                      save_file: bool = False) -> dict:
+                      save_file: bool = False,
+                      max_chars: int = 500) -> dict:
     api_key = get_api_key()
     
     if not api_key:
@@ -137,8 +138,15 @@ def synthesize_speech(text: str, target_language_code: str = "en-IN",
         "Content-Type": "application/json"
     }
     
+    clean_text = text.replace('\n', ' ').strip()
+    if len(clean_text) > max_chars:
+        clean_text = clean_text[:max_chars]
+        if clean_text.rfind('.') > max_chars - 50:
+            clean_text = clean_text[:clean_text.rfind('.') + 1]
+        print(f"Warning: Text truncated from {len(text)} to {len(clean_text)} characters for Sarvam API")
+    
     payload = {
-        "inputs": [text.replace('\n', ' ').strip()],
+        "inputs": [clean_text],
         "target_language_code": target_language_code,
         "speaker": "shruti",
         "model": "bulbul:v3",

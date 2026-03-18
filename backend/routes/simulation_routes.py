@@ -15,8 +15,8 @@ simulation_bp = Blueprint('simulation', __name__)
 MAX_WORKERS = 4
 
 
-def _generate_cache_key(angle, velocity, gravity, custom_formula=None):
-    key_str = f"{angle}:{velocity}:{gravity}:{custom_formula or ''}"
+def _generate_cache_key(angle, velocity, gravity, custom_formula=None, language=None):
+    key_str = f"{angle}:{velocity}:{gravity}:{custom_formula or ''}:{language or ''}"
     return f"simulation:{hashlib.md5(key_str.encode()).hexdigest()}"
 
 
@@ -46,7 +46,7 @@ def simulate():
     print(f"custom_formula: {custom_formula}, include_formula: {include_formula}")
     logger.info(f"Slider Changed: angle={angle}, velocity={velocity}, gravity={gravity}, custom_formula={custom_formula}")
     
-    cache_key = _generate_cache_key(angle, velocity, gravity, custom_formula)
+    cache_key = _generate_cache_key(angle, velocity, gravity, custom_formula, language)
     
     cached_result = get_cached_result(cache_key)
     if cached_result:
