@@ -449,6 +449,10 @@ def combine_audio_chunks(audio_urls: List[str]) -> Optional[str]:
                         audio = audio.set_channels(target_channels)
                     
                     combined_seg += audio
+                    
+                    silence_duration_ms = 300
+                    silence = AudioSegment.silent(duration=silence_duration_ms, frame_rate=target_sample_rate)
+                    combined_seg += silence
                     valid_chunks += 1
                 except wave.Error as e:
                     print(f"Warning: Could not parse WAV for chunk {i}: {e}")
