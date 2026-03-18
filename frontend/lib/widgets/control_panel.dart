@@ -27,7 +27,9 @@ class ControlPanel extends StatelessWidget {
                 model.angle,
                 0,
                 90,
-                (value) => model.setAngle(value),
+                (value) {
+                  model.setAngle(value);
+                },
                 '${model.angle.toStringAsFixed(1)}°',
               ),
             ),
@@ -39,7 +41,9 @@ class ControlPanel extends StatelessWidget {
                 model.velocity,
                 0,
                 100,
-                (value) => model.setVelocity(value),
+                (value) {
+                  model.setVelocity(value);
+                },
                 '${model.velocity.toStringAsFixed(1)} m/s',
               ),
             ),
@@ -51,7 +55,9 @@ class ControlPanel extends StatelessWidget {
                 model.gravity,
                 1,
                 20,
-                (value) => model.setGravity(value),
+                (value) {
+                  model.setGravity(value);
+                },
                 '${model.gravity.toStringAsFixed(1)} m/s²',
               ),
             ),

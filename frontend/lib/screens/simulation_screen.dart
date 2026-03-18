@@ -72,8 +72,6 @@ class _SimulationScreenState extends State<SimulationScreen> {
                 children: [
                   ViewToggle(onToggle: _toggleView, value: _is3DView),
                   const SizedBox(height: 16),
-                  FormulaEditor(model: _model),
-                  const SizedBox(height: 16),
                   ControlPanel(model: _model),
                 ],
               ),

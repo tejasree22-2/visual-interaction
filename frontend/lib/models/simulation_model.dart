@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'dart:math' as math;
 import '../services/api_service.dart';
 
 class SimulationModel extends ChangeNotifier {
@@ -33,6 +34,26 @@ class SimulationModel extends ChangeNotifier {
   double get range => _range;
   double get timeOfFlight => _timeOfFlight;
 
+  void _calculateTrajectoryLocally() {
+    final angleRad = _angle * math.pi / 180;
+    final vx = _velocity * math.cos(angleRad);
+    final vy = _velocity * math.sin(angleRad);
+
+    _timeOfFlight = 2 * vy / _gravity;
+    _maxHeight = (vy * vy) / (2 * _gravity);
+    _range = _velocity * _velocity * math.sin(2 * angleRad) / _gravity;
+
+    _trajectory = [];
+    const numPoints = 100;
+    for (int i = 0; i <= numPoints; i++) {
+      final t = (i / numPoints) * _timeOfFlight;
+      final x = vx * t;
+      final y = vy * t - 0.5 * _gravity * t * t;
+      _trajectory.add([x, y < 0 ? 0 : y]);
+    }
+    notifyListeners();
+  }
+
   Future<void> _fetchFromBackend() async {
     try {
       debugPrint(
@@ -61,14 +82,24 @@ class SimulationModel extends ChangeNotifier {
         _maxHeight = (data['max_height'] as num?)?.toDouble() ?? 0;
         _range = (data['range'] as num?)?.toDouble() ?? 0;
         _timeOfFlight = (data['time_of_flight'] as num?)?.toDouble() ?? 0;
-        debugPrint(
-            'Response received: audio_url=${_speechAudioUrl.isNotEmpty ? "present" : "not present"}, trajectory_points=${_trajectory.length}');
-        notifyListeners();
+
+        if (_trajectory.isEmpty) {
+          debugPrint(
+              'Backend returned empty trajectory, using local calculation');
+          _calculateTrajectoryLocally();
+        } else {
+          debugPrint(
+              'Response received: audio_url=${_speechAudioUrl.isNotEmpty ? "present" : "not present"}, trajectory_points=${_trajectory.length}');
+          notifyListeners();
+        }
       } else {
-        debugPrint('Error: HTTP ${response.statusCode}');
+        debugPrint(
+            'Error: HTTP ${response.statusCode}, using local calculation');
+        _calculateTrajectoryLocally();
       }
     } catch (e) {
-      debugPrint('Error fetching from backend: $e');
+      debugPrint('Error fetching from backend: $e, using local calculation');
+      _calculateTrajectoryLocally();
     }
   }
 
