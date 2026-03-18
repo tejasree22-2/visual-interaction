@@ -1,0 +1,37 @@
+why can't we can do the backend with flask framework and frontend as usual and in frontend we can all flask api to done our image works and so on don't change the code this can also be done right
+
+---
+
+first understand the my application perfectly and end to end what i have used here to done this project in frontend i want to use html,css and javascript and when ever the flutter api required call flutter api and use it in the code make sure the end to end need to work perfectly that how it works now
+
+---
+
+make sure you have to use flutter in this files through the api call
+
+---
+
+we have used flutter api in this or not
+
+---
+
+in frontend also for projectile motion we have to flutter ?
+
+---
+
+i have to use flutter for the frontend that is the requirement
+
+---
+
+1
+
+---
+
+nothing use only flutter
+
+---
+
+make sure the frontend and backend works properly and config correctly
+
+---
+
+if we run with chrome then backend flow will work?
