@@ -154,52 +154,45 @@ def generate_explanation_text_telugu(angle: float, velocity: float, gravity: flo
         formula_speech = _convert_formula_to_speech(custom_formula)
         parts.append(f"Formula: {formula_speech}. ")
     
-    parts.append(f"Projectile Motion Theory: ")
-    parts.append(f"Projectile motion లో object horizontal direction లao constant velocity {velocity * math.cos(angle_rad):.2f} m/sతో move avutundi. ")
-    parts.append(f"Vertical direction లao gravity {gravity} m/s² cause vertical velocity change avutundi. ")
-    parts.append(f"Horizontal motion: x = v cosθ t. Vertical motion: y = v sinθ t - ½gt². ")
+    parts.append(f"Hello everyone! Niiku projectile motion ni explanation ivvutu. ")
+    parts.append(f"Ipudu i simulation lo, projectile {angle} degrees angle daari, {velocity} m/s velocity tho launch avutundi. ")
+    parts.append(f"Ekkada velocity ni two components lo split cheyyali. Horizontal component = {velocity * math.cos(angle_rad):.2f} m/s. Vertical component = {velocity * math.sin(angle_rad):.2f} m/s. ")
+    parts.append(f"Horizontal motion lo, gravity effect ledu. Kabbati constant velocity tho move avutundi. Formula: x = v cosθ × t. ")
+    parts.append(f"Vertical motion lo, gravity {gravity} m/s² impact undi. Upward movement lo velocity decrease avutundi, downward movement lo increase avutundi. Formula: y = v sinθ × t - ½gt². ")
     
-    parts.append(f"\nResults: ")
-    parts.append(f"Launch angle = {angle}°, initial velocity = {velocity} m/s, gravity = {gravity} m/s². ")
-    parts.append(f"Maximum height = {result['max_height']:.2f} m. ")
-    parts.append(f"Total range = {result['range']:.2f} m. ")
+    parts.append(f"\nOkay, ante results: ")
+    parts.append(f"Maximum height = {result['max_height']:.2f} meters. ")
+    parts.append(f"Total range = {result['range']:.2f} meters. ")
     parts.append(f"Time of flight = {result['time_of_flight']:.2f} seconds. ")
     
     if prev_angle is not None and prev_angle != angle:
         diff = angle - prev_angle
         if diff > 0:
-            parts.append(f"\nAngle change: {prev_angle}° → {angle}° (increase). ")
-            parts.append(f"Theory: Higher angle = more vertical component, less horizontal component. ")
-            parts.append(f"Result: Height increase, range decrease. ")
-            parts.append(f"45° maximum range achieve avutundi. ")
+            parts.append(f"\nSo, angle increase ayyindi ante, vertical component increase avutundi. Horizontal component decrease avutundi. ")
+            parts.append(f"Kabbati maximum height increase avutundi. Range decrease avutundi. ")
+            parts.append(f"Remember: 45° max range ki ideal angle. ")
         else:
-            parts.append(f"\nAngle change: {prev_angle}° → {angle}° (decrease). ")
-            parts.append(f"Theory: Lower angle = more horizontal component. ")
-            parts.append(f"Result: Range increase, height decrease. ")
+            parts.append(f"\nSo, angle decrease ayyindi ante, horizontal component increase avutundi. Vertical component decrease avutundi. ")
+            parts.append(f"Kabbati range increase avutundi. Maximum height decrease avutundi. ")
     
     if prev_velocity is not None and prev_velocity != velocity:
         diff = velocity - prev_velocity
         if diff > 0:
-            parts.append(f"\nVelocity change: {prev_velocity} → {velocity} m/s (increase). ")
-            parts.append(f"Theory: More initial velocity = more kinetic energy. ")
-            parts.append(f"Height and range both increase. ")
-            parts.append(f"Formula: Range ∝ v², Height ∝ v². ")
+            parts.append(f"\nVelocity increase ayyindi ante, initial energy increase avutundi. ")
+            parts.append(f"Both height and range increase avutundi. Physics ante, Range ∝ v² and Height ∝ v². ")
         else:
-            parts.append(f"\nVelocity change: {prev_velocity} → {velocity} m/s (decrease). ")
-            parts.append(f"Theory: Less initial velocity = less energy. ")
-            parts.append(f"Height and range both decrease. ")
+            parts.append(f"\nVelocity decrease ayyindi ante, initial energy decrease avutundi. ")
+            parts.append(f"Both height and range decrease avutundi. ")
     
     if prev_gravity is not None and prev_gravity != gravity:
         diff = gravity - prev_gravity
         if diff > 0:
-            parts.append(f"\nGravity change: {prev_gravity} → {gravity} m/s² (increase). ")
-            parts.append(f"Theory: Stronger gravity pulls down faster. ")
-            parts.append(f"Flight time and height both decrease. ")
-            parts.append(f"Example: Moon (1.6) less distance, Jupiter (24.8) less distance. ")
+            parts.append(f"\nGravity increase ayyindi ante, downward pull strong avutundi. ")
+            parts.append(f"Flight time and maximum height both decrease avutundi. ")
+            parts.append(f"Example: Moon lo gravity 1.6 m/s², Jupiter lo 24.8 m/s². Moon lo projectile more distance travel avutundi. ")
         else:
-            parts.append(f"\nGravity change: {prev_gravity} → {gravity} m/s² (decrease). ")
-            parts.append(f"Theory: Weaker gravity = less downward pull. ")
-            parts.append(f"Flight time and height both increase. ")
+            parts.append(f"\nGravity decrease ayyindi ante, downward pull weak avutundi. ")
+            parts.append(f"Flight time and maximum height both increase avutundi. ")
     
     return " ".join(parts)
 

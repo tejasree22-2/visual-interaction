@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'dart:math' as math;
 import 'package:audioplayers/audioplayers.dart';
 import 'api_service.dart';
 
@@ -69,10 +70,11 @@ class SpeechService {
     }
 
     final formulaText = _convertFormulaToSpeech(customFormula);
-    final explanation = 'Projectile motion formula: $formulaText. '
-        'This simulation shows projectile motion with angle $angle degrees, '
-        'initial velocity $velocity meters per second, '
-        'and gravity $gravity meters per second squared.';
+    final explanation = 'Formula: $formulaText. '
+        'Ipudu i simulation lo, projectile $angle degrees angle daari, '
+        '$velocity m/s velocity tho launch avutundi. '
+        'Maximum height: ${(velocity * velocity * math.sin(angle * math.pi / 180) * math.sin(angle * math.pi / 180)) / (2 * gravity)}. '
+        'Range: ${(velocity * velocity * math.sin(2 * angle * math.pi / 180)) / gravity}.';
 
     debugPrint('Using fallback TTS with formula');
     await _flutterTts.speak(explanation);
