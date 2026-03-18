@@ -1,0 +1,2419 @@
+{
+  "info": {
+    "id": "ses_2ff832601ffeD6AewkJEsw2LMi",
+    "slug": "gentle-otter",
+    "projectID": "0eddc3b0503d540472052df40a9e122b14441051",
+    "directory": "/home/tejasree/visual-task/visual-interaction",
+    "title": "Telugu language not applied to audio; frontend and backend working",
+    "version": "1.2.27",
+    "summary": {
+      "additions": 2,
+      "deletions": 2,
+      "files": 1
+    },
+    "time": {
+      "created": 1773829675518,
+      "updated": 1773829828242
+    }
+  },
+  "messages": [
+    {
+      "info": {
+        "role": "user",
+        "time": {
+          "created": 1773829675601
+        },
+        "summary": {
+          "diffs": [
+            {
+              "file": "backend/services/speech_service.py",
+              "before": "import os\nimport base64\nimport requests\nfrom datetime import datetime\nfrom typing import Optional\nfrom dotenv import load_dotenv\nimport math\n\nproject_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))\nenv_path = os.path.join(project_root, '.env')\nload_dotenv(env_path)\n\nSARVAM_API_URL = \"https://api.sarvam.ai/text-to-speech\"\n\n\ndef _convert_formula_to_speech(formula: str) -> str:\n    if not formula:\n        return formula\n    return (formula\n            .replace('θ', 'theta')\n            .replace('²', ' squared')\n            .replace('³', ' cubed')\n            .replace('*', ' multiplied by ')\n            .replace('/', ' divided by ')\n            .replace('+', ' plus ')\n            .replace('-', ' minus ')\n            .replace('=', ' equals ')\n            .replace('(', ' open parenthesis ')\n            .replace(')', ' close parenthesis '))\n\n\ndef get_api_key():\n    api_key = os.environ.get(\"SARVAM_API_KEY\")\n    if not api_key:\n        print(\"SARVAM_API_KEY not found. Please add SARVAM_API_KEY to your .env file.\")\n        print(\"Get your API key from: https://dashboard.sarvam.ai\")\n    return api_key\n\n\ndef generate_explanation_text(angle: float, velocity: float, gravity: float, \n                                prev_angle: Optional[float] = None, prev_velocity: Optional[float] = None, \n                                prev_gravity: Optional[float] = None,\n                                custom_formula: Optional[str] = None,\n                                include_formula: bool = False) -> str:\n    parts = []\n    \n    if include_formula and custom_formula:\n        formula_speech = _convert_formula_to_speech(custom_formula)\n        parts.append(f\"The projectile motion formula being used is: {formula_speech}. \")\n        parts.append(\"This formula describes the relationship between the horizontal distance, vertical height, launch angle, initial velocity, and gravity. \")\n        parts.append(\"In this formula, y represents the vertical height, x represents the horizontal distance, theta represents the launch angle, v represents the initial velocity, and g represents gravitational acceleration. \")\n    \n    parts.append(f\"In this projectile motion simulation, the projectile is launched at an angle of {angle} degrees with an initial velocity of {velocity} meters per second under a gravitational acceleration of {gravity} meters per second squared.\")\n    \n    if prev_angle is not None and prev_angle != angle:\n        change = angle - prev_angle\n        direction = \"increased\" if change > 0 else \"decreased\"\n        parts.append(f\"The launch angle has {direction} from {prev_angle} to {angle} degrees. \")\n        if angle > prev_angle:\n            parts.append(f\"A higher angle means the projectile reaches a greater maximum height but travels a shorter distance. \")\n        else:\n            parts.append(f\"A lower angle means the projectile travels farther but reaches a lower maximum height. \")\n    \n    if prev_velocity is not None and prev_velocity != velocity:\n        change = velocity - prev_velocity\n        direction = \"increased\" if change > 0 else \"decreased\"\n        parts.append(f\"The initial velocity has {direction} from {prev_velocity} to {velocity} meters per second. \")\n        if velocity > prev_velocity:\n            parts.append(f\"Higher velocity means the projectile travels faster and reaches further. \")\n        else:\n            parts.append(f\"Lower velocity means the projectile travels slower and doesn't go as far. \")\n    \n    if prev_gravity is not None and prev_gravity != gravity:\n        change = gravity - prev_gravity\n        direction = \"increased\" if change > 0 else \"decreased\"\n        parts.append(f\"The gravitational acceleration has {direction} from {prev_gravity} to {gravity} meters per second squared. \")\n        if gravity > prev_gravity:\n            parts.append(f\"Stronger gravity pulls the projectile down faster, reducing both the flight time and the maximum height. \")\n        else:\n            parts.append(f\"Weaker gravity lets the projectile stay in the air longer and reach a higher maximum height. \")\n    \n    import sys\n    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))\n    from physics_service import calculate_trajectory\n    result = calculate_trajectory(angle, velocity, gravity)\n    \n    parts.append(f\"The maximum height reached is {result['max_height']} meters. \")\n    parts.append(f\"The total range or horizontal distance covered is {result['range']} meters. \")\n    parts.append(f\"The projectile remains in the air for {result['time_of_flight']} seconds.\")\n    \n    return \" \".join(parts)\n\n\ndef synthesize_speech(text: str, target_language_code: str = \"en-IN\", \n                      speaker: str = \"arya\") -> dict:\n    api_key = get_api_key()\n    \n    if not api_key:\n        return {\"error\": \"API key missing\", \"audio_url\": None}\n    \n    headers = {\n        \"api-subscription-key\": api_key,\n        \"Content-Type\": \"application/json\"\n    }\n    \n    payload = {\n        \"inputs\": [text],\n        \"target_language_code\": target_language_code,\n        \"speaker\": speaker,\n        \"model\": \"bulbul:v2\",\n        \"speech_sample_rate\": 16000\n    }\n    \n    try:\n        response = requests.post(SARVAM_API_URL, headers=headers, json=payload, timeout=30)\n        response.raise_for_status()\n        \n        result = response.json()\n        \n        if result.get(\"audios\") and len(result[\"audios\"]) > 0:\n            audio_base64 = result[\"audios\"][0]\n            audio_data_url = f\"data:audio/wav;base64,{audio_base64}\"\n            return {\n                \"audio_url\": audio_data_url,\n                \"request_id\": result.get(\"request_id\")\n            }\n        else:\n            return {\"error\": \"No audio returned from API\", \"audio_url\": None}\n            \n    except requests.exceptions.RequestException as e:\n        return {\"error\": str(e), \"audio_url\": None}\n\n\ndef get_audio_stream(text: str):\n    result = synthesize_speech(text)\n    return result.get(\"audio_url\")\n\n\ndef generate_explanation_text_telugu(angle: float, velocity: float, gravity: float, \n                                    prev_angle: Optional[float] = None, prev_velocity: Optional[float] = None, \n                                    prev_gravity: Optional[float] = None,\n                                    custom_formula: Optional[str] = None,\n                                    include_formula: bool = False) -> str:\n    import sys\n    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))\n    from physics_service import calculate_trajectory\n    result = calculate_trajectory(angle, velocity, gravity)\n    \n    parts = []\n    \n    angle_rad = angle * math.pi / 180\n    \n    if include_formula and custom_formula:\n        formula_speech = _convert_formula_to_speech(custom_formula)\n        parts.append(f\"Formula: {formula_speech}. \")\n    \n    parts.append(f\"Hello everyone! Niiku projectile motion ni explanation ivvutu. \")\n    parts.append(f\"Ipudu i simulation lo, projectile {angle} degrees angle daari, {velocity} m/s velocity tho launch avutundi. \")\n    parts.append(f\"Ekkada velocity ni two components lo split cheyyali. Horizontal component = {velocity * math.cos(angle_rad):.2f} m/s. Vertical component = {velocity * math.sin(angle_rad):.2f} m/s. \")\n    parts.append(f\"Horizontal motion lo, gravity effect ledu. Kabbati constant velocity tho move avutundi. Formula: x = v cosθ × t. \")\n    parts.append(f\"Vertical motion lo, gravity {gravity} m/s² impact undi. Upward movement lo velocity decrease avutundi, downward movement lo increase avutundi. Formula: y = v sinθ × t - ½gt². \")\n    \n    parts.append(f\"\\nOkay, ante results: \")\n    parts.append(f\"Maximum height = {result['max_height']:.2f} meters. \")\n    parts.append(f\"Total range = {result['range']:.2f} meters. \")\n    parts.append(f\"Time of flight = {result['time_of_flight']:.2f} seconds. \")\n    \n    if prev_angle is not None and prev_angle != angle:\n        diff = angle - prev_angle\n        if diff > 0:\n            parts.append(f\"\\nSo, angle increase ayyindi ante, vertical component increase avutundi. Horizontal component decrease avutundi. \")\n            parts.append(f\"Kabbati maximum height increase avutundi. Range decrease avutundi. \")\n            parts.append(f\"Remember: 45° max range ki ideal angle. \")\n        else:\n            parts.append(f\"\\nSo, angle decrease ayyindi ante, horizontal component increase avutundi. Vertical component decrease avutundi. \")\n            parts.append(f\"Kabbati range increase avutundi. Maximum height decrease avutundi. \")\n    \n    if prev_velocity is not None and prev_velocity != velocity:\n        diff = velocity - prev_velocity\n        if diff > 0:\n            parts.append(f\"\\nVelocity increase ayyindi ante, initial energy increase avutundi. \")\n            parts.append(f\"Both height and range increase avutundi. Physics ante, Range ∝ v² and Height ∝ v². \")\n        else:\n            parts.append(f\"\\nVelocity decrease ayyindi ante, initial energy decrease avutundi. \")\n            parts.append(f\"Both height and range decrease avutundi. \")\n    \n    if prev_gravity is not None and prev_gravity != gravity:\n        diff = gravity - prev_gravity\n        if diff > 0:\n            parts.append(f\"\\nGravity increase ayyindi ante, downward pull strong avutundi. \")\n            parts.append(f\"Flight time and maximum height both decrease avutundi. \")\n            parts.append(f\"Example: Moon lo gravity 1.6 m/s², Jupiter lo 24.8 m/s². Moon lo projectile more distance travel avutundi. \")\n        else:\n            parts.append(f\"\\nGravity decrease ayyindi ante, downward pull weak avutundi. \")\n            parts.append(f\"Flight time and maximum height both increase avutundi. \")\n    \n    return \" \".join(parts)\n\n\ndef generate_speech_explanation(angle: float, velocity: float, gravity: float,\n                                prev_angle: Optional[float] = None, prev_velocity: Optional[float] = None,\n                                prev_gravity: Optional[float] = None,\n                                custom_formula: Optional[str] = None,\n                                include_formula: bool = False,\n                                language: str = \"en-IN\") -> dict:\n    if language == \"te-IN\":\n        explanation_text = generate_explanation_text_telugu(\n            angle, velocity, gravity,\n            prev_angle, prev_velocity, prev_gravity,\n            custom_formula, include_formula\n        )\n    else:\n        explanation_text = generate_explanation_text(\n            angle, velocity, gravity,\n            prev_angle, prev_velocity, prev_gravity,\n            custom_formula, include_formula\n        )\n    \n    return synthesize_speech(explanation_text, target_language_code=language)",
+              "after": "import os\nimport base64\nimport requests\nfrom datetime import datetime\nfrom typing import Optional\nfrom dotenv import load_dotenv\nimport math\n\nproject_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))\nenv_path = os.path.join(project_root, '.env')\nload_dotenv(env_path)\n\nSARVAM_API_URL = \"https://api.sarvam.ai/text-to-speech\"\n\n\ndef _convert_formula_to_speech(formula: str) -> str:\n    if not formula:\n        return formula\n    return (formula\n            .replace('θ', 'theta')\n            .replace('²', ' squared')\n            .replace('³', ' cubed')\n            .replace('*', ' multiplied by ')\n            .replace('/', ' divided by ')\n            .replace('+', ' plus ')\n            .replace('-', ' minus ')\n            .replace('=', ' equals ')\n            .replace('(', ' open parenthesis ')\n            .replace(')', ' close parenthesis '))\n\n\ndef get_api_key():\n    api_key = os.environ.get(\"SARVAM_API_KEY\")\n    if not api_key:\n        print(\"SARVAM_API_KEY not found. Please add SARVAM_API_KEY to your .env file.\")\n        print(\"Get your API key from: https://dashboard.sarvam.ai\")\n    return api_key\n\n\ndef generate_explanation_text(angle: float, velocity: float, gravity: float, \n                                prev_angle: Optional[float] = None, prev_velocity: Optional[float] = None, \n                                prev_gravity: Optional[float] = None,\n                                custom_formula: Optional[str] = None,\n                                include_formula: bool = False) -> str:\n    parts = []\n    \n    if include_formula and custom_formula:\n        formula_speech = _convert_formula_to_speech(custom_formula)\n        parts.append(f\"The projectile motion formula being used is: {formula_speech}. \")\n        parts.append(\"This formula describes the relationship between the horizontal distance, vertical height, launch angle, initial velocity, and gravity. \")\n        parts.append(\"In this formula, y represents the vertical height, x represents the horizontal distance, theta represents the launch angle, v represents the initial velocity, and g represents gravitational acceleration. \")\n    \n    parts.append(f\"In this projectile motion simulation, the projectile is launched at an angle of {angle} degrees with an initial velocity of {velocity} meters per second under a gravitational acceleration of {gravity} meters per second squared.\")\n    \n    if prev_angle is not None and prev_angle != angle:\n        change = angle - prev_angle\n        direction = \"increased\" if change > 0 else \"decreased\"\n        parts.append(f\"The launch angle has {direction} from {prev_angle} to {angle} degrees. \")\n        if angle > prev_angle:\n            parts.append(f\"A higher angle means the projectile reaches a greater maximum height but travels a shorter distance. \")\n        else:\n            parts.append(f\"A lower angle means the projectile travels farther but reaches a lower maximum height. \")\n    \n    if prev_velocity is not None and prev_velocity != velocity:\n        change = velocity - prev_velocity\n        direction = \"increased\" if change > 0 else \"decreased\"\n        parts.append(f\"The initial velocity has {direction} from {prev_velocity} to {velocity} meters per second. \")\n        if velocity > prev_velocity:\n            parts.append(f\"Higher velocity means the projectile travels faster and reaches further. \")\n        else:\n            parts.append(f\"Lower velocity means the projectile travels slower and doesn't go as far. \")\n    \n    if prev_gravity is not None and prev_gravity != gravity:\n        change = gravity - prev_gravity\n        direction = \"increased\" if change > 0 else \"decreased\"\n        parts.append(f\"The gravitational acceleration has {direction} from {prev_gravity} to {gravity} meters per second squared. \")\n        if gravity > prev_gravity:\n            parts.append(f\"Stronger gravity pulls the projectile down faster, reducing both the flight time and the maximum height. \")\n        else:\n            parts.append(f\"Weaker gravity lets the projectile stay in the air longer and reach a higher maximum height. \")\n    \n    import sys\n    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))\n    from physics_service import calculate_trajectory\n    result = calculate_trajectory(angle, velocity, gravity)\n    \n    parts.append(f\"The maximum height reached is {result['max_height']} meters. \")\n    parts.append(f\"The total range or horizontal distance covered is {result['range']} meters. \")\n    parts.append(f\"The projectile remains in the air for {result['time_of_flight']} seconds.\")\n    \n    return \" \".join(parts)\n\n\ndef synthesize_speech(text: str, target_language_code: str = \"en-IN\", \n                      speaker: str = \"arya\") -> dict:\n    api_key = get_api_key()\n    \n    if not api_key:\n        return {\"error\": \"API key missing\", \"audio_url\": None}\n    \n    headers = {\n        \"api-subscription-key\": api_key,\n        \"Content-Type\": \"application/json\"\n    }\n    \n    payload = {\n        \"inputs\": [text],\n        \"target_language_code\": target_language_code,\n        \"speaker\": \"shruti\",\n        \"model\": \"bulbul:v3\",\n        \"speech_sample_rate\": 16000\n    }\n    \n    try:\n        response = requests.post(SARVAM_API_URL, headers=headers, json=payload, timeout=30)\n        response.raise_for_status()\n        \n        result = response.json()\n        \n        if result.get(\"audios\") and len(result[\"audios\"]) > 0:\n            audio_base64 = result[\"audios\"][0]\n            audio_data_url = f\"data:audio/wav;base64,{audio_base64}\"\n            return {\n                \"audio_url\": audio_data_url,\n                \"request_id\": result.get(\"request_id\")\n            }\n        else:\n            return {\"error\": \"No audio returned from API\", \"audio_url\": None}\n            \n    except requests.exceptions.RequestException as e:\n        return {\"error\": str(e), \"audio_url\": None}\n\n\ndef get_audio_stream(text: str):\n    result = synthesize_speech(text)\n    return result.get(\"audio_url\")\n\n\ndef generate_explanation_text_telugu(angle: float, velocity: float, gravity: float, \n                                    prev_angle: Optional[float] = None, prev_velocity: Optional[float] = None, \n                                    prev_gravity: Optional[float] = None,\n                                    custom_formula: Optional[str] = None,\n                                    include_formula: bool = False) -> str:\n    import sys\n    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))\n    from physics_service import calculate_trajectory\n    result = calculate_trajectory(angle, velocity, gravity)\n    \n    parts = []\n    \n    angle_rad = angle * math.pi / 180\n    \n    if include_formula and custom_formula:\n        formula_speech = _convert_formula_to_speech(custom_formula)\n        parts.append(f\"Formula: {formula_speech}. \")\n    \n    parts.append(f\"Hello everyone! Niiku projectile motion ni explanation ivvutu. \")\n    parts.append(f\"Ipudu i simulation lo, projectile {angle} degrees angle daari, {velocity} m/s velocity tho launch avutundi. \")\n    parts.append(f\"Ekkada velocity ni two components lo split cheyyali. Horizontal component = {velocity * math.cos(angle_rad):.2f} m/s. Vertical component = {velocity * math.sin(angle_rad):.2f} m/s. \")\n    parts.append(f\"Horizontal motion lo, gravity effect ledu. Kabbati constant velocity tho move avutundi. Formula: x = v cosθ × t. \")\n    parts.append(f\"Vertical motion lo, gravity {gravity} m/s² impact undi. Upward movement lo velocity decrease avutundi, downward movement lo increase avutundi. Formula: y = v sinθ × t - ½gt². \")\n    \n    parts.append(f\"\\nOkay, ante results: \")\n    parts.append(f\"Maximum height = {result['max_height']:.2f} meters. \")\n    parts.append(f\"Total range = {result['range']:.2f} meters. \")\n    parts.append(f\"Time of flight = {result['time_of_flight']:.2f} seconds. \")\n    \n    if prev_angle is not None and prev_angle != angle:\n        diff = angle - prev_angle\n        if diff > 0:\n            parts.append(f\"\\nSo, angle increase ayyindi ante, vertical component increase avutundi. Horizontal component decrease avutundi. \")\n            parts.append(f\"Kabbati maximum height increase avutundi. Range decrease avutundi. \")\n            parts.append(f\"Remember: 45° max range ki ideal angle. \")\n        else:\n            parts.append(f\"\\nSo, angle decrease ayyindi ante, horizontal component increase avutundi. Vertical component decrease avutundi. \")\n            parts.append(f\"Kabbati range increase avutundi. Maximum height decrease avutundi. \")\n    \n    if prev_velocity is not None and prev_velocity != velocity:\n        diff = velocity - prev_velocity\n        if diff > 0:\n            parts.append(f\"\\nVelocity increase ayyindi ante, initial energy increase avutundi. \")\n            parts.append(f\"Both height and range increase avutundi. Physics ante, Range ∝ v² and Height ∝ v². \")\n        else:\n            parts.append(f\"\\nVelocity decrease ayyindi ante, initial energy decrease avutundi. \")\n            parts.append(f\"Both height and range decrease avutundi. \")\n    \n    if prev_gravity is not None and prev_gravity != gravity:\n        diff = gravity - prev_gravity\n        if diff > 0:\n            parts.append(f\"\\nGravity increase ayyindi ante, downward pull strong avutundi. \")\n            parts.append(f\"Flight time and maximum height both decrease avutundi. \")\n            parts.append(f\"Example: Moon lo gravity 1.6 m/s², Jupiter lo 24.8 m/s². Moon lo projectile more distance travel avutundi. \")\n        else:\n            parts.append(f\"\\nGravity decrease ayyindi ante, downward pull weak avutundi. \")\n            parts.append(f\"Flight time and maximum height both increase avutundi. \")\n    \n    return \" \".join(parts)\n\n\ndef generate_speech_explanation(angle: float, velocity: float, gravity: float,\n                                prev_angle: Optional[float] = None, prev_velocity: Optional[float] = None,\n                                prev_gravity: Optional[float] = None,\n                                custom_formula: Optional[str] = None,\n                                include_formula: bool = False,\n                                language: str = \"en-IN\") -> dict:\n    if language == \"te-IN\":\n        explanation_text = generate_explanation_text_telugu(\n            angle, velocity, gravity,\n            prev_angle, prev_velocity, prev_gravity,\n            custom_formula, include_formula\n        )\n    else:\n        explanation_text = generate_explanation_text(\n            angle, velocity, gravity,\n            prev_angle, prev_velocity, prev_gravity,\n            custom_formula, include_formula\n        )\n    \n    return synthesize_speech(explanation_text, target_language_code=language)",
+              "additions": 2,
+              "deletions": 2,
+              "status": "modified"
+            }
+          ]
+        },
+        "agent": "build",
+        "model": {
+          "providerID": "opencode",
+          "modelID": "big-pickle"
+        },
+        "id": "msg_d007cda300010c3l4TXX0j53UR",
+        "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi"
+      },
+      "parts": [
+        {
+          "type": "text",
+          "text": "still the language is not changed in to the telugu language to audio but the frontend and backend working prfectly only need cgange here",
+          "id": "prt_d007cda30002RYBTfiBvYFOQ7A",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007cda300010c3l4TXX0j53UR"
+        }
+      ]
+    },
+    {
+      "info": {
+        "role": "assistant",
+        "time": {
+          "created": 1773829675638,
+          "completed": 1773829680905
+        },
+        "parentID": "msg_d007cda300010c3l4TXX0j53UR",
+        "modelID": "big-pickle",
+        "providerID": "opencode",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/home/tejasree/visual-task/visual-interaction",
+          "root": "/home/tejasree/visual-task/visual-interaction"
+        },
+        "cost": 0,
+        "tokens": {
+          "total": 11544,
+          "input": 78,
+          "output": 107,
+          "reasoning": 0,
+          "cache": {
+            "read": 510,
+            "write": 10849
+          }
+        },
+        "finish": "tool-calls",
+        "id": "msg_d007cda76001IxyeJbqurGKlc4",
+        "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi"
+      },
+      "parts": [
+        {
+          "type": "step-start",
+          "snapshot": "3385f3525dfccd87f45163b1155b06d830846352",
+          "id": "prt_d007ceea70011l67isOrJ3BoCC",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007cda76001IxyeJbqurGKlc4"
+        },
+        {
+          "type": "reasoning",
+          "text": "The user is saying that the language is not changed to Telugu for audio, but the frontend and backend are working perfectly. They want to change the language to Telugu for audio.\n\nLet me search for audio-related code in the codebase to find where the language setting is used for audio synthesis.",
+          "metadata": {
+            "anthropic": {
+              "signature": "49b9c853de824cbcc738f7824fafa68a2f00f8e9ef9914efe1b95f2657319133"
+            }
+          },
+          "time": {
+            "start": 1773829680810,
+            "end": 1773829680818
+          },
+          "id": "prt_d007ceeaa001dondePFvkjERCK",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007cda76001IxyeJbqurGKlc4"
+        },
+        {
+          "type": "tool",
+          "callID": "call_function_rnpki8qidgn8_1",
+          "tool": "grep",
+          "state": {
+            "status": "completed",
+            "input": {
+              "include": "*.{ts,js,py}",
+              "pattern": "audio|speech|tts|voice"
+            },
+            "output": "Found 28 matches\n/home/tejasree/visual-task/visual-interaction/backend/services/speech_service.py:\n  Line 13: SARVAM_API_URL = \"https://api.sarvam.ai/text-to-speech\"\n  Line 16: def _convert_formula_to_speech(formula: str) -> str:\n  Line 48:         formula_speech = _convert_formula_to_speech(custom_formula)\n  Line 49:         parts.append(f\"The projectile motion formula being used is: {formula_speech}. \")\n  Line 94: def synthesize_speech(text: str, target_language_code: str = \"en-IN\", \n  Line 99:         return {\"error\": \"API key missing\", \"audio_url\": None}\n  Line 111:         \"speech_sample_rate\": 16000\n  Line 120:         if result.get(\"audios\") and len(result[\"audios\"]) > 0:\n  Line 121:             audio_base64 = result[\"audios\"][0]\n  Line 122:             audio_data_url = f\"data:audio/wav;base64,{audio_base64}\"\n  Line 124:                 \"audio_url\": audio_data_url,\n  Line 128:             return {\"error\": \"No audio returned from API\", \"audio_url\": None}\n  Line 131:         return {\"error\": str(e), \"audio_url\": None}\n  Line 134: def get_audio_stream(text: str):\n  Line 135:     result = synthesize_speech(text)\n  Line 136:     return result.get(\"audio_url\")\n  Line 154:         formula_speech = _convert_formula_to_speech(custom_formula)\n  Line 155:         parts.append(f\"Formula: {formula_speech}. \")\n  Line 200: def generate_speech_explanation(angle: float, velocity: float, gravity: float,\n  Line 219:     return synthesize_speech(explanation_text, target_language_code=language)\n\n/home/tejasree/visual-task/visual-interaction/backend/routes/simulation_routes.py:\n  Line 10: from services.speech_service import generate_explanation_text, synthesize_speech, generate_explanation_text_telugu\n  Line 28:         speech_result = synthesize_speech(text, target_language_code=language)\n  Line 30:             'speech_audio_url': speech_result.get('audio_url'),\n  Line 31:             'error': speech_result.get('error')\n  Line 75:     speech_result = synthesize_speech(explanation_text, target_language_code=language)\n  Line 76:     print(f\"TTS completed: audio_url={'present' if speech_result.get('audio_url') else 'NOT present'}\")\n  Line 77:     logger.info(f\"TTS: audio_url={'present' if speech_result.get('audio_url') else 'NOT present'}\")\n  Line 89:         'speech_audio_url': speech_result.get('audio_url')",
+            "title": "audio|speech|tts|voice",
+            "metadata": {
+              "matches": 28,
+              "truncated": false
+            },
+            "time": {
+              "start": 1773829680827,
+              "end": 1773829680831
+            }
+          },
+          "id": "prt_d007ceeb5001yb432pAQBWXDMR",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007cda76001IxyeJbqurGKlc4"
+        },
+        {
+          "type": "step-finish",
+          "reason": "tool-calls",
+          "snapshot": "3385f3525dfccd87f45163b1155b06d830846352",
+          "cost": 0,
+          "tokens": {
+            "total": 11544,
+            "input": 78,
+            "output": 107,
+            "reasoning": 0,
+            "cache": {
+              "read": 510,
+              "write": 10849
+            }
+          },
+          "id": "prt_d007ceec4001nbJPjKNalsLoHJ",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007cda76001IxyeJbqurGKlc4"
+        }
+      ]
+    },
+    {
+      "info": {
+        "role": "assistant",
+        "time": {
+          "created": 1773829680909,
+          "completed": 1773829683777
+        },
+        "parentID": "msg_d007cda300010c3l4TXX0j53UR",
+        "modelID": "big-pickle",
+        "providerID": "opencode",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/home/tejasree/visual-task/visual-interaction",
+          "root": "/home/tejasree/visual-task/visual-interaction"
+        },
+        "cost": 0,
+        "tokens": {
+          "total": 12254,
+          "input": 710,
+          "output": 73,
+          "reasoning": 0,
+          "cache": {
+            "read": 11326,
+            "write": 145
+          }
+        },
+        "finish": "tool-calls",
+        "id": "msg_d007cef0d0014c7YzGm5Bvx8mJ",
+        "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi"
+      },
+      "parts": [
+        {
+          "type": "step-start",
+          "snapshot": "3385f3525dfccd87f45163b1155b06d830846352",
+          "id": "prt_d007cf5760010Q6taGRGDKf43M",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007cef0d0014c7YzGm5Bvx8mJ"
+        },
+        {
+          "type": "reasoning",
+          "text": "Now let me look at the speech_service.py to see how the language code is handled and find where the Telugu language code should be set.",
+          "metadata": {
+            "anthropic": {
+              "signature": "d4f8b5908a13b9e1227be56b9fd7d94d3e9b114a17c4d04d82aea3a22a365100"
+            }
+          },
+          "time": {
+            "start": 1773829682552,
+            "end": 1773829682832
+          },
+          "id": "prt_d007cf577001Wmx7pZ6HhiYtnl",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007cef0d0014c7YzGm5Bvx8mJ"
+        },
+        {
+          "type": "tool",
+          "callID": "call_function_tdhnyzkxucr6_1",
+          "tool": "read",
+          "state": {
+            "status": "completed",
+            "input": {
+              "filePath": "/home/tejasree/visual-task/visual-interaction/backend/services/speech_service.py"
+            },
+            "output": "<path>/home/tejasree/visual-task/visual-interaction/backend/services/speech_service.py</path>\n<type>file</type>\n<content>1: import os\n2: import base64\n3: import requests\n4: from datetime import datetime\n5: from typing import Optional\n6: from dotenv import load_dotenv\n7: import math\n8: \n9: project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))\n10: env_path = os.path.join(project_root, '.env')\n11: load_dotenv(env_path)\n12: \n13: SARVAM_API_URL = \"https://api.sarvam.ai/text-to-speech\"\n14: \n15: \n16: def _convert_formula_to_speech(formula: str) -> str:\n17:     if not formula:\n18:         return formula\n19:     return (formula\n20:             .replace('θ', 'theta')\n21:             .replace('²', ' squared')\n22:             .replace('³', ' cubed')\n23:             .replace('*', ' multiplied by ')\n24:             .replace('/', ' divided by ')\n25:             .replace('+', ' plus ')\n26:             .replace('-', ' minus ')\n27:             .replace('=', ' equals ')\n28:             .replace('(', ' open parenthesis ')\n29:             .replace(')', ' close parenthesis '))\n30: \n31: \n32: def get_api_key():\n33:     api_key = os.environ.get(\"SARVAM_API_KEY\")\n34:     if not api_key:\n35:         print(\"SARVAM_API_KEY not found. Please add SARVAM_API_KEY to your .env file.\")\n36:         print(\"Get your API key from: https://dashboard.sarvam.ai\")\n37:     return api_key\n38: \n39: \n40: def generate_explanation_text(angle: float, velocity: float, gravity: float, \n41:                                 prev_angle: Optional[float] = None, prev_velocity: Optional[float] = None, \n42:                                 prev_gravity: Optional[float] = None,\n43:                                 custom_formula: Optional[str] = None,\n44:                                 include_formula: bool = False) -> str:\n45:     parts = []\n46:     \n47:     if include_formula and custom_formula:\n48:         formula_speech = _convert_formula_to_speech(custom_formula)\n49:         parts.append(f\"The projectile motion formula being used is: {formula_speech}. \")\n50:         parts.append(\"This formula describes the relationship between the horizontal distance, vertical height, launch angle, initial velocity, and gravity. \")\n51:         parts.append(\"In this formula, y represents the vertical height, x represents the horizontal distance, theta represents the launch angle, v represents the initial velocity, and g represents gravitational acceleration. \")\n52:     \n53:     parts.append(f\"In this projectile motion simulation, the projectile is launched at an angle of {angle} degrees with an initial velocity of {velocity} meters per second under a gravitational acceleration of {gravity} meters per second squared.\")\n54:     \n55:     if prev_angle is not None and prev_angle != angle:\n56:         change = angle - prev_angle\n57:         direction = \"increased\" if change > 0 else \"decreased\"\n58:         parts.append(f\"The launch angle has {direction} from {prev_angle} to {angle} degrees. \")\n59:         if angle > prev_angle:\n60:             parts.append(f\"A higher angle means the projectile reaches a greater maximum height but travels a shorter distance. \")\n61:         else:\n62:             parts.append(f\"A lower angle means the projectile travels farther but reaches a lower maximum height. \")\n63:     \n64:     if prev_velocity is not None and prev_velocity != velocity:\n65:         change = velocity - prev_velocity\n66:         direction = \"increased\" if change > 0 else \"decreased\"\n67:         parts.append(f\"The initial velocity has {direction} from {prev_velocity} to {velocity} meters per second. \")\n68:         if velocity > prev_velocity:\n69:             parts.append(f\"Higher velocity means the projectile travels faster and reaches further. \")\n70:         else:\n71:             parts.append(f\"Lower velocity means the projectile travels slower and doesn't go as far. \")\n72:     \n73:     if prev_gravity is not None and prev_gravity != gravity:\n74:         change = gravity - prev_gravity\n75:         direction = \"increased\" if change > 0 else \"decreased\"\n76:         parts.append(f\"The gravitational acceleration has {direction} from {prev_gravity} to {gravity} meters per second squared. \")\n77:         if gravity > prev_gravity:\n78:             parts.append(f\"Stronger gravity pulls the projectile down faster, reducing both the flight time and the maximum height. \")\n79:         else:\n80:             parts.append(f\"Weaker gravity lets the projectile stay in the air longer and reach a higher maximum height. \")\n81:     \n82:     import sys\n83:     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))\n84:     from physics_service import calculate_trajectory\n85:     result = calculate_trajectory(angle, velocity, gravity)\n86:     \n87:     parts.append(f\"The maximum height reached is {result['max_height']} meters. \")\n88:     parts.append(f\"The total range or horizontal distance covered is {result['range']} meters. \")\n89:     parts.append(f\"The projectile remains in the air for {result['time_of_flight']} seconds.\")\n90:     \n91:     return \" \".join(parts)\n92: \n93: \n94: def synthesize_speech(text: str, target_language_code: str = \"en-IN\", \n95:                       speaker: str = \"arya\") -> dict:\n96:     api_key = get_api_key()\n97:     \n98:     if not api_key:\n99:         return {\"error\": \"API key missing\", \"audio_url\": None}\n100:     \n101:     headers = {\n102:         \"api-subscription-key\": api_key,\n103:         \"Content-Type\": \"application/json\"\n104:     }\n105:     \n106:     payload = {\n107:         \"inputs\": [text],\n108:         \"target_language_code\": target_language_code,\n109:         \"speaker\": speaker,\n110:         \"model\": \"bulbul:v2\",\n111:         \"speech_sample_rate\": 16000\n112:     }\n113:     \n114:     try:\n115:         response = requests.post(SARVAM_API_URL, headers=headers, json=payload, timeout=30)\n116:         response.raise_for_status()\n117:         \n118:         result = response.json()\n119:         \n120:         if result.get(\"audios\") and len(result[\"audios\"]) > 0:\n121:             audio_base64 = result[\"audios\"][0]\n122:             audio_data_url = f\"data:audio/wav;base64,{audio_base64}\"\n123:             return {\n124:                 \"audio_url\": audio_data_url,\n125:                 \"request_id\": result.get(\"request_id\")\n126:             }\n127:         else:\n128:             return {\"error\": \"No audio returned from API\", \"audio_url\": None}\n129:             \n130:     except requests.exceptions.RequestException as e:\n131:         return {\"error\": str(e), \"audio_url\": None}\n132: \n133: \n134: def get_audio_stream(text: str):\n135:     result = synthesize_speech(text)\n136:     return result.get(\"audio_url\")\n137: \n138: \n139: def generate_explanation_text_telugu(angle: float, velocity: float, gravity: float, \n140:                                     prev_angle: Optional[float] = None, prev_velocity: Optional[float] = None, \n141:                                     prev_gravity: Optional[float] = None,\n142:                                     custom_formula: Optional[str] = None,\n143:                                     include_formula: bool = False) -> str:\n144:     import sys\n145:     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))\n146:     from physics_service import calculate_trajectory\n147:     result = calculate_trajectory(angle, velocity, gravity)\n148:     \n149:     parts = []\n150:     \n151:     angle_rad = angle * math.pi / 180\n152:     \n153:     if include_formula and custom_formula:\n154:         formula_speech = _convert_formula_to_speech(custom_formula)\n155:         parts.append(f\"Formula: {formula_speech}. \")\n156:     \n157:     parts.append(f\"Hello everyone! Niiku projectile motion ni explanation ivvutu. \")\n158:     parts.append(f\"Ipudu i simulation lo, projectile {angle} degrees angle daari, {velocity} m/s velocity tho launch avutundi. \")\n159:     parts.append(f\"Ekkada velocity ni two components lo split cheyyali. Horizontal component = {velocity * math.cos(angle_rad):.2f} m/s. Vertical component = {velocity * math.sin(angle_rad):.2f} m/s. \")\n160:     parts.append(f\"Horizontal motion lo, gravity effect ledu. Kabbati constant velocity tho move avutundi. Formula: x = v cosθ × t. \")\n161:     parts.append(f\"Vertical motion lo, gravity {gravity} m/s² impact undi. Upward movement lo velocity decrease avutundi, downward movement lo increase avutundi. Formula: y = v sinθ × t - ½gt². \")\n162:     \n163:     parts.append(f\"\\nOkay, ante results: \")\n164:     parts.append(f\"Maximum height = {result['max_height']:.2f} meters. \")\n165:     parts.append(f\"Total range = {result['range']:.2f} meters. \")\n166:     parts.append(f\"Time of flight = {result['time_of_flight']:.2f} seconds. \")\n167:     \n168:     if prev_angle is not None and prev_angle != angle:\n169:         diff = angle - prev_angle\n170:         if diff > 0:\n171:             parts.append(f\"\\nSo, angle increase ayyindi ante, vertical component increase avutundi. Horizontal component decrease avutundi. \")\n172:             parts.append(f\"Kabbati maximum height increase avutundi. Range decrease avutundi. \")\n173:             parts.append(f\"Remember: 45° max range ki ideal angle. \")\n174:         else:\n175:             parts.append(f\"\\nSo, angle decrease ayyindi ante, horizontal component increase avutundi. Vertical component decrease avutundi. \")\n176:             parts.append(f\"Kabbati range increase avutundi. Maximum height decrease avutundi. \")\n177:     \n178:     if prev_velocity is not None and prev_velocity != velocity:\n179:         diff = velocity - prev_velocity\n180:         if diff > 0:\n181:             parts.append(f\"\\nVelocity increase ayyindi ante, initial energy increase avutundi. \")\n182:             parts.append(f\"Both height and range increase avutundi. Physics ante, Range ∝ v² and Height ∝ v². \")\n183:         else:\n184:             parts.append(f\"\\nVelocity decrease ayyindi ante, initial energy decrease avutundi. \")\n185:             parts.append(f\"Both height and range decrease avutundi. \")\n186:     \n187:     if prev_gravity is not None and prev_gravity != gravity:\n188:         diff = gravity - prev_gravity\n189:         if diff > 0:\n190:             parts.append(f\"\\nGravity increase ayyindi ante, downward pull strong avutundi. \")\n191:             parts.append(f\"Flight time and maximum height both decrease avutundi. \")\n192:             parts.append(f\"Example: Moon lo gravity 1.6 m/s², Jupiter lo 24.8 m/s². Moon lo projectile more distance travel avutundi. \")\n193:         else:\n194:             parts.append(f\"\\nGravity decrease ayyindi ante, downward pull weak avutundi. \")\n195:             parts.append(f\"Flight time and maximum height both increase avutundi. \")\n196:     \n197:     return \" \".join(parts)\n198: \n199: \n200: def generate_speech_explanation(angle: float, velocity: float, gravity: float,\n201:                                 prev_angle: Optional[float] = None, prev_velocity: Optional[float] = None,\n202:                                 prev_gravity: Optional[float] = None,\n203:                                 custom_formula: Optional[str] = None,\n204:                                 include_formula: bool = False,\n205:                                 language: str = \"en-IN\") -> dict:\n206:     if language == \"te-IN\":\n207:         explanation_text = generate_explanation_text_telugu(\n208:             angle, velocity, gravity,\n209:             prev_angle, prev_velocity, prev_gravity,\n210:             custom_formula, include_formula\n211:         )\n212:     else:\n213:         explanation_text = generate_explanation_text(\n214:             angle, velocity, gravity,\n215:             prev_angle, prev_velocity, prev_gravity,\n216:             custom_formula, include_formula\n217:         )\n218:     \n219:     return synthesize_speech(explanation_text, target_language_code=language)\n\n(End of file - total 219 lines)\n</content>",
+            "title": "backend/services/speech_service.py",
+            "metadata": {
+              "preview": "import os\nimport base64\nimport requests\nfrom datetime import datetime\nfrom typing import Optional\nfrom dotenv import load_dotenv\nimport math\n\nproject_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))\nenv_path = os.path.join(project_root, '.env')\nload_dotenv(env_path)\n\nSARVAM_API_URL = \"https://api.sarvam.ai/text-to-speech\"\n\n\ndef _convert_formula_to_speech(formula: str) -> str:\n    if not formula:\n        return formula\n    return (formula\n            .replace('θ', 'theta')",
+              "truncated": false,
+              "loaded": []
+            },
+            "time": {
+              "start": 1773829683368,
+              "end": 1773829683648
+            }
+          },
+          "id": "prt_d007cf896001fFvltY7971J9sl",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007cef0d0014c7YzGm5Bvx8mJ"
+        },
+        {
+          "type": "step-finish",
+          "reason": "tool-calls",
+          "snapshot": "3385f3525dfccd87f45163b1155b06d830846352",
+          "cost": 0,
+          "tokens": {
+            "total": 12254,
+            "input": 710,
+            "output": 73,
+            "reasoning": 0,
+            "cache": {
+              "read": 11326,
+              "write": 145
+            }
+          },
+          "id": "prt_d007cf9cb001b6qZfe55GMvvud",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007cef0d0014c7YzGm5Bvx8mJ"
+        }
+      ]
+    },
+    {
+      "info": {
+        "role": "assistant",
+        "time": {
+          "created": 1773829683780,
+          "completed": 1773829697737
+        },
+        "parentID": "msg_d007cda300010c3l4TXX0j53UR",
+        "modelID": "big-pickle",
+        "providerID": "opencode",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/home/tejasree/visual-task/visual-interaction",
+          "root": "/home/tejasree/visual-task/visual-interaction"
+        },
+        "cost": 0,
+        "tokens": {
+          "total": 15315,
+          "input": 2961,
+          "output": 173,
+          "reasoning": 0,
+          "cache": {
+            "read": 11359,
+            "write": 822
+          }
+        },
+        "finish": "tool-calls",
+        "id": "msg_d007cfa44001rs1gXZyN1vOmoM",
+        "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi"
+      },
+      "parts": [
+        {
+          "type": "step-start",
+          "snapshot": "3385f3525dfccd87f45163b1155b06d830846352",
+          "id": "REDACTED",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007cfa44001rs1gXZyN1vOmoM"
+        },
+        {
+          "type": "reasoning",
+          "text": "I see that the code already has Telugu text generation (generate_explanation_text_telugu) and it's being called when language is \"te-IN\". However, the issue might be with the language code passed to the Sarvam API.\n\nLet me check what language code Sarvam API expects for Telugu. Looking at line 108, it's using `target_language_code` which is passed as a parameter. When language is \"te-IN\", it passes \"te-IN\" to the API.\n\nThe Sarvam API might use different language codes. Let me check the simulation_routes.py to see how language is being passed.",
+          "metadata": {
+            "anthropic": {
+              "signature": "61bdac8bf8f393fc067329bb7bea272b7aac75724f206d6c5e1c17ad98441246"
+            }
+          },
+          "time": {
+            "start": 1773829695743,
+            "end": 1773829697622
+          },
+          "id": "prt_d007d28ff001BL8RqPDZksGxra",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007cfa44001rs1gXZyN1vOmoM"
+        },
+        {
+          "type": "tool",
+          "callID": "call_function_yjwr4wzyxpmy_1",
+          "tool": "read",
+          "state": {
+            "status": "completed",
+            "input": {
+              "filePath": "/home/tejasree/visual-task/visual-interaction/backend/routes/simulation_routes.py"
+            },
+            "output": "<path>/home/tejasree/visual-task/visual-interaction/backend/routes/simulation_routes.py</path>\n<type>file</type>\n<content>1: import hashlib\n2: import logging\n3: from flask import Blueprint, request, jsonify\n4: \n5: logger = logging.getLogger(__name__)\n6: \n7: from services.cache_service import get_cached_result, set_cached_result\n8: from services.physics_service import calculate_trajectory\n9: from services.supabase_client import store_simulation\n10: from services.speech_service import generate_explanation_text, synthesize_speech, generate_explanation_text_telugu\n11: \n12: simulation_bp = Blueprint('simulation', __name__)\n13: \n14: \n15: def _generate_cache_key(angle, velocity, gravity, custom_formula=None):\n16:     key_str = f\"{angle}:{velocity}:{gravity}:{custom_formula or ''}\"\n17:     return f\"simulation:{hashlib.md5(key_str.encode()).hexdigest()}\"\n18: \n19: \n20: @simulation_bp.route('/simulation', methods=['POST'])\n21: @simulation_bp.route('/simulate', methods=['POST'])\n22: def simulate():\n23:     data = request.get_json() or {}\n24:     \n25:     text = data.get('text')\n26:     if text:\n27:         language = data.get('language', 'en-IN')\n28:         speech_result = synthesize_speech(text, target_language_code=language)\n29:         return jsonify({\n30:             'speech_audio_url': speech_result.get('audio_url'),\n31:             'error': speech_result.get('error')\n32:         })\n33:     \n34:     angle = data.get('angle')\n35:     velocity = data.get('velocity')\n36:     gravity = data.get('gravity')\n37:     custom_formula = data.get('custom_formula')\n38:     include_formula = data.get('include_formula', False)\n39:     language = data.get('language', 'en-IN')\n40:     \n41:     print(f\"\\n=== Slider Changed ===\")\n42:     print(f\"angle: {angle}, velocity: {velocity}, gravity: {gravity}\")\n43:     print(f\"custom_formula: {custom_formula}, include_formula: {include_formula}\")\n44:     logger.info(f\"Slider Changed: angle={angle}, velocity={velocity}, gravity={gravity}, custom_formula={custom_formula}\")\n45:     \n46:     cache_key = _generate_cache_key(angle, velocity, gravity, custom_formula)\n47:     \n48:     cached_result = get_cached_result(cache_key)\n49:     if cached_result:\n50:         print(f\"Cache: HIT → returning cached data\")\n51:         logger.info(\"Cache: HIT → returning cached data\")\n52:         return jsonify(cached_result)\n53:     \n54:     print(f\"Cache: MISS → calculating new data...\")\n55:     logger.info(\"Cache: MISS → calculating new data...\")\n56:     physics_result = calculate_trajectory(angle, velocity, gravity)\n57:     print(f\"Physics calculated: max_height={physics_result['max_height']}, range={physics_result['range']}\")\n58:     logger.info(f\"Physics: max_height={physics_result['max_height']}, range={physics_result['range']}\")\n59:     \n60:     if language == \"te-IN\":\n61:         explanation_text = generate_explanation_text_telugu(\n62:             angle, velocity, gravity,\n63:             custom_formula=custom_formula,\n64:             include_formula=include_formula\n65:         )\n66:     else:\n67:         explanation_text = generate_explanation_text(\n68:             angle, velocity, gravity,\n69:             custom_formula=custom_formula,\n70:             include_formula=include_formula\n71:         )\n72:     \n73:     print(f\"Calling Sarvam TTS API...\")\n74:     logger.info(\"Calling Sarvam TTS API...\")\n75:     speech_result = synthesize_speech(explanation_text, target_language_code=language)\n76:     print(f\"TTS completed: audio_url={'present' if speech_result.get('audio_url') else 'NOT present'}\")\n77:     logger.info(f\"TTS: audio_url={'present' if speech_result.get('audio_url') else 'NOT present'}\")\n78:     \n79:     store_simulation(angle, velocity, gravity)\n80:     print(f\"Saved to database\")\n81:     logger.info(\"Saved to database\")\n82:     \n83:     full_result = {\n84:         'trajectory': physics_result['trajectory'],\n85:         'max_height': physics_result['max_height'],\n86:         'range': physics_result['range'],\n87:         'time_of_flight': physics_result['time_of_flight'],\n88:         'explanation_text': explanation_text,\n89:         'speech_audio_url': speech_result.get('audio_url')\n90:     }\n91:     \n92:     set_cached_result(cache_key, full_result)\n93:     print(f\"Cached result saved\\n\")\n94:     logger.info(\"Cached result saved\")\n95:     \n96:     return jsonify(full_result)\n\n(End of file - total 96 lines)\n</content>",
+            "title": "backend/routes/simulation_routes.py",
+            "metadata": {
+              "preview": "import hashlib\nimport logging\nfrom flask import Blueprint, request, jsonify\n\nlogger = logging.getLogger(__name__)\n\nfrom services.cache_service import get_cached_result, set_cached_result\nfrom services.physics_service import calculate_trajectory\nfrom services.supabase_client import store_simulation\nfrom services.speech_service import generate_explanation_text, synthesize_speech, generate_explanation_text_telugu\n\nsimulation_bp = Blueprint('simulation', __name__)\n\n\ndef _generate_cache_key(angle, velocity, gravity, custom_formula=None):\n    key_str = f\"{angle}:{velocity}:{gravity}:{custom_formula or ''}\"\n    return f\"simulation:{hashlib.md5(key_str.encode()).hexdigest()}\"\n\n\n@simulation_bp.route('/simulation', methods=['POST'])",
+              "truncated": false,
+              "loaded": []
+            },
+            "time": {
+              "start": 1773829697633,
+              "end": 1773829697648
+            }
+          },
+          "id": "prt_d007d3059001R2s0TdnFNGXQml",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007cfa44001rs1gXZyN1vOmoM"
+        },
+        {
+          "type": "step-finish",
+          "reason": "tool-calls",
+          "snapshot": "3385f3525dfccd87f45163b1155b06d830846352",
+          "cost": 0,
+          "tokens": {
+            "total": 15315,
+            "input": 2961,
+            "output": 173,
+            "reasoning": 0,
+            "cache": {
+              "read": 11359,
+              "write": 822
+            }
+          },
+          "id": "prt_d007d3073001PCGsY0NlwyJ48w",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007cfa44001rs1gXZyN1vOmoM"
+        }
+      ]
+    },
+    {
+      "info": {
+        "role": "assistant",
+        "time": {
+          "created": 1773829697741,
+          "completed": 1773829707232
+        },
+        "parentID": "msg_d007cda300010c3l4TXX0j53UR",
+        "modelID": "big-pickle",
+        "providerID": "opencode",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/home/tejasree/visual-task/visual-interaction",
+          "root": "/home/tejasree/visual-task/visual-interaction"
+        },
+        "cost": 0,
+        "tokens": {
+          "total": 16680,
+          "input": 1211,
+          "output": 227,
+          "reasoning": 0,
+          "cache": {
+            "read": 12103,
+            "write": 3139
+          }
+        },
+        "finish": "tool-calls",
+        "id": "msg_d007d30cd0010RlOL5eVXJ60s2",
+        "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi"
+      },
+      "parts": [
+        {
+          "type": "step-start",
+          "snapshot": "3385f3525dfccd87f45163b1155b06d830846352",
+          "id": "prt_d007d42f5001EG357h907AAe4J",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007d30cd0010RlOL5eVXJ60s2"
+        },
+        {
+          "type": "reasoning",
+          "text": "Now I understand the issue. The code is using \"te-IN\" as the language code for Telugu, but the Sarvam AI API might use a different language code. Let me search for what language codes Sarvam API uses.\n\nLooking at the code:\n1. In simulation_routes.py line 75, it calls `synthesize_speech(explanation_text, target_language_code=language)` with language being \"te-IN\"\n2. In speech_service.py line 108, the language is passed directly to the API as `target_language_code`\n\nThe issue is likely that Sarvam API uses \"te\" instead of \"te-IN\" for Telugu, or they might use a different code entirely.\n\nLet me check the Sarvam API documentation to find the correct language code. Let me search online for Sarvam TTS language codes.",
+          "metadata": {
+            "anthropic": {
+              "signature": "c2d40350793cc6073e6f5435ff143f0530a49d0af7e28947ea51899764dec58b"
+            }
+          },
+          "time": {
+            "start": 1773829702391,
+            "end": 1773829705033
+          },
+          "id": "prt_d007d42f7001Lb4uiKBzw3dYVU",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007d30cd0010RlOL5eVXJ60s2"
+        },
+        {
+          "type": "tool",
+          "callID": "call_function_d867xyczn7y0_1",
+          "tool": "codesearch",
+          "state": {
+            "status": "completed",
+            "input": {
+              "query": "Sarvam AI text to speech API language codes Telugu te-IN",
+              "tokensNum": 3000
+            },
+            "output": "## How to Set the Language | Sarvam API Docs\nhttps://docs.sarvam.ai/api-reference-docs/api-guides-tutorials/text-to-speech/how-to/set-the-language\n\ntarget_language_code parameter is required for every TTS request. It is primarily effective for handling  ...    | Language | Code |\n| --- | --- |\n| English | `en-IN` |\n| Hindi | `hi-IN` |\n| Bengali | `bn-IN` |\n| Tamil | `ta-IN` | | Telugu | `te-IN` |\n| Kannada | `kn-IN` |\n| Malayalam | `ml-IN` |\n| Marathi | `mr-IN` |\n| Gujarati | `gu-IN` | | Punjabi | `pa-IN` |\n| Odia | `od-IN` | ### Example Code\n\n## Rest API\n\n```python\nfrom sarvamai import SarvamAI\nfrom sarvamai.play import save  ...    # Generate speech using REST\naudio = client.text_to_speech.convert(\n    text=\"Welcome to Sarvam AI!\", model=\"bulbul:v3\",\n    target_language_code=\"en-IN\" #Generating speech in English\n)\nsave(audio, \"output1.wav\")  ...    target_language_code=\"hi-IN\", #Generating speech in Hindi\n            speaker=\"shubh\"\n        )  ...    text = (\n            \"भारत की संस्क\n\n## Models | Sarvam API Docs\nhttps://docs.sarvam.ai/api-reference-docs/getting-started/models\n\nv3: Text to Speech Natural-sounding voices for 11 languages (10 Indian + English) with customizable pitch, pace, and speaker options.  ...    | Language | Code | | Language | Code |\n| --- | --- | --- | --- | --- |\n| Hindi | `hi-IN` | | Assamese | `as-IN` | | Bengali | `bn-IN` | | Urdu | `ur-IN` |\n| Kannada | `kn-IN` | | Nepali | `ne-IN` | | Malayalam | `ml-IN` | | Konkani | `kok-IN` |\n| Marathi | `mr-IN` | | Kashmiri | `ks-IN` | | Odia | `od-IN` | | Sindhi | `sd-IN` |\n| Punjabi | `pa-IN` | | Sanskrit | `sa-IN` | | Tamil | `ta-IN` | | Santali | `sat-IN` |\n| Telugu | `te-IN` | | Manipuri | `mni-IN` | | English | `en-IN` | | Bodo | `brx-IN` |\n| Gujarati | `gu-IN` | | Maithili | `mai-IN` |\n| | | | Dogri | `doi-IN` |  ...    | Bengali | `bn-IN` | | Malayalam | `ml-IN` |\n| Tamil | `ta-IN` | | Marathi | `mr-IN` | | Telugu | `te-IN` | | Punjabi |\n\n## Text-to-Speech Rest API - Sarvam AI Docs\nhttps://docs.sarvam.ai/api-reference-docs/api-guides-tutorials/text-to-speech/rest-api\n\nhttps://docs.sarvam.ai/api-reference-docs/text-to-speech/api/rest-api' 'og:title': Text-to-Speech REST API - Instant Voice Synthesis by Sarvam AI\n'og:description': >-  ...    Provides a synchronous REST endpoint where a POST request with text returns base64-encoded audio as response. Common use cases: - E-learning — Build multilingual course material with clear pronunciation  ...    ## What You Can Do\n\n## 30+ Voices\n\nPick from male and female speakers — each with distinct tone and style. Pass the `speaker` param to switch instantly.\n\n## 11 Languages (10 Indian + English) Hindi, Bengali, Tamil, Telugu, Kannada, Malayalam, Marathi, Gujarati, Punjabi, Odia, and English (Indian accent). Set via `target_language_code`.\n\n## Up to 2500 Characters Send long-form text in a single request (v3). No need to chunk or paginate your input.\n\n## Pace Control Speed up or slow down speech with the `pace` parameter — range `0.5` to `2.0` for v3.\n\n## Flexible Sample Rates  ...    ## Multiple Audio Formats\n\nResponse is base64-encoded. Supports WAV, MP3, Linear16, Mulaw, Alaw, Opus, FLAC, and AAC.  ...    Bulbul v3 is purpose-built for Indian languages and accents. It handles code-mixed text (e.g., Hinglish), number  ...    Support for Indian languages\n\nNatural prosody and intonation\n\nHigh-quality audio output\n\n## Python  ...    audio = client.text_to_speech.convert(\n    target_language_code=\"en-IN\",\n    text=\"Welcome to Sarvam AI!\", model=\"bulbul:v3\",\n    speaker=\"shubh\"\n)\nsave(audio, \"output1.wav\") ```\n\n## JavaScript\n\n```javascript\nimport { Sarvam\n\n## Text to Speech API - Sarvam AI\nhttps://www.sarvam.ai/apis/text-to-speech\n\nका नज़ारा ही कुछ और होता है। चाय की चुस्की के साथ अखबार, बच्चों की किलकारियां, और मंदिर की घंटियों की आवाज़ — सब मिलकर एक ऐसा माहौल बनाते हैं जो दिल को सुकून देता है। यही तो है अपने देश की खूबसूरती।211/2000 Hindi\n\n### Voices\n\nView all\n\nShubhMale\n\nConversational ・ Friendly\n\nShreyaFemale\n\nNews ・ Authoritative  ...    ## Text to speech powering everything from voice agents to multilingual content creation  ...    High-quality multilingual voiceovers\n\nPublic announcements\n\nEducational content\n\nMarketing promos & ads  ...    Sub-250ms first byte with WebSocket streaming for real-time voice applications\n\n### Configurable controls Fine-tune voice pace, expressiveness, and tone to match your brand\n\n### Plug-and-play integrations Deploy a voice agent in under 10 minutes with SDKs for Python and Node.js\n\n### 11 Indian languages Native support for Hindi, Tamil, Telugu, Bengali, Marathi, and more\n\n### 35+ unique voices Choose from a wide range of voices across different styles and tones\n\n2B+\n\ncharacters generated daily\n\n11\n\nlanguages 80K\n\ndevelopers\n\n## Developers love building with Sarvam\n\nDon't take our word for it. \"Best TTS for Indian languages, hands down. The Hindi voices sound incredibly natural and the streaming latency is  ...    \"We switched from Google Cloud TTS and the difference in quality for Tamil and Telugu is night and day. Our users  ...    \"Finally, a TTS engine that handles Hinglish properly. Code-switching between Hindi and English sounds completely  ...    ### What languages does Text to Speech support?\n\n### What voices are available? ### Can I control voice characteristics like pitch and pace?\n\n### What audio formats are supported? ### What are the API options - REST vs Stream\n\n## REST | Sarvam API Docs\nhttps://docs.sarvam.ai/api-reference-docs/speech-to-text/transcribe\n\nlanguage_code:\n                  $ref: '#/components/schemas/Sarvam_Model_API_SpeechToTextLanguage' description: >-\n                    Specifies the language of the input audio in BCP-47 format.  ...    - `unknown`: Use when the language is not known; the API\n                    will auto-detect. - `hi-IN`: Hindi\n\n                    - `bn-IN`: Bengali\n\n                    - `kn-IN`: Kannada - `ml-IN`: Malayalam\n\n                    - `mr-IN`: Marathi\n\n                    - `od-IN`: Odia - `pa-IN`: Punjabi\n\n                    - `ta-IN`: Tamil\n\n                    - `te-IN`: Telugu - `en-IN`: English\n\n                    - `gu-IN`: Gujarati **Additional Options (saaras:v3 only):**\n\n                    - `as-IN`: Assamese - `ur-IN`: Urdu\n\n                    - `ne-IN`: Nepali\n\n                    - `kok-IN`: Konkani  ...    Sarvam_Model_API_SpeechToTextLanguage:\n      type: string\n      enum:\n        - unknown\n        - hi-IN - bn-IN\n        - kn-IN\n        - ml-IN\n        - mr-IN\n        - od-IN\n        - pa-IN\n        - ta-IN - te-IN\n        - en-IN\n        - gu-IN\n        - as-IN\n        - ur-IN\n        - ne-IN\n        - kok-IN  ...    **saarika:v2.5 supports (12 languages):** unknown, hi-IN, bn-IN, kn-IN,  ...    description: Diarized transcript of the provided speech\n        language_code:\n          type: - string\n            - 'null'\n          description: >- This will return the B\n\n## Speech To Text Translate | Sarvam API Docs\nhttps://docs.sarvam.ai/api-reference-docs/speech-to-text/translate\n\nText Translate\nPOST\nhttps://api.sarvam.ai/speech-to-text-translate\nPOST\n/speech-to-text-translate\nPython ```\n`\n1|from sarvamai import SarvamAI|\n2||\n3|client = SarvamAI(| 4|api\\_subscription\\_key=\"\"YOUR\\_API\\_SUBSCRIPTION\\_KEY\"\",|\n5|)|  ...    2|\"\"request\\_id\"\": \"\"foo\"\",|\n3|\"transcript\": \"foo\",| 4|\"\"language\\_code\"\": \"\"hi-IN\"\",| 5|\"\"diarized\\_transcript\"\": {|\n6|\"entries\": [|\n7|{| 8|\"transcript\": \"foo\",|\n9|\"\"start\\_time\\_seconds\"\": 42,|  ...    ## Speech to Text Translation API This API automatically detects the input language, transcribes the speech, and translates the text to English. ### Available Options:\n* **REST API**(Current Endpoint): For quick responses under 30 seconds with immediate results  ...    Show 24 enum values\n### Response\nSuccessful Response\nrequest\\_idstring or null\ntranscriptstring Transcript of the provided speech\nlanguage\\_codeenum or null This will return the BCP-47 code of language spoken in the input. If multiple languages are detected, this will return language code of most predominant spoken language. If no language is detected, this will be null Show 11 enum values\ndiarized\\_transcriptobject or null\nDiar\n\n## Text to Speech - Sarvam API Docs\nhttps://docs.sarvam.ai/api-reference-docs/endpoints/text-to-speech\n\nis the model to convert text into spoken audio.\nThe output is a wave file encoded as a base64 string.\nPOST https://api.sarvam.aihttps://api-staging.sarvam.ai\n/\ntext-to-speech\nTry it\ncURL\nPython\nJavaScript\nPHP\nGo\nJava\n```  ...    \"\"text\"\": \"\"<<string>>\"\", \"\"target\\_language\\_code\"\": \"\"bn-IN\"\", \"\"speaker\"\": \"\"meera\"\",\n\"\"pitch\"\": 0,  ...    #### Headers\n​\n\napi-subscription-key\nstring\ndefault:  ...    #### Body\napplication/json\n​\n\ntarget\\_language\\_code\nenum<string>\nrequired The language of the text is BCP-47 format\nAvailable options:\n`bn-IN`,\n`en-IN`,\n`gu-IN`,\n`hi-IN`,\n`kn-IN`,\n`ml-IN`, `mr-IN`,\n`od-IN`,\n`pa-IN`,\n`ta-IN`,\n`te-IN`\n​\n\ntext\nstring | null\nThe text(s) to be converted into speech.  ...    * Supports code-mixed text (English and Indic languages)\n**Important Note:**  ...    \"\"target\\_language\\_code\"\": \"\"bn-IN\"\", \"\n\n## Welcome to Sarvam AI API Reference Documentation | Sarvam API Docs\nhttps://docs.sarvam.ai/api-reference-docs/introduction\n\n-to-speech, translation, and more across 22+ Indian\nlanguages.  ...    'og:title': Sarvam AI API Documentation - Indian Language AI APIs\n'og:description': >-  ...    processing, translation, and language identification across 22+ Indian\nlanguages.\n'og:type': website  ...    Sarvam provides Models & APIs across the stack to help developers build powerful applications. Whether you're looking for chat completion, text translation, speech-to-text conversion, or a combination of speech recognition and  ...    Use the /chat/completions endpoint or the SDK to generate conversational responses. Supports 10 Indic languages along with English, delivering best-in-class multilingual performance. ## Translate Text Use the `/translate` endpoint or the SDK to translate text from one language to another. Supports 22 Indic languages along with English, achieving\nbest-in-class performance. ## Speech to Text Use the `/speech-to-text` endpoint or the SDK to convert spoken language into written  ...    ## Speech to Text Translate Use the `/speech-to-text-translate` endpoint or the SDK to combine speech recognition and translation, allowing you to convert spoken language directly into\ntranslated text. ## Text to Speech Use the `/text-to-speech` endpoint or the SDK to convert written text into spoken w...\n\n",
+            "title": "Code search: Sarvam AI text to speech API language codes Telugu te-IN",
+            "metadata": {
+              "truncated": false
+            },
+            "time": {
+              "start": 1773829705526,
+              "end": 1773829707124
+            }
+          },
+          "id": "prt_d007d4d4b001KjjPGoaOttIA5a",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007d30cd0010RlOL5eVXJ60s2"
+        },
+        {
+          "type": "step-finish",
+          "reason": "tool-calls",
+          "snapshot": "3385f3525dfccd87f45163b1155b06d830846352",
+          "cost": 0,
+          "tokens": {
+            "total": 16680,
+            "input": 1211,
+            "output": 227,
+            "reasoning": 0,
+            "cache": {
+              "read": 12103,
+              "write": 3139
+            }
+          },
+          "id": "prt_d007d5580001yVzLroh59C3blz",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007d30cd0010RlOL5eVXJ60s2"
+        }
+      ]
+    },
+    {
+      "info": {
+        "role": "assistant",
+        "time": {
+          "created": 1773829707236,
+          "completed": 1773829715556
+        },
+        "parentID": "msg_d007cda300010c3l4TXX0j53UR",
+        "modelID": "big-pickle",
+        "providerID": "opencode",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/home/tejasree/visual-task/visual-interaction",
+          "root": "/home/tejasree/visual-task/visual-interaction"
+        },
+        "cost": 0,
+        "tokens": {
+          "total": 19641,
+          "input": 2911,
+          "output": 123,
+          "reasoning": 0,
+          "cache": {
+            "read": 15064,
+            "write": 1543
+          }
+        },
+        "finish": "tool-calls",
+        "id": "msg_d007d55e4001pMM3OyvadYApDh",
+        "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi"
+      },
+      "parts": [
+        {
+          "type": "step-start",
+          "snapshot": "3385f3525dfccd87f45163b1155b06d830846352",
+          "id": "prt_d007d6e60001B5q7iHMv5Ujp2C",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007d55e4001pMM3OyvadYApDh"
+        },
+        {
+          "type": "reasoning",
+          "text": "The search results confirm that `te-IN` is the correct language code for Telugu in the Sarvam API. The code already uses `te-IN` correctly.\n\nNow I need to check if there's an issue with how the frontend sends the language parameter. Let me look at the frontend code to see how the language is being sent to the backend.",
+          "metadata": {
+            "anthropic": {
+              "signature": "1702f764d38aefb51b86eab763668db6adc76597c4dde3f50e22875393cb976a"
+            }
+          },
+          "time": {
+            "start": 1773829713533,
+            "end": 1773829714848
+          },
+          "id": "prt_d007d6e7d001cDJAPE20giowCy",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007d55e4001pMM3OyvadYApDh"
+        },
+        {
+          "type": "tool",
+          "callID": "call_function_wgwtlgqi5nav_1",
+          "tool": "grep",
+          "state": {
+            "status": "completed",
+            "input": {
+              "include": "*.{ts,tsx,js,jsx}",
+              "pattern": "language.*te-IN|te-IN.*language"
+            },
+            "output": "No files found",
+            "title": "language.*te-IN|te-IN.*language",
+            "metadata": {
+              "matches": 0,
+              "truncated": false
+            },
+            "time": {
+              "start": 1773829715439,
+              "end": 1773829715492
+            }
+          },
+          "id": "prt_d007d73a3001L6rnEjJ12gQeet",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007d55e4001pMM3OyvadYApDh"
+        },
+        {
+          "type": "step-finish",
+          "reason": "tool-calls",
+          "snapshot": "3385f3525dfccd87f45163b1155b06d830846352",
+          "cost": 0,
+          "tokens": {
+            "total": 19641,
+            "input": 2911,
+            "output": 123,
+            "reasoning": 0,
+            "cache": {
+              "read": 15064,
+              "write": 1543
+            }
+          },
+          "id": "prt_d007d7628001wf1eGplnStJInV",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007d55e4001pMM3OyvadYApDh"
+        }
+      ]
+    },
+    {
+      "info": {
+        "role": "assistant",
+        "time": {
+          "created": 1773829715559,
+          "completed": 1773829718390
+        },
+        "parentID": "msg_d007cda300010c3l4TXX0j53UR",
+        "modelID": "big-pickle",
+        "providerID": "opencode",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/home/tejasree/visual-task/visual-interaction",
+          "root": "/home/tejasree/visual-task/visual-interaction"
+        },
+        "cost": 0,
+        "tokens": {
+          "total": 19723,
+          "input": 92,
+          "output": 63,
+          "reasoning": 0,
+          "cache": {
+            "read": 16375,
+            "write": 3193
+          }
+        },
+        "finish": "tool-calls",
+        "id": "msg_d007d7667001Oi4RMAlh4hERAC",
+        "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi"
+      },
+      "parts": [
+        {
+          "type": "step-start",
+          "snapshot": "3385f3525dfccd87f45163b1155b06d830846352",
+          "id": "prt_d007d7e840010fPCRk66Js1iPe",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007d7667001Oi4RMAlh4hERAC"
+        },
+        {
+          "type": "reasoning",
+          "text": "Let me check how the frontend is calling the backend API and what language parameter is being passed.",
+          "metadata": {
+            "anthropic": {
+              "signature": "776685b59bbb17463338b86e7686715f7b74ff73c50ed33547c2aeaf4080ad42"
+            }
+          },
+          "time": {
+            "start": 1773829717655,
+            "end": 1773829718025
+          },
+          "id": "prt_d007d7e97001vu3TOYcZMOn4oH",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007d7667001Oi4RMAlh4hERAC"
+        },
+        {
+          "type": "tool",
+          "callID": "call_function_rsphahag463q_1",
+          "tool": "grep",
+          "state": {
+            "status": "completed",
+            "input": {
+              "include": "*.{ts,tsx,js,jsx}",
+              "pattern": "language"
+            },
+            "output": "No files found",
+            "title": "language",
+            "metadata": {
+              "matches": 0,
+              "truncated": false
+            },
+            "time": {
+              "start": 1773829718241,
+              "end": 1773829718310
+            }
+          },
+          "id": "prt_d007d800d001gaGEevRGA5HIP3",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007d7667001Oi4RMAlh4hERAC"
+        },
+        {
+          "type": "step-finish",
+          "reason": "tool-calls",
+          "snapshot": "3385f3525dfccd87f45163b1155b06d830846352",
+          "cost": 0,
+          "tokens": {
+            "total": 19723,
+            "input": 92,
+            "output": 63,
+            "reasoning": 0,
+            "cache": {
+              "read": 16375,
+              "write": 3193
+            }
+          },
+          "id": "prt_d007d8128001D2RmLqYfmy9owS",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007d7667001Oi4RMAlh4hERAC"
+        }
+      ]
+    },
+    {
+      "info": {
+        "role": "assistant",
+        "time": {
+          "created": 1773829718399,
+          "completed": 1773829720635
+        },
+        "parentID": "msg_d007cda300010c3l4TXX0j53UR",
+        "modelID": "big-pickle",
+        "providerID": "opencode",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/home/tejasree/visual-task/visual-interaction",
+          "root": "/home/tejasree/visual-task/visual-interaction"
+        },
+        "cost": 0,
+        "tokens": {
+          "total": 19784,
+          "input": 92,
+          "output": 42,
+          "reasoning": 0,
+          "cache": {
+            "read": 19440,
+            "write": 210
+          }
+        },
+        "finish": "tool-calls",
+        "id": "msg_d007d817f001vWdGW9dHj8dMj2",
+        "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi"
+      },
+      "parts": [
+        {
+          "type": "step-start",
+          "snapshot": "3385f3525dfccd87f45163b1155b06d830846352",
+          "id": "prt_d007d8806001JNIep1Y1c5tYrH",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007d817f001vWdGW9dHj8dMj2"
+        },
+        {
+          "type": "reasoning",
+          "text": "Let me check for frontend files.",
+          "metadata": {
+            "anthropic": {
+              "signature": "0470db2593c4f5d21d33aa6d3afc34a4b01d605fdf76d6933e0172b20c42641c"
+            }
+          },
+          "time": {
+            "start": 1773829720071,
+            "end": 1773829720437
+          },
+          "id": "prt_d007d880700184ur7LNzN6X73m",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007d817f001vWdGW9dHj8dMj2"
+        },
+        {
+          "type": "tool",
+          "callID": "call_function_7eq5ldrhq055_1",
+          "tool": "glob",
+          "state": {
+            "status": "completed",
+            "input": {
+              "pattern": "**/*.{ts,tsx,js,jsx}"
+            },
+            "output": "No files found",
+            "title": "",
+            "metadata": {
+              "count": 0,
+              "truncated": false
+            },
+            "time": {
+              "start": 1773829720515,
+              "end": 1773829720543
+            }
+          },
+          "id": "prt_d007d897b0017rB5B8FpJ5zZ9t",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007d817f001vWdGW9dHj8dMj2"
+        },
+        {
+          "type": "step-finish",
+          "reason": "tool-calls",
+          "snapshot": "3385f3525dfccd87f45163b1155b06d830846352",
+          "cost": 0,
+          "tokens": {
+            "total": 19784,
+            "input": 92,
+            "output": 42,
+            "reasoning": 0,
+            "cache": {
+              "read": 19440,
+              "write": 210
+            }
+          },
+          "id": "prt_d007d89f1001Tp0F42fJK3mlRl",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007d817f001vWdGW9dHj8dMj2"
+        }
+      ]
+    },
+    {
+      "info": {
+        "role": "assistant",
+        "time": {
+          "created": 1773829720641,
+          "completed": 1773829723315
+        },
+        "parentID": "msg_d007cda300010c3l4TXX0j53UR",
+        "modelID": "big-pickle",
+        "providerID": "opencode",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/home/tejasree/visual-task/visual-interaction",
+          "root": "/home/tejasree/visual-task/visual-interaction"
+        },
+        "cost": 0,
+        "tokens": {
+          "total": 19855,
+          "input": 92,
+          "output": 52,
+          "reasoning": 0,
+          "cache": {
+            "read": 19582,
+            "write": 129
+          }
+        },
+        "finish": "tool-calls",
+        "id": "msg_d007d8a41001Kk2vv98IMomNvI",
+        "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi"
+      },
+      "parts": [
+        {
+          "type": "step-start",
+          "snapshot": "3385f3525dfccd87f45163b1155b06d830846352",
+          "id": "prt_d007d924e001tCk8OvXTZ30A43",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007d8a41001Kk2vv98IMomNvI"
+        },
+        {
+          "type": "reasoning",
+          "text": "Let me search in the root directory for frontend files.",
+          "metadata": {
+            "anthropic": {
+              "signature": "b6fb62584c4d6398de66688bb459bfc0d15adebce921b4f635f42a59003825c5"
+            }
+          },
+          "time": {
+            "start": 1773829722703,
+            "end": 1773829722864
+          },
+          "id": "prt_d007d924f001ByGPfp22pgbfx6",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007d8a41001Kk2vv98IMomNvI"
+        },
+        {
+          "type": "tool",
+          "callID": "call_function_7qn10uugcsaq_1",
+          "tool": "bash",
+          "state": {
+            "status": "completed",
+            "input": {
+              "command": "ls -la",
+              "description": "List files in workspace"
+            },
+            "output": "total 48\ndrwxr-xr-x 8 tejasree tejasree 4096 Mar 18 06:20 .\ndrwxr-xr-x 7 tejasree tejasree 4096 Mar 17 09:22 ..\ndrwxr-xr-x 5 tejasree tejasree 4096 Mar 17 12:11 .entire\n-rw-r--r-- 1 tejasree tejasree  492 Mar 17 16:18 .env\ndrwxr-xr-x 9 tejasree tejasree 4096 Mar 18 10:22 .git\n-rw-r--r-- 1 tejasree tejasree  159 Mar 17 12:08 .gitignore\ndrwxr-xr-x 4 tejasree tejasree 4096 Mar 17 12:11 .opencode\n-rw-r--r-- 1 tejasree tejasree 1056 Mar 17 09:24 README.md\ndrwxr-xr-x 5 tejasree tejasree 4096 Mar 18 01:22 backend\ndrwxr-xr-x 2 tejasree tejasree 4096 Mar 17 10:24 docs\n-rw-r--r-- 1 tejasree tejasree 1562 Mar 17 14:05 entire.yaml\ndrwxr-xr-x 8 tejasree tejasree 4096 Mar 17 22:51 frontend\n",
+            "title": "List files in workspace",
+            "metadata": {
+              "output": "total 48\ndrwxr-xr-x 8 tejasree tejasree 4096 Mar 18 06:20 .\ndrwxr-xr-x 7 tejasree tejasree 4096 Mar 17 09:22 ..\ndrwxr-xr-x 5 tejasree tejasree 4096 Mar 17 12:11 .entire\n-rw-r--r-- 1 tejasree tejasree  492 Mar 17 16:18 .env\ndrwxr-xr-x 9 tejasree tejasree 4096 Mar 18 10:22 .git\n-rw-r--r-- 1 tejasree tejasree  159 Mar 17 12:08 .gitignore\ndrwxr-xr-x 4 tejasree tejasree 4096 Mar 17 12:11 .opencode\n-rw-r--r-- 1 tejasree tejasree 1056 Mar 17 09:24 README.md\ndrwxr-xr-x 5 tejasree tejasree 4096 Mar 18 01:22 backend\ndrwxr-xr-x 2 tejasree tejasree 4096 Mar 17 10:24 docs\n-rw-r--r-- 1 tejasree tejasree 1562 Mar 17 14:05 entire.yaml\ndrwxr-xr-x 8 tejasree tejasree 4096 Mar 17 22:51 frontend\n",
+              "exit": 0,
+              "description": "List files in workspace",
+              "truncated": false
+            },
+            "time": {
+              "start": 1773829723103,
+              "end": 1773829723238
+            }
+          },
+          "id": "prt_d007d92f5001ZWOZHJvbrS3tuh",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007d8a41001Kk2vv98IMomNvI"
+        },
+        {
+          "type": "step-finish",
+          "reason": "tool-calls",
+          "snapshot": "3385f3525dfccd87f45163b1155b06d830846352",
+          "cost": 0,
+          "tokens": {
+            "total": 19855,
+            "input": 92,
+            "output": 52,
+            "reasoning": 0,
+            "cache": {
+              "read": 19582,
+              "write": 129
+            }
+          },
+          "id": "prt_d007d9468001h2POqfJP3RzpcD",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007d8a41001Kk2vv98IMomNvI"
+        }
+      ]
+    },
+    {
+      "info": {
+        "role": "assistant",
+        "time": {
+          "created": 1773829723324,
+          "completed": 1773829726479
+        },
+        "parentID": "msg_d007cda300010c3l4TXX0j53UR",
+        "modelID": "big-pickle",
+        "providerID": "opencode",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/home/tejasree/visual-task/visual-interaction",
+          "root": "/home/tejasree/visual-task/visual-interaction"
+        },
+        "cost": 0,
+        "tokens": {
+          "total": 20250,
+          "input": 403,
+          "output": 65,
+          "reasoning": 0,
+          "cache": {
+            "read": 19664,
+            "write": 118
+          }
+        },
+        "finish": "tool-calls",
+        "id": "msg_d007d94bc001eBzg9CQipgabZM",
+        "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi"
+      },
+      "parts": [
+        {
+          "type": "step-start",
+          "snapshot": "3385f3525dfccd87f45163b1155b06d830846352",
+          "id": "prt_d007d9df8001uIwLgLjZouhlJs",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007d94bc001eBzg9CQipgabZM"
+        },
+        {
+          "type": "reasoning",
+          "text": "Let me check the frontend directory.",
+          "metadata": {
+            "anthropic": {
+              "signature": "5ecadf35b7984e8c9da8af63bcdec2f9d436586e5fb2fe3a7c439763cdd96eff"
+            }
+          },
+          "time": {
+            "start": 1773829725689,
+            "end": 1773829725993
+          },
+          "id": "prt_d007d9df900183kicSEjZxbLjp",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007d94bc001eBzg9CQipgabZM"
+        },
+        {
+          "type": "tool",
+          "callID": "call_function_gimsdydl4a0g_1",
+          "tool": "glob",
+          "state": {
+            "status": "completed",
+            "input": {
+              "path": "/home/tejasree/visual-task/visual-interaction/frontend",
+              "pattern": "**/*.{ts,tsx,js,jsx}"
+            },
+            "output": "No files found",
+            "title": "frontend",
+            "metadata": {
+              "count": 0,
+              "truncated": false
+            },
+            "time": {
+              "start": 1773829726312,
+              "end": 1773829726391
+            }
+          },
+          "id": "prt_d007d9f2f0019mhG1Ux5qYNGtE",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007d94bc001eBzg9CQipgabZM"
+        },
+        {
+          "type": "step-finish",
+          "reason": "tool-calls",
+          "snapshot": "3385f3525dfccd87f45163b1155b06d830846352",
+          "cost": 0,
+          "tokens": {
+            "total": 20250,
+            "input": 403,
+            "output": 65,
+            "reasoning": 0,
+            "cache": {
+              "read": 19664,
+              "write": 118
+            }
+          },
+          "id": "prt_d007da0b9001rqieV8fvkQ43jP",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007d94bc001eBzg9CQipgabZM"
+        }
+      ]
+    },
+    {
+      "info": {
+        "role": "assistant",
+        "time": {
+          "created": 1773829726484,
+          "completed": 1773829748910
+        },
+        "parentID": "msg_d007cda300010c3l4TXX0j53UR",
+        "modelID": "big-pickle",
+        "providerID": "opencode",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/home/tejasree/visual-task/visual-interaction",
+          "root": "/home/tejasree/visual-task/visual-interaction"
+        },
+        "cost": 0,
+        "tokens": {
+          "total": 20319,
+          "input": 92,
+          "output": 50,
+          "reasoning": 0,
+          "cache": {
+            "read": 19725,
+            "write": 452
+          }
+        },
+        "finish": "tool-calls",
+        "id": "msg_d007da1140016VD3wwTiJlhAVE",
+        "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi"
+      },
+      "parts": [
+        {
+          "type": "step-start",
+          "snapshot": "3385f3525dfccd87f45163b1155b06d830846352",
+          "id": "prt_d007df505001L098r5GsDo0ZJE",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007da1140016VD3wwTiJlhAVE"
+        },
+        {
+          "type": "reasoning",
+          "text": "Let me see what's in the frontend directory.",
+          "metadata": {
+            "anthropic": {
+              "signature": "890d99ed9fa4ff7e70c59a4f7856e8d79e7da22cd09c3d931036577820a26436"
+            }
+          },
+          "time": {
+            "start": 1773829747975,
+            "end": 1773829748686
+          },
+          "id": "prt_d007df507001wGy4qrojPxIDOE",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007da1140016VD3wwTiJlhAVE"
+        },
+        {
+          "type": "tool",
+          "callID": "call_function_uk18ld5h8mk6_1",
+          "tool": "bash",
+          "state": {
+            "status": "completed",
+            "input": {
+              "command": "ls -la frontend",
+              "description": "List frontend directory"
+            },
+            "output": "total 80\ndrwxr-xr-x 8 tejasree tejasree  4096 Mar 17 22:51 .\ndrwxr-xr-x 8 tejasree tejasree  4096 Mar 18 06:20 ..\ndrwxr-xr-x 5 tejasree tejasree  4096 Mar 18 04:32 .dart_tool\n-rw-r--r-- 1 tejasree tejasree  3700 Mar 18 00:32 .flutter-plugins-dependencies\n-rw-r--r-- 1 tejasree tejasree   703 Mar 17 14:57 .gitignore\ndrwxr-xr-x 4 tejasree tejasree  4096 Mar 17 14:57 .idea\n-rw-r--r-- 1 tejasree tejasree   964 Mar 17 14:57 .metadata\n-rw-r--r-- 1 tejasree tejasree   640 Mar 17 14:57 README.md\n-rw-r--r-- 1 tejasree tejasree  1420 Mar 17 14:57 analysis_options.yaml\ndrwxr-xr-x 7 tejasree tejasree  4096 Mar 18 10:22 build\ndrwxr-xr-x 6 tejasree tejasree  4096 Mar 18 04:52 lib\n-rw-r--r-- 1 tejasree tejasree 14435 Mar 18 00:32 pubspec.lock\n-rw-r--r-- 1 tejasree tejasree   382 Mar 18 00:31 pubspec.yaml\n-rwxr-xr-x 1 tejasree tejasree    98 Mar 17 22:51 run.sh\ndrwxr-xr-x 2 tejasree tejasree  4096 Mar 17 14:57 test\n-rw-r--r-- 1 tejasree tejasree   842 Mar 17 14:57 visual_interaction.iml\ndrwxr-xr-x 3 tejasree tejasree  4096 Mar 17 14:57 web\n",
+            "title": "List frontend directory",
+            "metadata": {
+              "output": "total 80\ndrwxr-xr-x 8 tejasree tejasree  4096 Mar 17 22:51 .\ndrwxr-xr-x 8 tejasree tejasree  4096 Mar 18 06:20 ..\ndrwxr-xr-x 5 tejasree tejasree  4096 Mar 18 04:32 .dart_tool\n-rw-r--r-- 1 tejasree tejasree  3700 Mar 18 00:32 .flutter-plugins-dependencies\n-rw-r--r-- 1 tejasree tejasree   703 Mar 17 14:57 .gitignore\ndrwxr-xr-x 4 tejasree tejasree  4096 Mar 17 14:57 .idea\n-rw-r--r-- 1 tejasree tejasree   964 Mar 17 14:57 .metadata\n-rw-r--r-- 1 tejasree tejasree   640 Mar 17 14:57 README.md\n-rw-r--r-- 1 tejasree tejasree  1420 Mar 17 14:57 analysis_options.yaml\ndrwxr-xr-x 7 tejasree tejasree  4096 Mar 18 10:22 build\ndrwxr-xr-x 6 tejasree tejasree  4096 Mar 18 04:52 lib\n-rw-r--r-- 1 tejasree tejasree 14435 Mar 18 00:32 pubspec.lock\n-rw-r--r-- 1 tejasree tejasree   382 Mar 18 00:31 pubspec.yaml\n-rwxr-xr-x 1 tejasree tejasree    98 Mar 17 22:51 run.sh\ndrwxr-xr-x 2 tejasree tejasree  4096 Mar 17 14:57 test\n-rw-r--r-- 1 tejasree tejasree   842 Mar 17 14:57 visual_interaction.iml\ndrwxr-xr-x 3 tejasree tejasree  4096 Mar 17 14:57 web\n",
+              "exit": 0,
+              "description": "List frontend directory",
+              "truncated": false
+            },
+            "time": {
+              "start": 1773829748823,
+              "end": 1773829748852
+            }
+          },
+          "id": "prt_d007df7d1001WtPKWxk41kuggh",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007da1140016VD3wwTiJlhAVE"
+        },
+        {
+          "type": "step-finish",
+          "reason": "tool-calls",
+          "snapshot": "3385f3525dfccd87f45163b1155b06d830846352",
+          "cost": 0,
+          "tokens": {
+            "total": 20319,
+            "input": 92,
+            "output": 50,
+            "reasoning": 0,
+            "cache": {
+              "read": 19725,
+              "write": 452
+            }
+          },
+          "id": "prt_d007df875001WRrT3m9jSM0UE8",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007da1140016VD3wwTiJlhAVE"
+        }
+      ]
+    },
+    {
+      "info": {
+        "role": "assistant",
+        "time": {
+          "created": 1773829748916,
+          "completed": 1773829751360
+        },
+        "parentID": "msg_d007cda300010c3l4TXX0j53UR",
+        "modelID": "big-pickle",
+        "providerID": "opencode",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/home/tejasree/visual-task/visual-interaction",
+          "root": "/home/tejasree/visual-task/visual-interaction"
+        },
+        "cost": 0,
+        "tokens": {
+          "total": 20873,
+          "input": 556,
+          "output": 71,
+          "reasoning": 0,
+          "cache": {
+            "read": 20107,
+            "write": 139
+          }
+        },
+        "finish": "tool-calls",
+        "id": "msg_d007df8b4001Ug2epHy91tdPU7",
+        "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi"
+      },
+      "parts": [
+        {
+          "type": "step-start",
+          "snapshot": "3385f3525dfccd87f45163b1155b06d830846352",
+          "id": "prt_d007dfdff001hd8tqIbtmqoYIl",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007df8b4001Ug2epHy91tdPU7"
+        },
+        {
+          "type": "reasoning",
+          "text": "This is a Flutter app. Let me look for Dart files that handle language selection and API calls.",
+          "metadata": {
+            "anthropic": {
+              "signature": "25ef02ce6fbf08525bd5ee6c66129c622e9ad93fea2caf509784e83cd50faa9a"
+            }
+          },
+          "time": {
+            "start": 1773829750272,
+            "end": 1773829750811
+          },
+          "id": "prt_d007dfe00001WH6HyxKEK8MYPF",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007df8b4001Ug2epHy91tdPU7"
+        },
+        {
+          "type": "tool",
+          "callID": "call_function_6zqegfs8co1t_1",
+          "tool": "glob",
+          "state": {
+            "status": "completed",
+            "input": {
+              "path": "/home/tejasree/visual-task/visual-interaction/frontend",
+              "pattern": "**/*.dart"
+            },
+            "output": "/home/tejasree/visual-task/visual-interaction/frontend/lib/services/speech_service.dart\n/home/tejasree/visual-task/visual-interaction/frontend/lib/screens/simulation_screen.dart\n/home/tejasree/visual-task/visual-interaction/frontend/lib/services/api_service.dart\n/home/tejasree/visual-task/visual-interaction/frontend/lib/models/simulation_model.dart\n/home/tejasree/visual-task/visual-interaction/frontend/lib/widgets/control_panel.dart\n/home/tejasree/visual-task/visual-interaction/frontend/lib/widgets/graph_3d.dart\n/home/tejasree/visual-task/visual-interaction/frontend/lib/widgets/graph_2d.dart\n/home/tejasree/visual-task/visual-interaction/frontend/lib/widgets/formula_editor.dart\n/home/tejasree/visual-task/visual-interaction/frontend/lib/widgets/view_toggle.dart\n/home/tejasree/visual-task/visual-interaction/frontend/test/widget_test.dart\n/home/tejasree/visual-task/visual-interaction/frontend/lib/main.dart",
+            "title": "frontend",
+            "metadata": {
+              "count": 11,
+              "truncated": false
+            },
+            "time": {
+              "start": 1773829751237,
+              "end": 1773829751294
+            }
+          },
+          "id": "prt_d007e001d001XCEtSXRlxOnkso",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007df8b4001Ug2epHy91tdPU7"
+        },
+        {
+          "type": "step-finish",
+          "reason": "tool-calls",
+          "snapshot": "3385f3525dfccd87f45163b1155b06d830846352",
+          "cost": 0,
+          "tokens": {
+            "total": 20873,
+            "input": 556,
+            "output": 71,
+            "reasoning": 0,
+            "cache": {
+              "read": 20107,
+              "write": 139
+            }
+          },
+          "id": "prt_d007e01ff001rvE2MKsKeAYcVm",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007df8b4001Ug2epHy91tdPU7"
+        }
+      ]
+    },
+    {
+      "info": {
+        "role": "assistant",
+        "time": {
+          "created": 1773829751367,
+          "completed": 1773829754750
+        },
+        "parentID": "msg_d007cda300010c3l4TXX0j53UR",
+        "modelID": "big-pickle",
+        "providerID": "opencode",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/home/tejasree/visual-task/visual-interaction",
+          "root": "/home/tejasree/visual-task/visual-interaction"
+        },
+        "cost": 0,
+        "tokens": {
+          "total": 21166,
+          "input": 305,
+          "output": 61,
+          "reasoning": 0,
+          "cache": {
+            "read": 20191,
+            "write": 609
+          }
+        },
+        "finish": "tool-calls",
+        "id": "msg_d007e02460011JwIsH3hu841NN",
+        "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi"
+      },
+      "parts": [
+        {
+          "type": "step-start",
+          "snapshot": "3385f3525dfccd87f45163b1155b06d830846352",
+          "id": "prt_d007e0aed001Xlr1r5eyJ0y148",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007e02460011JwIsH3hu841NN"
+        },
+        {
+          "type": "reasoning",
+          "text": "Let me check the API service to see how language is passed to the backend.",
+          "metadata": {
+            "anthropic": {
+              "signature": "72b9f390cfb4bda63021ebfc8617839c1b3f70c19e85d33cdad05ce530a364b0"
+            }
+          },
+          "time": {
+            "start": 1773829753582,
+            "end": 1773829753933
+          },
+          "id": "prt_d007e0aee001mtjuxLzUXtqSGI",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007e02460011JwIsH3hu841NN"
+        },
+        {
+          "type": "tool",
+          "callID": "call_function_7jfx0ctw4clm_1",
+          "tool": "read",
+          "state": {
+            "status": "completed",
+            "input": {
+              "filePath": "/home/tejasree/visual-task/visual-interaction/frontend/lib/services/api_service.dart"
+            },
+            "output": "<path>/home/tejasree/visual-task/visual-interaction/frontend/lib/services/api_service.dart</path>\n<type>file</type>\n<content>1: import 'dart:convert';\n2: import 'package:flutter/foundation.dart';\n3: import 'package:http/http.dart' as http;\n4: \n5: class ApiService {\n6:   static String get baseUrl {\n7:     if (kIsWeb) {\n8:       return 'http://localhost:5000';\n9:     }\n10:     return 'http://10.0.2.2:5000';\n11:   }\n12: \n13:   static String get apiBaseUrl => baseUrl;\n14: \n15:   Future<Map<String, dynamic>> getSimulationData(\n16:       Map<String, dynamic> params) async {\n17:     try {\n18:       final response = await http.post(\n19:         Uri.parse('$baseUrl/api/simulation'),\n20:         headers: {'Content-Type': 'application/json'},\n21:         body: jsonEncode(params),\n22:       );\n23:       return jsonDecode(response.body);\n24:     } catch (e) {\n25:       return {'error': e.toString()};\n26:     }\n27:   }\n28: \n29:   Future<List<List<double>>> calculateTrajectory({\n30:     required double angle,\n31:     required double velocity,\n32:     required double gravity,\n33:   }) async {\n34:     final result = await getSimulationData({\n35:       'angle': angle,\n36:       'velocity': velocity,\n37:       'gravity': gravity,\n38:     });\n39:     final trajectoryData = result['trajectory'];\n40:     if (trajectoryData == null) return [];\n41:     return (trajectoryData as List<dynamic>)\n42:         .map((e) => [(e[0] as num).toDouble(), (e[1] as num).toDouble()])\n43:         .toList();\n44:   }\n45: }\n\n(End of file - total 45 lines)\n</content>",
+            "title": "frontend/lib/services/api_service.dart",
+            "metadata": {
+              "preview": "import 'dart:convert';\nimport 'package:flutter/foundation.dart';\nimport 'package:http/http.dart' as http;\n\nclass ApiService {\n  static String get baseUrl {\n    if (kIsWeb) {\n      return 'http://localhost:5000';\n    }\n    return 'http://10.0.2.2:5000';\n  }\n\n  static String get apiBaseUrl => baseUrl;\n\n  Future<Map<String, dynamic>> getSimulationData(\n      Map<String, dynamic> params) async {\n    try {\n      final response = await http.post(\n        Uri.parse('$baseUrl/api/simulation'),\n        headers: {'Content-Type': 'application/json'},",
+              "truncated": false,
+              "loaded": []
+            },
+            "time": {
+              "start": 1773829754251,
+              "end": 1773829754650
+            }
+          },
+          "id": "prt_d007e0c4f001FTEbkYHc8G0BT5",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007e02460011JwIsH3hu841NN"
+        },
+        {
+          "type": "step-finish",
+          "reason": "tool-calls",
+          "snapshot": "3385f3525dfccd87f45163b1155b06d830846352",
+          "cost": 0,
+          "tokens": {
+            "total": 21166,
+            "input": 305,
+            "output": 61,
+            "reasoning": 0,
+            "cache": {
+              "read": 20191,
+              "write": 609
+            }
+          },
+          "id": "prt_d007e0f1f001gNdDooYomPPqsp",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007e02460011JwIsH3hu841NN"
+        }
+      ]
+    },
+    {
+      "info": {
+        "role": "assistant",
+        "time": {
+          "created": 1773829754756,
+          "completed": 1773829758060
+        },
+        "parentID": "msg_d007cda300010c3l4TXX0j53UR",
+        "modelID": "big-pickle",
+        "providerID": "opencode",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/home/tejasree/visual-task/visual-interaction",
+          "root": "/home/tejasree/visual-task/visual-interaction"
+        },
+        "cost": 0,
+        "tokens": {
+          "total": 21690,
+          "input": 531,
+          "output": 66,
+          "reasoning": 0,
+          "cache": {
+            "read": 20724,
+            "write": 369
+          }
+        },
+        "finish": "tool-calls",
+        "id": "msg_d007e0f84001y8VxXc1hgi2lgG",
+        "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi"
+      },
+      "parts": [
+        {
+          "type": "step-start",
+          "snapshot": "3385f3525dfccd87f45163b1155b06d830846352",
+          "id": "prt_d007e193b001PD8qxzE1yDYFXt",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007e0f84001y8VxXc1hgi2lgG"
+        },
+        {
+          "type": "reasoning",
+          "text": "Let me check the simulation_screen.dart to see how language is being handled and passed to the API.",
+          "metadata": {
+            "anthropic": {
+              "signature": "82cf22c93eb7113a888cc50ea44b75a61541b2a11f543663f75750835de92fb6"
+            }
+          },
+          "time": {
+            "start": 1773829757244,
+            "end": 1773829757565
+          },
+          "id": "REDACTED",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007e0f84001y8VxXc1hgi2lgG"
+        },
+        {
+          "type": "tool",
+          "callID": "call_function_ovvo07v2ey3y_1",
+          "tool": "read",
+          "state": {
+            "status": "completed",
+            "input": {
+              "filePath": "/home/tejasree/visual-task/visual-interaction/frontend/lib/screens/simulation_screen.dart"
+            },
+            "output": "<path>/home/tejasree/visual-task/visual-interaction/frontend/lib/screens/simulation_screen.dart</path>\n<type>file</type>\n<content>1: import 'package:flutter/material.dart';\n2: import '../widgets/control_panel.dart';\n3: import '../widgets/graph_2d.dart';\n4: import '../widgets/graph_3d.dart';\n5: import '../widgets/view_toggle.dart';\n6: import '../widgets/formula_editor.dart';\n7: import '../services/speech_service.dart';\n8: import '../models/simulation_model.dart';\n9: \n10: class SimulationScreen extends StatefulWidget {\n11:   const SimulationScreen({super.key});\n12: \n13:   @override\n14:   State<SimulationScreen> createState() => _SimulationScreenState();\n15: }\n16: \n17: class _SimulationScreenState extends State<SimulationScreen> {\n18:   final SimulationModel _model = SimulationModel();\n19:   final SpeechService _speechService = SpeechService();\n20:   bool _is3DView = false;\n21:   bool _isPlaying = false;\n22: \n23:   @override\n24:   void initState() {\n25:     super.initState();\n26:     _speechService.setOnComplete(_onAudioComplete);\n27:   }\n28: \n29:   @override\n30:   void dispose() {\n31:     _speechService.dispose();\n32:     super.dispose();\n33:   }\n34: \n35:   void _toggleView(bool is3D) {\n36:     setState(() {\n37:       _is3DView = is3D;\n38:     });\n39:   }\n40: \n41:   Future<void> _playExplanation() async {\n42:     if (_isPlaying) {\n43:       await _speechService.stop();\n44:       setState(() {\n45:         _isPlaying = false;\n46:       });\n47:     } else {\n48:       final formula = _model.customFormula;\n49:       await _speechService.speakWithFormula(\n50:         angle: _model.angle,\n51:         velocity: _model.velocity,\n52:         gravity: _model.gravity,\n53:         customFormula: formula,\n54:         language: 'te-IN',\n55:       );\n56:       setState(() {\n57:         _isPlaying = true;\n58:       });\n59:     }\n60:   }\n61: \n62:   void _onAudioComplete() {\n63:     if (mounted) {\n64:       setState(() {\n65:         _isPlaying = false;\n66:       });\n67:     }\n68:   }\n69: \n70:   @override\n71:   Widget build(BuildContext context) {\n72:     return Scaffold(\n73:       appBar: AppBar(\n74:         title: const Text('Projectile Simulation'),\n75:         actions: [\n76:           IconButton(\n77:             icon: const Icon(Icons.volume_up),\n78:             onPressed: _playExplanation,\n79:             tooltip: 'Play audio explanation',\n80:           ),\n81:         ],\n82:       ),\n83:       body: Column(\n84:         children: [\n85:           Expanded(\n86:             flex: 3,\n87:             child: _is3DView ? Graph3D(model: _model) : Graph2D(model: _model),\n88:           ),\n89:           Expanded(\n90:             flex: 2,\n91:             child: SingleChildScrollView(\n92:               padding: const EdgeInsets.all(16),\n93:               child: Column(\n94:                 children: [\n95:                   ViewToggle(onToggle: _toggleView, value: _is3DView),\n96:                   const SizedBox(height: 16),\n97:                   ControlPanel(model: _model),\n98:                 ],\n99:               ),\n100:             ),\n101:           ),\n102:         ],\n103:       ),\n104:       floatingActionButton: FloatingActionButton.extended(\n105:         onPressed: _playExplanation,\n106:         icon: Icon(_isPlaying ? Icons.stop : Icons.volume_up),\n107:         label: Text(_isPlaying ? 'Stop' : 'Telugu Explanation'),\n108:         tooltip: _isPlaying ? 'Stop explanation' : 'Play Telugu explanation',\n109:       ),\n110:     );\n111:   }\n112: }\n\n(End of file - total 112 lines)\n</content>",
+            "title": "frontend/lib/screens/simulation_screen.dart",
+            "metadata": {
+              "preview": "import 'package:flutter/material.dart';\nimport '../widgets/control_panel.dart';\nimport '../widgets/graph_2d.dart';\nimport '../widgets/graph_3d.dart';\nimport '../widgets/view_toggle.dart';\nimport '../widgets/formula_editor.dart';\nimport '../services/speech_service.dart';\nimport '../models/simulation_model.dart';\n\nclass SimulationScreen extends StatefulWidget {\n  const SimulationScreen({super.key});\n\n  @override\n  State<SimulationScreen> createState() => _SimulationScreenState();\n}\n\nclass _SimulationScreenState extends State<SimulationScreen> {\n  final SimulationModel _model = SimulationModel();\n  final SpeechService _speechService = SpeechService();\n  bool _is3DView = false;",
+              "truncated": false,
+              "loaded": []
+            },
+            "time": {
+              "start": 1773829757858,
+              "end": 1773829757878
+            }
+          },
+          "id": "prt_d007e1a7f001pT30xb0nKCdAKs",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007e0f84001y8VxXc1hgi2lgG"
+        },
+        {
+          "type": "step-finish",
+          "reason": "tool-calls",
+          "snapshot": "3385f3525dfccd87f45163b1155b06d830846352",
+          "cost": 0,
+          "tokens": {
+            "total": 21690,
+            "input": 531,
+            "output": 66,
+            "reasoning": 0,
+            "cache": {
+              "read": 20724,
+              "write": 369
+            }
+          },
+          "id": "prt_d007e1c2f001HL7dty3A6TSHlX",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007e0f84001y8VxXc1hgi2lgG"
+        }
+      ]
+    },
+    {
+      "info": {
+        "role": "assistant",
+        "time": {
+          "created": 1773829758066,
+          "completed": 1773829764328
+        },
+        "parentID": "msg_d007cda300010c3l4TXX0j53UR",
+        "modelID": "big-pickle",
+        "providerID": "opencode",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/home/tejasree/visual-task/visual-interaction",
+          "root": "/home/tejasree/visual-task/visual-interaction"
+        },
+        "cost": 0,
+        "tokens": {
+          "total": 22734,
+          "input": 1031,
+          "output": 86,
+          "reasoning": 0,
+          "cache": {
+            "read": 21027,
+            "write": 590
+          }
+        },
+        "finish": "tool-calls",
+        "id": "msg_d007e1c72001SOt82n7soy96Xy",
+        "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi"
+      },
+      "parts": [
+        {
+          "type": "step-start",
+          "snapshot": "3385f3525dfccd87f45163b1155b06d830846352",
+          "id": "prt_d007e302b001Bz37O0s67fS9r7",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007e1c72001SOt82n7soy96Xy"
+        },
+        {
+          "type": "reasoning",
+          "text": "I see the frontend is hardcoded to use `language: 'te-IN'` at line 54. Let me also check the speech_service.dart to see how it sends the request to the backend.",
+          "metadata": {
+            "anthropic": {
+              "signature": "99e34e218b3d9690c38867c42b8b88c7be1fbbdc83e98a5ac61eb94842138db5"
+            }
+          },
+          "time": {
+            "start": 1773829763118,
+            "end": 1773829764089
+          },
+          "id": "prt_d007e302e001PWgXaQWsf83ytg",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007e1c72001SOt82n7soy96Xy"
+        },
+        {
+          "type": "tool",
+          "callID": "call_function_g7kmjccnqlr0_1",
+          "tool": "read",
+          "state": {
+            "status": "completed",
+            "input": {
+              "filePath": "/home/tejasree/visual-task/visual-interaction/frontend/lib/services/speech_service.dart"
+            },
+            "output": "<path>/home/tejasree/visual-task/visual-interaction/frontend/lib/services/speech_service.dart</path>\n<type>file</type>\n<content>1: import 'package:flutter/material.dart';\n2: import 'package:flutter_tts/flutter_tts.dart';\n3: import 'package:http/http.dart' as http;\n4: import 'dart:convert';\n5: import 'dart:math' as math;\n6: import 'package:audioplayers/audioplayers.dart';\n7: import 'api_service.dart';\n8: \n9: class SpeechService {\n10:   static String get baseUrl => ApiService.apiBaseUrl;\n11:   final AudioPlayer _audioPlayer = AudioPlayer();\n12:   final FlutterTts _flutterTts = FlutterTts();\n13:   bool _useBackendTts = true;\n14:   Function? _onComplete;\n15: \n16:   SpeechService() {\n17:     _initTts();\n18:     _audioPlayer.onPlayerComplete.listen((_) {\n19:       _onComplete?.call();\n20:     });\n21:   }\n22: \n23:   Future<void> _initTts() async {\n24:     await _flutterTts.setLanguage(\"te-IN\");\n25:     await _flutterTts.setSpeechRate(0.5);\n26:     await _flutterTts.setVolume(1.0);\n27:     await _flutterTts.setPitch(1.0);\n28:   }\n29: \n30:   void setOnComplete(Function callback) {\n31:     _onComplete = callback;\n32:   }\n33: \n34:   Future<void> speakWithFormula({\n35:     required double angle,\n36:     required double velocity,\n37:     required double gravity,\n38:     required String customFormula,\n39:     String language = 'te-IN',\n40:   }) async {\n41:     if (_useBackendTts) {\n42:       try {\n43:         final response = await http\n44:             .post(\n45:               Uri.parse('$baseUrl/api/simulate'),\n46:               headers: {'Content-Type': 'application/json'},\n47:               body: jsonEncode({\n48:                 'text': '',\n49:                 'angle': angle,\n50:                 'velocity': velocity,\n51:                 'gravity': gravity,\n52:                 'custom_formula': customFormula,\n53:                 'include_formula': true,\n54:                 'language': language,\n55:               }),\n56:             )\n57:             .timeout(const Duration(seconds: 15));\n58: \n59:         if (response.statusCode == 200) {\n60:           final data = jsonDecode(response.body);\n61:           final audioUrl = data['speech_audio_url'];\n62:           if (audioUrl != null && audioUrl.isNotEmpty) {\n63:             await _audioPlayer.play(UrlSource(audioUrl));\n64:             return;\n65:           }\n66:         }\n67:       } catch (e) {\n68:         debugPrint('Backend TTS failed: $e');\n69:       }\n70:     }\n71: \n72:     final formulaText = _convertFormulaToSpeech(customFormula);\n73:     final explanation = 'Formula: $formulaText. '\n74:         'Ipudu i simulation lo, projectile $angle degrees angle daari, '\n75:         '$velocity m/s velocity tho launch avutundi. '\n76:         'Maximum height: ${(velocity * velocity * math.sin(angle * math.pi / 180) * math.sin(angle * math.pi / 180)) / (2 * gravity)}. '\n77:         'Range: ${(velocity * velocity * math.sin(2 * angle * math.pi / 180)) / gravity}.';\n78: \n79:     debugPrint('Using fallback TTS with formula');\n80:     await _flutterTts.speak(explanation);\n81:   }\n82: \n83:   String _convertFormulaToSpeech(String formula) {\n84:     return formula\n85:         .replaceAll('θ', 'theta')\n86:         .replaceAll('²', ' squared ')\n87:         .replaceAll('³', ' cubed ')\n88:         .replaceAll('*', ' multiplied by ')\n89:         .replaceAll('/', ' divided by ')\n90:         .replaceAll('+', ' plus ')\n91:         .replaceAll('-', ' minus ')\n92:         .replaceAll('=', ' equals ')\n93:         .replaceAll('(', ' open parenthesis ')\n94:         .replaceAll(')', ' close parenthesis ')\n95:         .replaceAll('x ', ' x ')\n96:         .replaceAll(' v ', ' v ')\n97:         .replaceAll(' g ', ' g ')\n98:         .replaceAll(' tan ', ' tangent ')\n99:         .replaceAll(' cos ', ' cosine ')\n100:         .replaceAll(' sin ', ' sine ');\n101:   }\n102: \n103:   Future<void> speak(String text) async {\n104:     if (_useBackendTts) {\n105:       try {\n106:         final response = await http\n107:             .post(\n108:               Uri.parse('$baseUrl/api/simulate'),\n109:               headers: {'Content-Type': 'application/json'},\n110:               body: jsonEncode({\n111:                 'text': text,\n112:               }),\n113:             )\n114:             .timeout(const Duration(seconds: 15));\n115: \n116:         if (response.statusCode == 200) {\n117:           final data = jsonDecode(response.body);\n118:           final audioUrl = data['speech_audio_url'];\n119:           if (audioUrl != null && audioUrl.isNotEmpty) {\n120:             await _audioPlayer.play(UrlSource(audioUrl));\n121:             return;\n122:           }\n123:         }\n124:       } catch (e) {\n125:         debugPrint('Backend TTS failed: $e');\n126:       }\n127:     }\n128: \n129:     debugPrint('Using fallback TTS');\n130:     await _flutterTts.speak(text);\n131:   }\n132: \n133:   Future<void> stop() async {\n134:     await _audioPlayer.stop();\n135:     await _flutterTts.stop();\n136:   }\n137: \n138:   void dispose() {\n139:     _audioPlayer.dispose();\n140:     _flutterTts.stop();\n141:   }\n142: }\n\n(End of file - total 142 lines)\n</content>",
+            "title": "frontend/lib/services/speech_service.dart",
+            "metadata": {
+              "preview": "import 'package:flutter/material.dart';\nimport 'package:flutter_tts/flutter_tts.dart';\nimport 'package:http/http.dart' as http;\nimport 'dart:convert';\nimport 'dart:math' as math;\nimport 'package:audioplayers/audioplayers.dart';\nimport 'api_service.dart';\n\nclass SpeechService {\n  static String get baseUrl => ApiService.apiBaseUrl;\n  final AudioPlayer _audioPlayer = AudioPlayer();\n  final FlutterTts _flutterTts = FlutterTts();\n  bool _useBackendTts = true;\n  Function? _onComplete;\n\n  SpeechService() {\n    _initTts();\n    _audioPlayer.onPlayerComplete.listen((_) {\n      _onComplete?.call();\n    });",
+              "truncated": false,
+              "loaded": []
+            },
+            "time": {
+              "start": 1773829764218,
+              "end": 1773829764225
+            }
+          },
+          "id": "prt_d007e33fc001K8rw9Q1ag3j67P",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007e1c72001SOt82n7soy96Xy"
+        },
+        {
+          "type": "step-finish",
+          "reason": "tool-calls",
+          "snapshot": "3385f3525dfccd87f45163b1155b06d830846352",
+          "cost": 0,
+          "tokens": {
+            "total": 22734,
+            "input": 1031,
+            "output": 86,
+            "reasoning": 0,
+            "cache": {
+              "read": 21027,
+              "write": 590
+            }
+          },
+          "id": "prt_d007e34aa001zDCtcREjuMcUmj",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007e1c72001SOt82n7soy96Xy"
+        }
+      ]
+    },
+    {
+      "info": {
+        "role": "assistant",
+        "time": {
+          "created": 1773829764340,
+          "completed": 1773829800250
+        },
+        "parentID": "msg_d007cda300010c3l4TXX0j53UR",
+        "modelID": "big-pickle",
+        "providerID": "opencode",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/home/tejasree/visual-task/visual-interaction",
+          "root": "/home/tejasree/visual-task/visual-interaction"
+        },
+        "cost": 0,
+        "tokens": {
+          "total": 24773,
+          "input": 1472,
+          "output": 640,
+          "reasoning": 0,
+          "cache": {
+            "read": 21546,
+            "write": 1115
+          }
+        },
+        "finish": "tool-calls",
+        "id": "msg_d007e34f40011iM8WnR0T4A94B",
+        "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi"
+      },
+      "parts": [
+        {
+          "type": "step-start",
+          "snapshot": "3385f3525dfccd87f45163b1155b06d830846352",
+          "id": "prt_d007e9357001JoFgITC7Jz80Zd",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007e34f40011iM8WnR0T4A94B"
+        },
+        {
+          "type": "reasoning",
+          "text": "The frontend code looks correct - it's passing `language: 'te-IN'` to the backend. Now I need to see what the issue is.\n\nWait - I see the problem! Looking at the speech_service.dart (frontend), it's calling the wrong endpoint. On line 45, it's calling `$baseUrl/api/simulate`, but looking at the backend routes in simulation_routes.py, the endpoint is `/simulation` or `/simulate` (both are mapped to the same function).\n\nHowever, there's another issue I noticed - looking at the frontend code at line 44-55, it's sending:\n```dart\nbody: jsonEncode({\n  'text': '',\n  'angle': angle,\n  'velocity': velocity,\n  'gravity': gravity,\n  'custom_formula': customFormula,\n  'include_formula': true,\n  'language': language,\n}),\n```\n\nThis is sending `'text': ''`, which would trigger the first condition in simulation_routes.py at line 26:\n```python\nif text:\n    language = data.get('language', 'en-IN')\n    speech_result = synthesize_speech(text, target_language_code=language)\n    return jsonify({...})\n```\n\nBut since text is empty string (''), it's falsy in Python, so it will NOT enter that if block. That's fine.\n\nThen it goes to line 34 and onwards where it processes angle, velocity, gravity, etc. And at line 60-75:\n```python\nif language == \"te-IN\":\n    explanation_text = generate_explanation_text_telugu(...)\nelse:\n    explanation_text = generate_explanation_text(...)\n\nspeech_result = synthesize_speech(explanation_text, target_language_code=language)\n```\n\nThis should work correctly. Let me check if there's any issue with the language code being passed correctly or if there's some other issue.\n\n\nThe frontend passes `language: 'te-IN'` and the backend correctly uses it in `synthesize_speech` at line 219. The code appears correct, so there might be something else going on. Let me examine the Sarvam API response more closely - could there be an error that's not being properly displayed, or is the audio_url being returned but perhaps in an unexpected format?\n\nLooking at line 75 in simulation_routes.py, I notice it's calling the `simulate` endpoint with `target_language_code=language`. The routing should work correctly since both `/simulation` and `/simulate` are mapped to the same function. But wait - I'm seeing the issue now. The frontend is calling `/api/simulate` while the backend defines the route as `/simulation`. There's a mismatch between what the frontend expects and what the backend is actually serving.",
+          "metadata": {
+            "anthropic": {
+              "signature": "5c965b97f7b694084c53c64e0d8227e34b95eb55cb2bfb9c4201f6f84f5820f8"
+            }
+          },
+          "time": {
+            "start": 1773829788504,
+            "end": 1773829798582
+          },
+          "id": "prt_d007e9358001z8x2iHpck3DpnL",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007e34f40011iM8WnR0T4A94B"
+        },
+        {
+          "type": "text",
+          "text": "I see the frontend is calling `/api/simulate` but looking at the backend route, it seems to be set up. Let me check the backend app to see how routes are registered.",
+          "time": {
+            "start": 1773829799834,
+            "end": 1773829799834
+          },
+          "id": "prt_d007ebab8001kIIqSNoQ4S5KgB",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007e34f40011iM8WnR0T4A94B"
+        },
+        {
+          "type": "tool",
+          "callID": "call_function_mb6pe842442w_1",
+          "tool": "glob",
+          "state": {
+            "status": "completed",
+            "input": {
+              "path": "/home/tejasree/visual-task/visual-interaction/backend",
+              "pattern": "**/*.py"
+            },
+            "output": "/home/tejasree/visual-task/visual-interaction/backend/services/speech_service.py\n/home/tejasree/visual-task/visual-interaction/backend/routes/simulation_routes.py\n/home/tejasree/visual-task/visual-interaction/backend/app.py\n/home/tejasree/visual-task/visual-interaction/backend/services/cache_service.py\n/home/tejasree/visual-task/visual-interaction/backend/services/supabase_client.py\n/home/tejasree/visual-task/visual-interaction/backend/services/physics_service.py",
+            "title": "backend",
+            "metadata": {
+              "count": 6,
+              "truncated": false
+            },
+            "time": {
+              "start": 1773829800051,
+              "end": 1773829800072
+            }
+          },
+          "id": "prt_d007ebf9d001pWHNgdxvTy6zl0",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007e34f40011iM8WnR0T4A94B"
+        },
+        {
+          "type": "step-finish",
+          "reason": "tool-calls",
+          "snapshot": "3385f3525dfccd87f45163b1155b06d830846352",
+          "cost": 0,
+          "tokens": {
+            "total": 24773,
+            "input": 1472,
+            "output": 640,
+            "reasoning": 0,
+            "cache": {
+              "read": 21546,
+              "write": 1115
+            }
+          },
+          "id": "prt_d007ec08c00191sIzYfdLjnBHs",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007e34f40011iM8WnR0T4A94B"
+        }
+      ]
+    },
+    {
+      "info": {
+        "role": "assistant",
+        "time": {
+          "created": 1773829800261,
+          "completed": 1773829803340
+        },
+        "parentID": "msg_d007cda300010c3l4TXX0j53UR",
+        "modelID": "big-pickle",
+        "providerID": "opencode",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/home/tejasree/visual-task/visual-interaction",
+          "root": "/home/tejasree/visual-task/visual-interaction"
+        },
+        "cost": 0,
+        "tokens": {
+          "total": 24947,
+          "input": 193,
+          "output": 54,
+          "reasoning": 0,
+          "cache": {
+            "read": 22570,
+            "write": 2130
+          }
+        },
+        "finish": "tool-calls",
+        "id": "msg_d007ec145001djmocnbXwBu0eW",
+        "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi"
+      },
+      "parts": [
+        {
+          "type": "step-start",
+          "snapshot": "3385f3525dfccd87f45163b1155b06d830846352",
+          "id": "prt_d007eca7f001QhNjfVzMWehPd4",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007ec145001djmocnbXwBu0eW"
+        },
+        {
+          "type": "reasoning",
+          "text": "Let me check app.py to see how the routes are registered.",
+          "metadata": {
+            "anthropic": {
+              "signature": "90e106b46e14fc8fd53eead9baf63d18e712195f2ed971bd9a780ad2d3622d64"
+            }
+          },
+          "time": {
+            "start": 1773829802625,
+            "end": 1773829803070
+          },
+          "id": "prt_d007eca810012O35T2A9EFyAzz",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007ec145001djmocnbXwBu0eW"
+        },
+        {
+          "type": "tool",
+          "callID": "call_function_3yv78ph4mc3m_1",
+          "tool": "read",
+          "state": {
+            "status": "completed",
+            "input": {
+              "filePath": "/home/tejasree/visual-task/visual-interaction/backend/app.py"
+            },
+            "output": "<path>/home/tejasree/visual-task/visual-interaction/backend/app.py</path>\n<type>file</type>\n<content>1: from flask import Flask\n2: from flask_cors import CORS\n3: from routes.simulation_routes import simulation_bp\n4: from dotenv import load_dotenv\n5: \n6: load_dotenv()\n7: \n8: app = Flask(__name__)\n9: CORS(app)\n10: \n11: app.register_blueprint(simulation_bp, url_prefix='/api')\n12: \n13: @app.route('/health')\n14: def health():\n15:     return {'status': 'healthy'}\n16: \n17: if __name__ == '__main__':\n18:     app.run(debug=True, host='0.0.0.0', port=5000, threaded=True)\n\n(End of file - total 18 lines)\n</content>",
+            "title": "backend/app.py",
+            "metadata": {
+              "preview": "from flask import Flask\nfrom flask_cors import CORS\nfrom routes.simulation_routes import simulation_bp\nfrom dotenv import load_dotenv\n\nload_dotenv()\n\napp = Flask(__name__)\nCORS(app)\n\napp.register_blueprint(simulation_bp, url_prefix='/api')\n\n@app.route('/health')\ndef health():\n    return {'status': 'healthy'}\n\nif __name__ == '__main__':\n    app.run(debug=True, host='0.0.0.0', port=5000, threaded=True)",
+              "truncated": false,
+              "loaded": []
+            },
+            "time": {
+              "start": 1773829803208,
+              "end": 1773829803220
+            }
+          },
+          "id": "prt_d007ecc420014U29XvYfe0382o",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007ec145001djmocnbXwBu0eW"
+        },
+        {
+          "type": "step-finish",
+          "reason": "tool-calls",
+          "snapshot": "3385f3525dfccd87f45163b1155b06d830846352",
+          "cost": 0,
+          "tokens": {
+            "total": 24947,
+            "input": 193,
+            "output": 54,
+            "reasoning": 0,
+            "cache": {
+              "read": 22570,
+              "write": 2130
+            }
+          },
+          "id": "prt_d007eccfe001Om9c6V37P6eNpq",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007ec145001djmocnbXwBu0eW"
+        }
+      ]
+    },
+    {
+      "info": {
+        "role": "assistant",
+        "time": {
+          "created": 1773829803346,
+          "completed": 1773829814185
+        },
+        "parentID": "msg_d007cda300010c3l4TXX0j53UR",
+        "modelID": "big-pickle",
+        "providerID": "opencode",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/home/tejasree/visual-task/visual-interaction",
+          "root": "/home/tejasree/visual-task/visual-interaction"
+        },
+        "cost": 0,
+        "tokens": {
+          "total": 25730,
+          "input": 281,
+          "output": 575,
+          "reasoning": 0,
+          "cache": {
+            "read": 24055,
+            "write": 819
+          }
+        },
+        "finish": "tool-calls",
+        "id": "msg_d007ecd52001LYKEYMgNItpgqE",
+        "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi"
+      },
+      "parts": [
+        {
+          "type": "step-start",
+          "snapshot": "3385f3525dfccd87f45163b1155b06d830846352",
+          "id": "prt_d007ed528001Igg05oL160FmVy",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007ecd52001LYKEYMgNItpgqE"
+        },
+        {
+          "type": "reasoning",
+          "text": "The route is registered with `/api` prefix, and in simulation_routes.py, the routes are defined as:\n```python\n@simulation_bp.route('/simulation', methods=['POST'])\n@simulation_bp.route('/simulate', methods=['POST'])\ndef simulate():\n```\n\nSo the full route is `/api/simulation` or `/api/simulate`. The frontend is calling `/api/simulate`, which should work.\n\nLet me think about this more. The user says \"the language is not changed into the Telugu language to audio\" - this could mean:\n\n1. The audio is being played in English instead of Telugu\n2. There's an error occurring\n3. The text is not being generated in Telugu\n\nLooking at the code flow:\n1. Frontend sends `language: 'te-IN'` to backend\n2. Backend receives it at `data.get('language', 'en-IN')` (line 39)\n3. If language is \"te-IN\", it generates Telugu text (line 60-71)\n4. Then calls `synthesize_speech(explanation_text, target_language_code=language)` (line 75)\n\nThis should work... Let me check if there's any issue with how `generate_explanation_text_telugu` is generating the text or if there's an issue with the TTS API.\n\nWait - I just noticed something! Looking at line 206-219 in speech_service.py:\n\n```python\ndef generate_speech_explanation(...):\n    if language == \"te-IN\":\n        explanation_text = generate_explanation_text_telugu(...)\n    else:\n        explanation_text = generate_explanation_text(...)\n    \n    return synthesize_speech(explanation_text, target_language_code=language)\n```\n\nThis function is NOT being used! Looking at simulation_routes.py, it's calling `synthesize_speech` directly (line 75), not `generate_speech_explanation`. \n\nBut that's fine - the routes.py is handling the language correctly at lines 60-75. The logic appears sound: when the language is \"te-IN\", it generates Telugu text and passes the same language code to synthesize_speech, which then uses it for the target_language_code parameter in the API call.\n\nThe issue might be elsewhere. Let me trace through what's actually happening when the request flows through the system.",
+          "metadata": {
+            "anthropic": {
+              "signature": "c9df71010f6b1434bbb43d1b3d8458668d1abfd787cde093ac55d5bfcebe325b"
+            }
+          },
+          "time": {
+            "start": 1773829805354,
+            "end": 1773829812836
+          },
+          "id": "prt_d007ed52a001jR4NVA4geftOby",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007ecd52001LYKEYMgNItpgqE"
+        },
+        {
+          "type": "text",
+          "text": "Let me check if there's any logging or error output. Let me also check how the Sarvam API handles the Telugu language - there might be a model issue.",
+          "time": {
+            "start": 1773829813459,
+            "end": 1773829813459
+          },
+          "id": "prt_d007ef269001A1gdSO84ZTaQ9I",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007ecd52001LYKEYMgNItpgqE"
+        },
+        {
+          "type": "tool",
+          "callID": "call_function_mgsk5na3r8sh_1",
+          "tool": "read",
+          "state": {
+            "status": "completed",
+            "input": {
+              "filePath": "/home/tejasree/visual-task/visual-interaction/backend/services/speech_service.py",
+              "limit": 50,
+              "offset": 94
+            },
+            "output": "<path>/home/tejasree/visual-task/visual-interaction/backend/services/speech_service.py</path>\n<type>file</type>\n<content>94: def synthesize_speech(text: str, target_language_code: str = \"en-IN\", \n95:                       speaker: str = \"arya\") -> dict:\n96:     api_key = get_api_key()\n97:     \n98:     if not api_key:\n99:         return {\"error\": \"API key missing\", \"audio_url\": None}\n100:     \n101:     headers = {\n102:         \"api-subscription-key\": api_key,\n103:         \"Content-Type\": \"application/json\"\n104:     }\n105:     \n106:     payload = {\n107:         \"inputs\": [text],\n108:         \"target_language_code\": target_language_code,\n109:         \"speaker\": speaker,\n110:         \"model\": \"bulbul:v2\",\n111:         \"speech_sample_rate\": 16000\n112:     }\n113:     \n114:     try:\n115:         response = requests.post(SARVAM_API_URL, headers=headers, json=payload, timeout=30)\n116:         response.raise_for_status()\n117:         \n118:         result = response.json()\n119:         \n120:         if result.get(\"audios\") and len(result[\"audios\"]) > 0:\n121:             audio_base64 = result[\"audios\"][0]\n122:             audio_data_url = f\"data:audio/wav;base64,{audio_base64}\"\n123:             return {\n124:                 \"audio_url\": audio_data_url,\n125:                 \"request_id\": result.get(\"request_id\")\n126:             }\n127:         else:\n128:             return {\"error\": \"No audio returned from API\", \"audio_url\": None}\n129:             \n130:     except requests.exceptions.RequestException as e:\n131:         return {\"error\": str(e), \"audio_url\": None}\n132: \n133: \n134: def get_audio_stream(text: str):\n135:     result = synthesize_speech(text)\n136:     return result.get(\"audio_url\")\n137: \n138: \n139: def generate_explanation_text_telugu(angle: float, velocity: float, gravity: float, \n140:                                     prev_angle: Optional[float] = None, prev_velocity: Optional[float] = None, \n141:                                     prev_gravity: Optional[float] = None,\n142:                                     custom_formula: Optional[str] = None,\n143:                                     include_formula: bool = False) -> str:\n\n(Showing lines 94-143 of 219. Use offset=144 to continue.)\n</content>",
+            "title": "backend/services/speech_service.py",
+            "metadata": {
+              "preview": "def synthesize_speech(text: str, target_language_code: str = \"en-IN\", \n                      speaker: str = \"arya\") -> dict:\n    api_key = get_api_key()\n    \n    if not api_key:\n        return {\"error\": \"API key missing\", \"audio_url\": None}\n    \n    headers = {\n        \"api-subscription-key\": api_key,\n        \"Content-Type\": \"application/json\"\n    }\n    \n    payload = {\n        \"inputs\": [text],\n        \"target_language_code\": target_language_code,\n        \"speaker\": speaker,\n        \"model\": \"bulbul:v2\",\n        \"speech_sample_rate\": 16000\n    }\n    ",
+              "truncated": true,
+              "loaded": []
+            },
+            "time": {
+              "start": 1773829814065,
+              "end": 1773829814099
+            }
+          },
+          "id": "prt_d007ef4d5001i3X4r7Gc1QQCs4",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007ecd52001LYKEYMgNItpgqE"
+        },
+        {
+          "type": "step-finish",
+          "reason": "tool-calls",
+          "snapshot": "3385f3525dfccd87f45163b1155b06d830846352",
+          "cost": 0,
+          "tokens": {
+            "total": 25730,
+            "input": 281,
+            "output": 575,
+            "reasoning": 0,
+            "cache": {
+              "read": 24055,
+              "write": 819
+            }
+          },
+          "id": "prt_d007ef77b001EeALo9pNIyNUOZ",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007ecd52001LYKEYMgNItpgqE"
+        }
+      ]
+    },
+    {
+      "info": {
+        "role": "assistant",
+        "time": {
+          "created": 1773829814196,
+          "completed": 1773829824397
+        },
+        "parentID": "msg_d007cda300010c3l4TXX0j53UR",
+        "modelID": "big-pickle",
+        "providerID": "opencode",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/home/tejasree/visual-task/visual-interaction",
+          "root": "/home/tejasree/visual-task/visual-interaction"
+        },
+        "cost": 0,
+        "tokens": {
+          "total": 26793,
+          "input": 646,
+          "output": 490,
+          "reasoning": 0,
+          "cache": {
+            "read": 24815,
+            "write": 842
+          }
+        },
+        "finish": "tool-calls",
+        "id": "msg_d007ef7b3001f1utYED8b249Vq",
+        "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi"
+      },
+      "parts": [
+        {
+          "type": "step-start",
+          "snapshot": "3385f3525dfccd87f45163b1155b06d830846352",
+          "id": "prt_d007f0006001ibXjaecL9cLWlz",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007ef7b3001f1utYED8b249Vq"
+        },
+        {
+          "type": "reasoning",
+          "text": "I see the issue now! Looking at the code:\n\n1. The model being used is `\"bulbul:v2\"` (line 110)\n2. According to the Sarvam API documentation I found earlier, `bulbul:v2` might not support all languages\n\nLooking back at my search results:\n- bulbul:v2 - supports some languages\n- bulbul:v3 - supports 11 languages (10 Indian + English) with \"te-IN\" being one of them\n\nThe issue could be that `bulbul:v2` might not properly support Telugu, while `bulbul:v3` does. Let me check if this is the issue.\n\nActually, from the documentation:\n- v2: Bulbul v2 - some languages\n- v3: Bulbul v3 - 11 languages (Hindi, Bengali, Tamil, Telugu, Kannada, Malayalam, Marathi, Gujarati, Punjabi, Odia, and English)\n\nSo the fix might be to change the model from `bulbul:v2` to `bulbul:v3`. Let me update that.\n\nActually wait - looking more carefully at line 110, the model is hardcoded as `\"bulbul:v2\"`. This could be the issue. Let me change it to `\"bulbul:v3\"` which has better Telugu support.",
+          "metadata": {
+            "anthropic": {
+              "signature": "ca8b53b4e9e0d3d23248f03fd49f5754d6c2152073c93aaf2fd8d760852588a1"
+            }
+          },
+          "time": {
+            "start": 1773829816329,
+            "end": 1773829820838
+          },
+          "id": "prt_d007f0009001ms2RORb5Yzf9CK",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007ef7b3001f1utYED8b249Vq"
+        },
+        {
+          "type": "text",
+          "text": "I found the issue! The code is using `\"bulbul:v2\"` model which may have limited Telugu support. The Sarvam API has `bulbul:v3` which has better support for Telugu. Let me update the model:",
+          "time": {
+            "start": 1773829821898,
+            "end": 1773829821898
+          },
+          "id": "prt_d007f11a9001ED5i3s0r346iBa",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007ef7b3001f1utYED8b249Vq"
+        },
+        {
+          "type": "tool",
+          "callID": "call_function_8qr8i9s4bmde_1",
+          "tool": "edit",
+          "state": {
+            "status": "completed",
+            "input": {
+              "filePath": "/home/tejasree/visual-task/visual-interaction/backend/services/speech_service.py",
+              "newString": "    payload = {\n        \"inputs\": [text],\n        \"target_language_code\": target_language_code,\n        \"speaker\": \"shruti\",\n        \"model\": \"bulbul:v3\",\n        \"speech_sample_rate\": 16000\n    }",
+              "oldString": "    payload = {\n        \"inputs\": [text],\n        \"target_language_code\": target_language_code,\n        \"speaker\": \"arya\",\n        \"model\": \"bulbul:v2\",\n        \"speech_sample_rate\": 16000\n    }"
+            },
+            "output": "Edit applied successfully.",
+            "title": "backend/services/speech_service.py",
+            "metadata": {
+              "diagnostics": {
+                "/home/tejasree/visual-task/visual-interaction/backend/services/speech_service.py": [],
+                "/home/tejasree/visual-task/visual-interaction/backend/routes/simulation_routes.py": [
+                  {
+                    "range": {
+                      "start": {
+                        "line": 61,
+                        "character": 12
+                      },
+                      "end": {
+                        "line": 61,
+                        "character": 17
+                      }
+                    },
+                    "message": "Argument of type \"Unknown | Any | None\" cannot be assigned to parameter \"angle\" of type \"float\" in function \"generate_explanation_text_telugu\"\n  Type \"Unknown | Any | None\" is not assignable to type \"float\"\n    \"None\" is not assignable to \"float\"",
+                    "severity": 1,
+                    "code": "reportArgumentType",
+                    "source": "Pyright",
+                    "codeDescription": {
+                      "href": "https://github.com/microsoft/pyright/blob/main/docs/configuration.md#reportArgumentType"
+                    }
+                  },
+                  {
+                    "range": {
+                      "start": {
+                        "line": 61,
+                        "character": 19
+                      },
+                      "end": {
+                        "line": 61,
+                        "character": 27
+                      }
+                    },
+                    "message": "Argument of type \"Unknown | Any | None\" cannot be assigned to parameter \"velocity\" of type \"float\" in function \"generate_explanation_text_telugu\"\n  Type \"Unknown | Any | None\" is not assignable to type \"float\"\n    \"None\" is not assignable to \"float\"",
+                    "severity": 1,
+                    "code": "reportArgumentType",
+                    "source": "Pyright",
+                    "codeDescription": {
+                      "href": "https://github.com/microsoft/pyright/blob/main/docs/configuration.md#reportArgumentType"
+                    }
+                  },
+                  {
+                    "range": {
+                      "start": {
+                        "line": 61,
+                        "character": 29
+                      },
+                      "end": {
+                        "line": 61,
+                        "character": 36
+                      }
+                    },
+                    "message": "Argument of type \"Unknown | Any | None\" cannot be assigned to parameter \"gravity\" of type \"float\" in function \"generate_explanation_text_telugu\"\n  Type \"Unknown | Any | None\" is not assignable to type \"float\"\n    \"None\" is not assignable to \"float\"",
+                    "severity": 1,
+                    "code": "reportArgumentType",
+                    "source": "Pyright",
+                    "codeDescription": {
+                      "href": "https://github.com/microsoft/pyright/blob/main/docs/configuration.md#reportArgumentType"
+                    }
+                  },
+                  {
+                    "range": {
+                      "start": {
+                        "line": 67,
+                        "character": 12
+                      },
+                      "end": {
+                        "line": 67,
+                        "character": 17
+                      }
+                    },
+                    "message": "Argument of type \"Unknown | Any | None\" cannot be assigned to parameter \"angle\" of type \"float\" in function \"generate_explanation_text\"\n  Type \"Unknown | Any | None\" is not assignable to type \"float\"\n    \"None\" is not assignable to \"float\"",
+                    "severity": 1,
+                    "code": "reportArgumentType",
+                    "source": "Pyright",
+                    "codeDescription": {
+                      "href": "https://github.com/microsoft/pyright/blob/main/docs/configuration.md#reportArgumentType"
+                    }
+                  },
+                  {
+                    "range": {
+                      "start": {
+                        "line": 67,
+                        "character": 19
+                      },
+                      "end": {
+                        "line": 67,
+                        "character": 27
+                      }
+                    },
+                    "message": "Argument of type \"Unknown | Any | None\" cannot be assigned to parameter \"velocity\" of type \"float\" in function \"generate_explanation_text\"\n  Type \"Unknown | Any | None\" is not assignable to type \"float\"\n    \"None\" is not assignable to \"float\"",
+                    "severity": 1,
+                    "code": "reportArgumentType",
+                    "source": "Pyright",
+                    "codeDescription": {
+                      "href": "https://github.com/microsoft/pyright/blob/main/docs/configuration.md#reportArgumentType"
+                    }
+                  },
+                  {
+                    "range": {
+                      "start": {
+                        "line": 67,
+                        "character": 29
+                      },
+                      "end": {
+                        "line": 67,
+                        "character": 36
+                      }
+                    },
+                    "message": "Argument of type \"Unknown | Any | None\" cannot be assigned to parameter \"gravity\" of type \"float\" in function \"generate_explanation_text\"\n  Type \"Unknown | Any | None\" is not assignable to type \"float\"\n    \"None\" is not assignable to \"float\"",
+                    "severity": 1,
+                    "code": "reportArgumentType",
+                    "source": "Pyright",
+                    "codeDescription": {
+                      "href": "https://github.com/microsoft/pyright/blob/main/docs/configuration.md#reportArgumentType"
+                    }
+                  },
+                  {
+                    "range": {
+                      "start": {
+                        "line": 78,
+                        "character": 21
+                      },
+                      "end": {
+                        "line": 78,
+                        "character": 26
+                      }
+                    },
+                    "message": "Argument of type \"Unknown | Any | None\" cannot be assigned to parameter \"angle\" of type \"float\" in function \"store_simulation\"\n  Type \"Unknown | Any | None\" is not assignable to type \"float\"\n    \"None\" is not assignable to \"float\"",
+                    "severity": 1,
+                    "code": "reportArgumentType",
+                    "source": "Pyright",
+                    "codeDescription": {
+                      "href": "https://github.com/microsoft/pyright/blob/main/docs/configuration.md#reportArgumentType"
+                    }
+                  },
+                  {
+                    "range": {
+                      "start": {
+                        "line": 78,
+                        "character": 28
+                      },
+                      "end": {
+                        "line": 78,
+                        "character": 36
+                      }
+                    },
+                    "message": "Argument of type \"Unknown | Any | None\" cannot be assigned to parameter \"velocity\" of type \"float\" in function \"store_simulation\"\n  Type \"Unknown | Any | None\" is not assignable to type \"float\"\n    \"None\" is not assignable to \"float\"",
+                    "severity": 1,
+                    "code": "reportArgumentType",
+                    "source": "Pyright",
+                    "codeDescription": {
+                      "href": "https://github.com/microsoft/pyright/blob/main/docs/configuration.md#reportArgumentType"
+                    }
+                  },
+                  {
+                    "range": {
+                      "start": {
+                        "line": 78,
+                        "character": 38
+                      },
+                      "end": {
+                        "line": 78,
+                        "character": 45
+                      }
+                    },
+                    "message": "Argument of type \"Unknown | Any | None\" cannot be assigned to parameter \"gravity\" of type \"float\" in function \"store_simulation\"\n  Type \"Unknown | Any | None\" is not assignable to type \"float\"\n    \"None\" is not assignable to \"float\"",
+                    "severity": 1,
+                    "code": "reportArgumentType",
+                    "source": "Pyright",
+                    "codeDescription": {
+                      "href": "https://github.com/microsoft/pyright/blob/main/docs/configuration.md#reportArgumentType"
+                    }
+                  }
+                ],
+                "/home/tejasree/visual-task/visual-interaction/backend/app.py": [],
+                "/home/tejasree/visual-task/visual-interaction/frontend/lib/screens/simulation_screen.dart": [
+                  {
+                    "code": "unused_import",
+                    "message": "Unused import: '../widgets/formula_editor.dart'.\nTry removing the import directive.",
+                    "range": {
+                      "end": {
+                        "character": 39,
+                        "line": 5
+                      },
+                      "start": {
+                        "character": 7,
+                        "line": 5
+                      }
+                    },
+                    "severity": 2,
+                    "source": "dart"
+                  }
+                ],
+                "/home/tejasree/visual-task/visual-interaction/frontend/lib/models/simulation_model.dart": [
+                  {
+                    "code": "unused_local_variable",
+                    "message": "The value of the local variable 'angleRad' isn't used.\nTry removing the variable or using it.",
+                    "range": {
+                      "end": {
+                        "character": 18,
+                        "line": 142
+                      },
+                      "start": {
+                        "character": 10,
+                        "line": 142
+                      }
+                    },
+                    "severity": 2,
+                    "source": "dart"
+                  }
+                ],
+                "/home/tejasree/visual-task/visual-interaction/frontend/lib/widgets/graph_3d.dart": [
+                  {
+                    "code": "unused_local_variable",
+                    "message": "The value of the local variable 'maxRange' isn't used.\nTry removing the variable or using it.",
+                    "range": {
+                      "end": {
+                        "character": 18,
+                        "line": 131
+                      },
+                      "start": {
+                        "character": 10,
+                        "line": 131
+                      }
+                    },
+                    "severity": 2,
+                    "source": "dart"
+                  },
+                  {
+                    "code": "unused_local_variable",
+                    "message": "The value of the local variable 'maxHeight' isn't used.\nTry removing the variable or using it.",
+                    "range": {
+                      "end": {
+                        "character": 19,
+                        "line": 132
+                      },
+                      "start": {
+                        "character": 10,
+                        "line": 132
+                      }
+                    },
+                    "severity": 2,
+                    "source": "dart"
+                  },
+                  {
+                    "code": "prefer_const_constructors",
+                    "message": "Use 'const' with the constructor to improve performance.\nTry adding the 'const' keyword to the constructor invocation.",
+                    "range": {
+                      "end": {
+                        "character": 44,
+                        "line": 174
+                      },
+                      "start": {
+                        "character": 30,
+                        "line": 174
+                      }
+                    },
+                    "severity": 3,
+                    "source": "dart"
+                  }
+                ],
+                "/home/tejasree/visual-task/visual-interaction/frontend/lib/widgets/graph_2d.dart": [
+                  {
+                    "code": "prefer_const_constructors",
+                    "message": "Use 'const' with the constructor to improve performance.\nTry adding the 'const' keyword to the constructor invocation.",
+                    "range": {
+                      "end": {
+                        "character": 19,
+                        "line": 120
+                      },
+                      "start": {
+                        "character": 6,
+                        "line": 120
+                      }
+                    },
+                    "severity": 3,
+                    "source": "dart"
+                  }
+                ],
+                "/home/tejasree/visual-task/visual-interaction/frontend/lib/services/speech_service.dart": [
+                  {
+                    "code": "prefer_final_fields",
+                    "message": "The private field _useBackendTts could be 'final'.\nTry making the field 'final'.",
+                    "range": {
+                      "end": {
+                        "character": 28,
+                        "line": 12
+                      },
+                      "start": {
+                        "character": 7,
+                        "line": 12
+                      }
+                    },
+                    "severity": 3,
+                    "source": "dart"
+                  }
+                ]
+              },
+              "diff": "Index: /home/tejasree/visual-task/visual-interaction/backend/services/speech_service.py\n===================================================================\n--- /home/tejasree/visual-task/visual-interaction/backend/services/speech_service.py\n+++ /home/tejasree/visual-task/visual-interaction/backend/services/speech_service.py\n@@ -105,10 +105,10 @@\n \n payload = {\n     \"inputs\": [text],\n     \"target_language_code\": target_language_code,\n-    \"speaker\": speaker,\n-    \"model\": \"bulbul:v2\",\n+    \"speaker\": \"shruti\",\n+    \"model\": \"bulbul:v3\",\n     \"speech_sample_rate\": 16000\n }\n \n try:\n",
+              "filediff": {
+                "file": "/home/tejasree/visual-task/visual-interaction/backend/services/speech_service.py",
+                "before": "import os\nimport base64\nimport requests\nfrom datetime import datetime\nfrom typing import Optional\nfrom dotenv import load_dotenv\nimport math\n\nproject_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))\nenv_path = os.path.join(project_root, '.env')\nload_dotenv(env_path)\n\nSARVAM_API_URL = \"https://api.sarvam.ai/text-to-speech\"\n\n\ndef _convert_formula_to_speech(formula: str) -> str:\n    if not formula:\n        return formula\n    return (formula\n            .replace('θ', 'theta')\n            .replace('²', ' squared')\n            .replace('³', ' cubed')\n            .replace('*', ' multiplied by ')\n            .replace('/', ' divided by ')\n            .replace('+', ' plus ')\n            .replace('-', ' minus ')\n            .replace('=', ' equals ')\n            .replace('(', ' open parenthesis ')\n            .replace(')', ' close parenthesis '))\n\n\ndef get_api_key():\n    api_key = os.environ.get(\"SARVAM_API_KEY\")\n    if not api_key:\n        print(\"SARVAM_API_KEY not found. Please add SARVAM_API_KEY to your .env file.\")\n        print(\"Get your API key from: https://dashboard.sarvam.ai\")\n    return api_key\n\n\ndef generate_explanation_text(angle: float, velocity: float, gravity: float, \n                                prev_angle: Optional[float] = None, prev_velocity: Optional[float] = None, \n                                prev_gravity: Optional[float] = None,\n                                custom_formula: Optional[str] = None,\n                                include_formula: bool = False) -> str:\n    parts = []\n    \n    if include_formula and custom_formula:\n        formula_speech = _convert_formula_to_speech(custom_formula)\n        parts.append(f\"The projectile motion formula being used is: {formula_speech}. \")\n        parts.append(\"This formula describes the relationship between the horizontal distance, vertical height, launch angle, initial velocity, and gravity. \")\n        parts.append(\"In this formula, y represents the vertical height, x represents the horizontal distance, theta represents the launch angle, v represents the initial velocity, and g represents gravitational acceleration. \")\n    \n    parts.append(f\"In this projectile motion simulation, the projectile is launched at an angle of {angle} degrees with an initial velocity of {velocity} meters per second under a gravitational acceleration of {gravity} meters per second squared.\")\n    \n    if prev_angle is not None and prev_angle != angle:\n        change = angle - prev_angle\n        direction = \"increased\" if change > 0 else \"decreased\"\n        parts.append(f\"The launch angle has {direction} from {prev_angle} to {angle} degrees. \")\n        if angle > prev_angle:\n            parts.append(f\"A higher angle means the projectile reaches a greater maximum height but travels a shorter distance. \")\n        else:\n            parts.append(f\"A lower angle means the projectile travels farther but reaches a lower maximum height. \")\n    \n    if prev_velocity is not None and prev_velocity != velocity:\n        change = velocity - prev_velocity\n        direction = \"increased\" if change > 0 else \"decreased\"\n        parts.append(f\"The initial velocity has {direction} from {prev_velocity} to {velocity} meters per second. \")\n        if velocity > prev_velocity:\n            parts.append(f\"Higher velocity means the projectile travels faster and reaches further. \")\n        else:\n            parts.append(f\"Lower velocity means the projectile travels slower and doesn't go as far. \")\n    \n    if prev_gravity is not None and prev_gravity != gravity:\n        change = gravity - prev_gravity\n        direction = \"increased\" if change > 0 else \"decreased\"\n        parts.append(f\"The gravitational acceleration has {direction} from {prev_gravity} to {gravity} meters per second squared. \")\n        if gravity > prev_gravity:\n            parts.append(f\"Stronger gravity pulls the projectile down faster, reducing both the flight time and the maximum height. \")\n        else:\n            parts.append(f\"Weaker gravity lets the projectile stay in the air longer and reach a higher maximum height. \")\n    \n    import sys\n    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))\n    from physics_service import calculate_trajectory\n    result = calculate_trajectory(angle, velocity, gravity)\n    \n    parts.append(f\"The maximum height reached is {result['max_height']} meters. \")\n    parts.append(f\"The total range or horizontal distance covered is {result['range']} meters. \")\n    parts.append(f\"The projectile remains in the air for {result['time_of_flight']} seconds.\")\n    \n    return \" \".join(parts)\n\n\ndef synthesize_speech(text: str, target_language_code: str = \"en-IN\", \n                      speaker: str = \"arya\") -> dict:\n    api_key = get_api_key()\n    \n    if not api_key:\n        return {\"error\": \"API key missing\", \"audio_url\": None}\n    \n    headers = {\n        \"api-subscription-key\": api_key,\n        \"Content-Type\": \"application/json\"\n    }\n    \n    payload = {\n        \"inputs\": [text],\n        \"target_language_code\": target_language_code,\n        \"speaker\": speaker,\n        \"model\": \"bulbul:v2\",\n        \"speech_sample_rate\": 16000\n    }\n    \n    try:\n        response = requests.post(SARVAM_API_URL, headers=headers, json=payload, timeout=30)\n        response.raise_for_status()\n        \n        result = response.json()\n        \n        if result.get(\"audios\") and len(result[\"audios\"]) > 0:\n            audio_base64 = result[\"audios\"][0]\n            audio_data_url = f\"data:audio/wav;base64,{audio_base64}\"\n            return {\n                \"audio_url\": audio_data_url,\n                \"request_id\": result.get(\"request_id\")\n            }\n        else:\n            return {\"error\": \"No audio returned from API\", \"audio_url\": None}\n            \n    except requests.exceptions.RequestException as e:\n        return {\"error\": str(e), \"audio_url\": None}\n\n\ndef get_audio_stream(text: str):\n    result = synthesize_speech(text)\n    return result.get(\"audio_url\")\n\n\ndef generate_explanation_text_telugu(angle: float, velocity: float, gravity: float, \n                                    prev_angle: Optional[float] = None, prev_velocity: Optional[float] = None, \n                                    prev_gravity: Optional[float] = None,\n                                    custom_formula: Optional[str] = None,\n                                    include_formula: bool = False) -> str:\n    import sys\n    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))\n    from physics_service import calculate_trajectory\n    result = calculate_trajectory(angle, velocity, gravity)\n    \n    parts = []\n    \n    angle_rad = angle * math.pi / 180\n    \n    if include_formula and custom_formula:\n        formula_speech = _convert_formula_to_speech(custom_formula)\n        parts.append(f\"Formula: {formula_speech}. \")\n    \n    parts.append(f\"Hello everyone! Niiku projectile motion ni explanation ivvutu. \")\n    parts.append(f\"Ipudu i simulation lo, projectile {angle} degrees angle daari, {velocity} m/s velocity tho launch avutundi. \")\n    parts.append(f\"Ekkada velocity ni two components lo split cheyyali. Horizontal component = {velocity * math.cos(angle_rad):.2f} m/s. Vertical component = {velocity * math.sin(angle_rad):.2f} m/s. \")\n    parts.append(f\"Horizontal motion lo, gravity effect ledu. Kabbati constant velocity tho move avutundi. Formula: x = v cosθ × t. \")\n    parts.append(f\"Vertical motion lo, gravity {gravity} m/s² impact undi. Upward movement lo velocity decrease avutundi, downward movement lo increase avutundi. Formula: y = v sinθ × t - ½gt². \")\n    \n    parts.append(f\"\\nOkay, ante results: \")\n    parts.append(f\"Maximum height = {result['max_height']:.2f} meters. \")\n    parts.append(f\"Total range = {result['range']:.2f} meters. \")\n    parts.append(f\"Time of flight = {result['time_of_flight']:.2f} seconds. \")\n    \n    if prev_angle is not None and prev_angle != angle:\n        diff = angle - prev_angle\n        if diff > 0:\n            parts.append(f\"\\nSo, angle increase ayyindi ante, vertical component increase avutundi. Horizontal component decrease avutundi. \")\n            parts.append(f\"Kabbati maximum height increase avutundi. Range decrease avutundi. \")\n            parts.append(f\"Remember: 45° max range ki ideal angle. \")\n        else:\n            parts.append(f\"\\nSo, angle decrease ayyindi ante, horizontal component increase avutundi. Vertical component decrease avutundi. \")\n            parts.append(f\"Kabbati range increase avutundi. Maximum height decrease avutundi. \")\n    \n    if prev_velocity is not None and prev_velocity != velocity:\n        diff = velocity - prev_velocity\n        if diff > 0:\n            parts.append(f\"\\nVelocity increase ayyindi ante, initial energy increase avutundi. \")\n            parts.append(f\"Both height and range increase avutundi. Physics ante, Range ∝ v² and Height ∝ v². \")\n        else:\n            parts.append(f\"\\nVelocity decrease ayyindi ante, initial energy decrease avutundi. \")\n            parts.append(f\"Both height and range decrease avutundi. \")\n    \n    if prev_gravity is not None and prev_gravity != gravity:\n        diff = gravity - prev_gravity\n        if diff > 0:\n            parts.append(f\"\\nGravity increase ayyindi ante, downward pull strong avutundi. \")\n            parts.append(f\"Flight time and maximum height both decrease avutundi. \")\n            parts.append(f\"Example: Moon lo gravity 1.6 m/s², Jupiter lo 24.8 m/s². Moon lo projectile more distance travel avutundi. \")\n        else:\n            parts.append(f\"\\nGravity decrease ayyindi ante, downward pull weak avutundi. \")\n            parts.append(f\"Flight time and maximum height both increase avutundi. \")\n    \n    return \" \".join(parts)\n\n\ndef generate_speech_explanation(angle: float, velocity: float, gravity: float,\n                                prev_angle: Optional[float] = None, prev_velocity: Optional[float] = None,\n                                prev_gravity: Optional[float] = None,\n                                custom_formula: Optional[str] = None,\n                                include_formula: bool = False,\n                                language: str = \"en-IN\") -> dict:\n    if language == \"te-IN\":\n        explanation_text = generate_explanation_text_telugu(\n            angle, velocity, gravity,\n            prev_angle, prev_velocity, prev_gravity,\n            custom_formula, include_formula\n        )\n    else:\n        explanation_text = generate_explanation_text(\n            angle, velocity, gravity,\n            prev_angle, prev_velocity, prev_gravity,\n            custom_formula, include_formula\n        )\n    \n    return synthesize_speech(explanation_text, target_language_code=language)",
+                "after": "import os\nimport base64\nimport requests\nfrom datetime import datetime\nfrom typing import Optional\nfrom dotenv import load_dotenv\nimport math\n\nproject_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))\nenv_path = os.path.join(project_root, '.env')\nload_dotenv(env_path)\n\nSARVAM_API_URL = \"https://api.sarvam.ai/text-to-speech\"\n\n\ndef _convert_formula_to_speech(formula: str) -> str:\n    if not formula:\n        return formula\n    return (formula\n            .replace('θ', 'theta')\n            .replace('²', ' squared')\n            .replace('³', ' cubed')\n            .replace('*', ' multiplied by ')\n            .replace('/', ' divided by ')\n            .replace('+', ' plus ')\n            .replace('-', ' minus ')\n            .replace('=', ' equals ')\n            .replace('(', ' open parenthesis ')\n            .replace(')', ' close parenthesis '))\n\n\ndef get_api_key():\n    api_key = os.environ.get(\"SARVAM_API_KEY\")\n    if not api_key:\n        print(\"SARVAM_API_KEY not found. Please add SARVAM_API_KEY to your .env file.\")\n        print(\"Get your API key from: https://dashboard.sarvam.ai\")\n    return api_key\n\n\ndef generate_explanation_text(angle: float, velocity: float, gravity: float, \n                                prev_angle: Optional[float] = None, prev_velocity: Optional[float] = None, \n                                prev_gravity: Optional[float] = None,\n                                custom_formula: Optional[str] = None,\n                                include_formula: bool = False) -> str:\n    parts = []\n    \n    if include_formula and custom_formula:\n        formula_speech = _convert_formula_to_speech(custom_formula)\n        parts.append(f\"The projectile motion formula being used is: {formula_speech}. \")\n        parts.append(\"This formula describes the relationship between the horizontal distance, vertical height, launch angle, initial velocity, and gravity. \")\n        parts.append(\"In this formula, y represents the vertical height, x represents the horizontal distance, theta represents the launch angle, v represents the initial velocity, and g represents gravitational acceleration. \")\n    \n    parts.append(f\"In this projectile motion simulation, the projectile is launched at an angle of {angle} degrees with an initial velocity of {velocity} meters per second under a gravitational acceleration of {gravity} meters per second squared.\")\n    \n    if prev_angle is not None and prev_angle != angle:\n        change = angle - prev_angle\n        direction = \"increased\" if change > 0 else \"decreased\"\n        parts.append(f\"The launch angle has {direction} from {prev_angle} to {angle} degrees. \")\n        if angle > prev_angle:\n            parts.append(f\"A higher angle means the projectile reaches a greater maximum height but travels a shorter distance. \")\n        else:\n            parts.append(f\"A lower angle means the projectile travels farther but reaches a lower maximum height. \")\n    \n    if prev_velocity is not None and prev_velocity != velocity:\n        change = velocity - prev_velocity\n        direction = \"increased\" if change > 0 else \"decreased\"\n        parts.append(f\"The initial velocity has {direction} from {prev_velocity} to {velocity} meters per second. \")\n        if velocity > prev_velocity:\n            parts.append(f\"Higher velocity means the projectile travels faster and reaches further. \")\n        else:\n            parts.append(f\"Lower velocity means the projectile travels slower and doesn't go as far. \")\n    \n    if prev_gravity is not None and prev_gravity != gravity:\n        change = gravity - prev_gravity\n        direction = \"increased\" if change > 0 else \"decreased\"\n        parts.append(f\"The gravitational acceleration has {direction} from {prev_gravity} to {gravity} meters per second squared. \")\n        if gravity > prev_gravity:\n            parts.append(f\"Stronger gravity pulls the projectile down faster, reducing both the flight time and the maximum height. \")\n        else:\n            parts.append(f\"Weaker gravity lets the projectile stay in the air longer and reach a higher maximum height. \")\n    \n    import sys\n    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))\n    from physics_service import calculate_trajectory\n    result = calculate_trajectory(angle, velocity, gravity)\n    \n    parts.append(f\"The maximum height reached is {result['max_height']} meters. \")\n    parts.append(f\"The total range or horizontal distance covered is {result['range']} meters. \")\n    parts.append(f\"The projectile remains in the air for {result['time_of_flight']} seconds.\")\n    \n    return \" \".join(parts)\n\n\ndef synthesize_speech(text: str, target_language_code: str = \"en-IN\", \n                      speaker: str = \"arya\") -> dict:\n    api_key = get_api_key()\n    \n    if not api_key:\n        return {\"error\": \"API key missing\", \"audio_url\": None}\n    \n    headers = {\n        \"api-subscription-key\": api_key,\n        \"Content-Type\": \"application/json\"\n    }\n    \n    payload = {\n        \"inputs\": [text],\n        \"target_language_code\": target_language_code,\n        \"speaker\": \"shruti\",\n        \"model\": \"bulbul:v3\",\n        \"speech_sample_rate\": 16000\n    }\n    \n    try:\n        response = requests.post(SARVAM_API_URL, headers=headers, json=payload, timeout=30)\n        response.raise_for_status()\n        \n        result = response.json()\n        \n        if result.get(\"audios\") and len(result[\"audios\"]) > 0:\n            audio_base64 = result[\"audios\"][0]\n            audio_data_url = f\"data:audio/wav;base64,{audio_base64}\"\n            return {\n                \"audio_url\": audio_data_url,\n                \"request_id\": result.get(\"request_id\")\n            }\n        else:\n            return {\"error\": \"No audio returned from API\", \"audio_url\": None}\n            \n    except requests.exceptions.RequestException as e:\n        return {\"error\": str(e), \"audio_url\": None}\n\n\ndef get_audio_stream(text: str):\n    result = synthesize_speech(text)\n    return result.get(\"audio_url\")\n\n\ndef generate_explanation_text_telugu(angle: float, velocity: float, gravity: float, \n                                    prev_angle: Optional[float] = None, prev_velocity: Optional[float] = None, \n                                    prev_gravity: Optional[float] = None,\n                                    custom_formula: Optional[str] = None,\n                                    include_formula: bool = False) -> str:\n    import sys\n    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))\n    from physics_service import calculate_trajectory\n    result = calculate_trajectory(angle, velocity, gravity)\n    \n    parts = []\n    \n    angle_rad = angle * math.pi / 180\n    \n    if include_formula and custom_formula:\n        formula_speech = _convert_formula_to_speech(custom_formula)\n        parts.append(f\"Formula: {formula_speech}. \")\n    \n    parts.append(f\"Hello everyone! Niiku projectile motion ni explanation ivvutu. \")\n    parts.append(f\"Ipudu i simulation lo, projectile {angle} degrees angle daari, {velocity} m/s velocity tho launch avutundi. \")\n    parts.append(f\"Ekkada velocity ni two components lo split cheyyali. Horizontal component = {velocity * math.cos(angle_rad):.2f} m/s. Vertical component = {velocity * math.sin(angle_rad):.2f} m/s. \")\n    parts.append(f\"Horizontal motion lo, gravity effect ledu. Kabbati constant velocity tho move avutundi. Formula: x = v cosθ × t. \")\n    parts.append(f\"Vertical motion lo, gravity {gravity} m/s² impact undi. Upward movement lo velocity decrease avutundi, downward movement lo increase avutundi. Formula: y = v sinθ × t - ½gt². \")\n    \n    parts.append(f\"\\nOkay, ante results: \")\n    parts.append(f\"Maximum height = {result['max_height']:.2f} meters. \")\n    parts.append(f\"Total range = {result['range']:.2f} meters. \")\n    parts.append(f\"Time of flight = {result['time_of_flight']:.2f} seconds. \")\n    \n    if prev_angle is not None and prev_angle != angle:\n        diff = angle - prev_angle\n        if diff > 0:\n            parts.append(f\"\\nSo, angle increase ayyindi ante, vertical component increase avutundi. Horizontal component decrease avutundi. \")\n            parts.append(f\"Kabbati maximum height increase avutundi. Range decrease avutundi. \")\n            parts.append(f\"Remember: 45° max range ki ideal angle. \")\n        else:\n            parts.append(f\"\\nSo, angle decrease ayyindi ante, horizontal component increase avutundi. Vertical component decrease avutundi. \")\n            parts.append(f\"Kabbati range increase avutundi. Maximum height decrease avutundi. \")\n    \n    if prev_velocity is not None and prev_velocity != velocity:\n        diff = velocity - prev_velocity\n        if diff > 0:\n            parts.append(f\"\\nVelocity increase ayyindi ante, initial energy increase avutundi. \")\n            parts.append(f\"Both height and range increase avutundi. Physics ante, Range ∝ v² and Height ∝ v². \")\n        else:\n            parts.append(f\"\\nVelocity decrease ayyindi ante, initial energy decrease avutundi. \")\n            parts.append(f\"Both height and range decrease avutundi. \")\n    \n    if prev_gravity is not None and prev_gravity != gravity:\n        diff = gravity - prev_gravity\n        if diff > 0:\n            parts.append(f\"\\nGravity increase ayyindi ante, downward pull strong avutundi. \")\n            parts.append(f\"Flight time and maximum height both decrease avutundi. \")\n            parts.append(f\"Example: Moon lo gravity 1.6 m/s², Jupiter lo 24.8 m/s². Moon lo projectile more distance travel avutundi. \")\n        else:\n            parts.append(f\"\\nGravity decrease ayyindi ante, downward pull weak avutundi. \")\n            parts.append(f\"Flight time and maximum height both increase avutundi. \")\n    \n    return \" \".join(parts)\n\n\ndef generate_speech_explanation(angle: float, velocity: float, gravity: float,\n                                prev_angle: Optional[float] = None, prev_velocity: Optional[float] = None,\n                                prev_gravity: Optional[float] = None,\n                                custom_formula: Optional[str] = None,\n                                include_formula: bool = False,\n                                language: str = \"en-IN\") -> dict:\n    if language == \"te-IN\":\n        explanation_text = generate_explanation_text_telugu(\n            angle, velocity, gravity,\n            prev_angle, prev_velocity, prev_gravity,\n            custom_formula, include_formula\n        )\n    else:\n        explanation_text = generate_explanation_text(\n            angle, velocity, gravity,\n            prev_angle, prev_velocity, prev_gravity,\n            custom_formula, include_formula\n        )\n    \n    return synthesize_speech(explanation_text, target_language_code=language)",
+                "additions": 2,
+                "deletions": 2
+              },
+              "truncated": false
+            },
+            "time": {
+              "start": 1773829823578,
+              "end": 1773829824341
+            }
+          },
+          "id": "prt_d007f15cd001DxepuORPNPS62x",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007ef7b3001f1utYED8b249Vq"
+        },
+        {
+          "type": "step-finish",
+          "reason": "tool-calls",
+          "snapshot": "1b25c38a2c569ac1b88f65625fd4c9eb1ea9de0d",
+          "cost": 0,
+          "tokens": {
+            "total": 26793,
+            "input": 646,
+            "output": 490,
+            "reasoning": 0,
+            "cache": {
+              "read": 24815,
+              "write": 842
+            }
+          },
+          "id": "prt_d007f1f5d001AXN0mvaqIT0TWR",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007ef7b3001f1utYED8b249Vq"
+        },
+        {
+          "type": "patch",
+          "hash": "3385f3525dfccd87f45163b1155b06d830846352",
+          "files": [
+            "/home/tejasree/visual-task/visual-interaction/backend/services/speech_service.py"
+          ],
+          "id": "prt_d007f1f87001OgHh6WxcIzzAgL",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007ef7b3001f1utYED8b249Vq"
+        }
+      ]
+    },
+    {
+      "info": {
+        "role": "assistant",
+        "time": {
+          "created": 1773829824406,
+          "completed": 1773829828182
+        },
+        "parentID": "msg_d007cda300010c3l4TXX0j53UR",
+        "modelID": "big-pickle",
+        "providerID": "opencode",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/home/tejasree/visual-task/visual-interaction",
+          "root": "/home/tejasree/visual-task/visual-interaction"
+        },
+        "cost": 0,
+        "tokens": {
+          "total": 26920,
+          "input": 92,
+          "output": 108,
+          "reasoning": 0,
+          "cache": {
+            "read": 25077,
+            "write": 1643
+          }
+        },
+        "finish": "tool-calls",
+        "id": "msg_d007f1f96001LwzQsyRRwE3Qki",
+        "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi"
+      },
+      "parts": [
+        {
+          "type": "step-start",
+          "snapshot": "1b25c38a2c569ac1b88f65625fd4c9eb1ea9de0d",
+          "id": "REDACTED",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007f1f96001LwzQsyRRwE3Qki"
+        },
+        {
+          "type": "reasoning",
+          "text": "Now I've updated the model to `bulbul:v3` and also changed the speaker to \"shruti\" which is a female voice that works well for Telugu. Let me verify the change was applied correctly.",
+          "metadata": {
+            "anthropic": {
+              "signature": "60ef4e845747086158192dc1caf5e20c650b8511cb7cc1634e5217dcaabc07cd"
+            }
+          },
+          "time": {
+            "start": 1773829826744,
+            "end": 1773829827698
+          },
+          "id": "prt_d007f28b8001fDpjcP0kMy6EAo",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007f1f96001LwzQsyRRwE3Qki"
+        },
+        {
+          "type": "tool",
+          "callID": "call_function_6ksmp1kdz9tk_1",
+          "tool": "read",
+          "state": {
+            "status": "completed",
+            "input": {
+              "filePath": "/home/tejasree/visual-task/visual-interaction/backend/services/speech_service.py",
+              "limit": 20,
+              "offset": 104
+            },
+            "output": "<path>/home/tejasree/visual-task/visual-interaction/backend/services/speech_service.py</path>\n<type>file</type>\n<content>104:     }\n105:     \n106:     payload = {\n107:         \"inputs\": [text],\n108:         \"target_language_code\": target_language_code,\n109:         \"speaker\": \"shruti\",\n110:         \"model\": \"bulbul:v3\",\n111:         \"speech_sample_rate\": 16000\n112:     }\n113:     \n114:     try:\n115:         response = requests.post(SARVAM_API_URL, headers=headers, json=payload, timeout=30)\n116:         response.raise_for_status()\n117:         \n118:         result = response.json()\n119:         \n120:         if result.get(\"audios\") and len(result[\"audios\"]) > 0:\n121:             audio_base64 = result[\"audios\"][0]\n122:             audio_data_url = f\"data:audio/wav;base64,{audio_base64}\"\n123:             return {\n\n(Showing lines 104-123 of 219. Use offset=124 to continue.)\n</content>",
+            "title": "backend/services/speech_service.py",
+            "metadata": {
+              "preview": "    }\n    \n    payload = {\n        \"inputs\": [text],\n        \"target_language_code\": target_language_code,\n        \"speaker\": \"shruti\",\n        \"model\": \"bulbul:v3\",\n        \"speech_sample_rate\": 16000\n    }\n    \n    try:\n        response = requests.post(SARVAM_API_URL, headers=headers, json=payload, timeout=30)\n        response.raise_for_status()\n        \n        result = response.json()\n        \n        if result.get(\"audios\") and len(result[\"audios\"]) > 0:\n            audio_base64 = result[\"audios\"][0]\n            audio_data_url = f\"data:audio/wav;base64,{audio_base64}\"\n            return {",
+              "truncated": true,
+              "loaded": []
+            },
+            "time": {
+              "start": 1773829828054,
+              "end": 1773829828114
+            }
+          },
+          "id": "prt_d007f2c74001LOWMY1kP5G8Ez7",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007f1f96001LwzQsyRRwE3Qki"
+        },
+        {
+          "type": "step-finish",
+          "reason": "tool-calls",
+          "snapshot": "1b25c38a2c569ac1b88f65625fd4c9eb1ea9de0d",
+          "cost": 0,
+          "tokens": {
+            "total": 26920,
+            "input": 92,
+            "output": 108,
+            "reasoning": 0,
+            "cache": {
+              "read": 25077,
+              "write": 1643
+            }
+          },
+          "id": "prt_d007f2e17001crty7rQ2kVnpCs",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007f1f96001LwzQsyRRwE3Qki"
+        }
+      ]
+    },
+    {
+      "info": {
+        "role": "assistant",
+        "time": {
+          "created": 1773829828189,
+          "completed": 1773829833080
+        },
+        "parentID": "msg_d007cda300010c3l4TXX0j53UR",
+        "modelID": "big-pickle",
+        "providerID": "opencode",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/home/tejasree/visual-task/visual-interaction",
+          "root": "/home/tejasree/visual-task/visual-interaction"
+        },
+        "cost": 0,
+        "tokens": {
+          "total": 27385,
+          "input": 334,
+          "output": 204,
+          "reasoning": 0,
+          "cache": {
+            "read": 26225,
+            "write": 622
+          }
+        },
+        "finish": "stop",
+        "id": "msg_d007f2e5d001SNyUXbgYCNsBKd",
+        "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi"
+      },
+      "parts": [
+        {
+          "type": "step-start",
+          "snapshot": "1b25c38a2c569ac1b88f65625fd4c9eb1ea9de0d",
+          "id": "prt_d007f36d70014iIBi5hItVSlIb",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007f2e5d001SNyUXbgYCNsBKd"
+        },
+        {
+          "type": "reasoning",
+          "text": "The change was applied successfully. I've updated:\n1. Model from `bulbul:v2` to `bulbul:v3` - This version has better support for Indian languages including Telugu\n2. Speaker from `arya` to `shruti` - A female voice that works better for Telugu\n\nThis should fix the issue where the audio wasn't being generated in Telugu language. The user needs to restart the backend server for the changes to take effect.",
+          "metadata": {
+            "anthropic": {
+              "signature": "0fea125a489d89e0b08025ec8bfe8f5a5fb8bfd9f65c96a2e907221b3e778912"
+            }
+          },
+          "time": {
+            "start": 1773829830360,
+            "end": 1773829831589
+          },
+          "id": "prt_d007f36d8001Y3Pey5wo0LhoIM",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007f2e5d001SNyUXbgYCNsBKd"
+        },
+        {
+          "type": "text",
+          "text": "Done! I changed the Sarvam TTS model from `bulbul:v2` to `bulbul:v3` and speaker from `arya` to `shruti`. \n\nThe issue was that `bulbul:v2` has limited language support, while `bulbul:v3` has full support for Telugu (`te-IN`) and all Indian languages.\n\n**Restart your backend server** for the changes to take effect. After that, when you select Telugu language, the audio should be in Telugu.",
+          "time": {
+            "start": 1773829832959,
+            "end": 1773829832959
+          },
+          "id": "prt_d007f3ba9001ygr7O36i8vJURs",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007f2e5d001SNyUXbgYCNsBKd"
+        },
+        {
+          "type": "step-finish",
+          "reason": "stop",
+          "snapshot": "1b25c38a2c569ac1b88f65625fd4c9eb1ea9de0d",
+          "cost": 0,
+          "tokens": {
+            "total": 27385,
+            "input": 334,
+            "output": 204,
+            "reasoning": 0,
+            "cache": {
+              "read": 26225,
+              "write": 622
+            }
+          },
+          "id": "prt_d007f4142001sc21W7l29Sr0hj",
+          "sessionID": "ses_2ff832601ffeD6AewkJEsw2LMi",
+          "messageID": "msg_d007f2e5d001SNyUXbgYCNsBKd"
+        }
+      ]
+    }
+  ]
+}
