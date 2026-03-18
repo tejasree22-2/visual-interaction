@@ -1,0 +1,18 @@
+=== Chunked Audio Request ===
+angle: 45, velocity: 20, gravity: 9.8, language: te-IN
+Generated 6 explanation chunks
+Cache: HIT → returning cached data
+127.0.0.1 - - [18/Mar/2026 14:40:56] "POST /api/simulate HTTP/1.1" 200 -
+Audio chunks: 6 successful, 0 failed out of 6 total
+Chunk 0 processed successfully, length: 18261ms
+Chunk 1 processed successfully, length: 28345ms
+Chunk 2 processed successfully, length: 21675ms
+Chunk 3 processed successfully, length: 16469ms
+Chunk 4 processed successfully, length: 24064ms
+Chunk 5 processed successfully, length: 31161ms
+Total valid chunks combined: 6/6
+Final combined audio length: 139976ms
+Combined audio created: success
+127.0.0.1 - - [18/Mar/2026 14:41:50] "POST /api/chunks HTTP/1.1" 200 -
+127.0.0.1 - - [18/Mar/2026 14:41:55] "GET /media/combined_838b5049ae31ca98.mp3 HTTP/1.1" 206 -
+^C(venv) tejasree@Tejasree:~/visual-task/visual-interaction/backend$ "two components" after that no audio and the voice is breaking fix this issue go through overall code and make changes as the expert in connecting the audio chunks as a software developer
