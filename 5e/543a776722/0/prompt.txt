@@ -1,0 +1,28 @@
+Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 170-420-832
+127.0.0.1 - - [18/Mar/2026 14:33:56] "OPTIONS /api/simulate HTTP/1.1" 200 -
+127.0.0.1 - - [18/Mar/2026 14:33:56] "OPTIONS /api/chunks HTTP/1.1" 200 -
+
+=== Slider Changed ===
+angle: 45, velocity: 20, gravity: 9.8
+custom_formula: y = x * tan(45.0°) - (9.8 * x²) / (2 * 20.0² * cos²(45.0°)), include_formula: False
+
+=== Chunked Audio Request ===
+angle: 45, velocity: 20, gravity: 9.8, language: te-IN
+Generated 6 explanation chunks
+Cache: HIT → returning cached data
+127.0.0.1 - - [18/Mar/2026 14:33:56] "POST /api/simulate HTTP/1.1" 200 -
+Audio chunks: 6 successful, 0 failed out of 6 total
+Chunk 0 processed successfully, length: 19285ms
+Chunk 1 processed successfully, length: 29455ms
+Chunk 2 processed successfully, length: 20053ms
+Chunk 3 processed successfully, length: 17920ms
+Chunk 4 processed successfully, length: 19712ms
+Chunk 5 processed successfully, length: 26297ms
+Total valid chunks combined: 6/6
+Final combined audio length: 133072ms i want full length audio
+
+---
+
+there will be no buffer right
