@@ -514,7 +514,7 @@ def combine_audio_chunks(audio_urls: List[str], output_format: str = "mp3") -> O
                         audio_length_ms = len(audio)
                         
                         if valid_chunks > 0 and len(combined_seg) > 0:
-                            overlap_duration = min(30, len(combined_seg) // 4, audio_length_ms // 4)
+                            overlap_duration = 0
                             if overlap_duration > 0:
                                 combined_seg = combined_seg.append(audio, crossfade=overlap_duration)
                             else:
@@ -523,7 +523,7 @@ def combine_audio_chunks(audio_urls: List[str], output_format: str = "mp3") -> O
                             combined_seg += audio
                         
                         if i < len(audio_urls) - 1:
-                            silence_duration_ms = 100
+                            silence_duration_ms = 0
                             silence = AudioSegment.silent(duration=silence_duration_ms, frame_rate=target_sample_rate)
                             combined_seg += silence
                         
