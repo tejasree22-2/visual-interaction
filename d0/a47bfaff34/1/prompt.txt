@@ -1,0 +1,5 @@
+i don't want the text only audio and make sure all audio chunks are combine without error i think there is a error in combine only half audio is only generated remaining is like some different sound correct it
+
+---
+
+now code will work
