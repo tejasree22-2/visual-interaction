@@ -3,7 +3,7 @@ import '../widgets/control_panel.dart';
 import '../widgets/graph_2d.dart';
 import '../widgets/graph_3d.dart';
 import '../widgets/view_toggle.dart';
-import '../widgets/formula_editor.dart';
+import '../widgets/audio_chunk_player.dart';
 import '../services/speech_service.dart';
 import '../models/simulation_model.dart';
 
@@ -19,6 +19,7 @@ class _SimulationScreenState extends State<SimulationScreen> {
   final SpeechService _speechService = SpeechService();
   bool _is3DView = false;
   bool _isPlaying = false;
+  bool _showChunkPlayer = true;
 
   @override
   void initState() {
@@ -95,6 +96,14 @@ class _SimulationScreenState extends State<SimulationScreen> {
                   ViewToggle(onToggle: _toggleView, value: _is3DView),
                   const SizedBox(height: 16),
                   ControlPanel(model: _model),
+                  const SizedBox(height: 16),
+                  AudioChunkPlayer(
+                    angle: _model.angle,
+                    velocity: _model.velocity,
+                    gravity: _model.gravity,
+                    customFormula: _model.customFormula,
+                    language: 'te-IN',
+                  ),
                 ],
               ),
             ),
@@ -102,10 +111,16 @@ class _SimulationScreenState extends State<SimulationScreen> {
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: _playExplanation,
-        icon: Icon(_isPlaying ? Icons.stop : Icons.volume_up),
-        label: Text(_isPlaying ? 'Stop' : 'Telugu Explanation'),
-        tooltip: _isPlaying ? 'Stop explanation' : 'Play Telugu explanation',
+        onPressed: () {
+          setState(() {
+            _showChunkPlayer = !_showChunkPlayer;
+          });
+        },
+        icon: Icon(_showChunkPlayer ? Icons.expand_more : Icons.expand_less),
+        label: Text(_showChunkPlayer ? 'Hide Lectures' : 'Show Lectures'),
+        tooltip: _showChunkPlayer
+            ? 'Hide lecture explanations'
+            : 'Show lecture explanations',
       ),
     );
   }

@@ -2,7 +2,7 @@ import os
 import base64
 import requests
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List, Dict
 from dotenv import load_dotenv
 import math
 
@@ -11,6 +11,31 @@ env_path = os.path.join(project_root, '.env')
 load_dotenv(env_path)
 
 SARVAM_API_URL = "https://api.sarvam.ai/text-to-speech"
+
+
+class AudioChunk:
+    def __init__(self, chunk_id: str, title: str, title_te: str, text: str, 
+                 text_te: str, category: str = "general"):
+        self.chunk_id = chunk_id
+        self.title = title
+        self.title_te = title_te
+        self.text = text
+        self.text_te = text_te
+        self.category = category
+        self.audio_url_en = None
+        self.audio_url_te = None
+    
+    def to_dict(self) -> dict:
+        return {
+            "chunk_id": self.chunk_id,
+            "title": self.title,
+            "title_te": self.title_te,
+            "text": self.text,
+            "text_te": self.text_te,
+            "category": self.category,
+            "audio_url_en": self.audio_url_en,
+            "audio_url_te": self.audio_url_te
+        }
 
 
 def _convert_formula_to_speech(formula: str) -> str:
@@ -195,6 +220,167 @@ def generate_explanation_text_telugu(angle: float, velocity: float, gravity: flo
             parts.append(f"Flight time and maximum height both increase avutundi. ")
     
     return " ".join(parts)
+
+
+def generate_chunked_explanations(angle: float, velocity: float, gravity: float,
+                                   prev_angle: Optional[float] = None, 
+                                   prev_velocity: Optional[float] = None, 
+                                   prev_gravity: Optional[float] = None,
+                                   custom_formula: Optional[str] = None,
+                                   include_formula: bool = False) -> List[AudioChunk]:
+    import sys
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    from physics_service import calculate_trajectory
+    
+    result = calculate_trajectory(angle, velocity, gravity)
+    angle_rad = angle * math.pi / 180
+    vx = velocity * math.cos(angle_rad)
+    vy = velocity * math.sin(angle_rad)
+    
+    chunks = []
+    
+    chunks.append(AudioChunk(
+        chunk_id="intro",
+        title="Introduction to Projectile Motion",
+        title_te="ప్రొజెక్టైల్ మోషన్ పరిచయం",
+        text=f"Let's learn about projectile motion! When we launch an object at an angle, it follows a curved path called a trajectory. In this simulation, we launch a projectile at {angle} degrees with an initial velocity of {velocity} meters per second.",
+        text_te=f"Projectile motion theory ante, niiku explain cheyyali! Eppudaina object ni angle lo launch cheyyamante, adhi curved path lo travel avutundi. I simulation lo, projectile ni {angle} degrees angle lo, {velocity} m/s velocity tho launch cheyyagane.",
+        category="concept"
+    ))
+    
+    chunks.append(AudioChunk(
+        chunk_id="components",
+        title="Velocity Components Explained",
+        title_te="వెలాసిటీ కాంపొనెంట్స్ వివరణ",
+        text=f"The initial velocity gets split into two components. The horizontal component is {vx:.2f} m/s, and the vertical component is {vy:.2f} m/s. The horizontal component stays constant because there's no air resistance. The vertical component changes due to gravity.",
+        text_te=f"Ipudu initial velocity ni two components lo split cheyyali. Horizontal component = {vx:.2f} m/s. Vertical component = {vy:.2f} m/s. Horizontal motion lo, gravity effect ledu kabbati constant velocity tho move avutundi. Vertical motion lo k乳液 gravity {gravity} m/s² impact undi.",
+        category="concept"
+    ))
+    
+    chunks.append(AudioChunk(
+        chunk_id="formulas",
+        title="Key Formulas",
+        title_te="ముఖ్యమైన ఫార్ములాలు",
+        text=f"Remember these important formulas! For horizontal distance: x equals v cos theta times t. For vertical height: y equals v sin theta times t minus half g t squared. These help us calculate the projectile's position at any time.",
+        text_te=f"Eppudu formulas remember cheyyandi! Horizontal distance ki: x = v cosθ × t. Vertical height ki: y = v sinθ × t - ½gt². Ippudu maximum height, range, flight time formulas check cheyyamandi.",
+        category="formula"
+    ))
+    
+    chunks.append(AudioChunk(
+        chunk_id="results",
+        title="Simulation Results",
+        title_te="సిమ్యులేషన్ ఫలితాలు",
+        text=f"Here are your simulation results! Maximum height reached: {result['max_height']:.2f} meters. Total horizontal distance covered: {result['range']:.2f} meters. Time of flight: {result['time_of_flight']:.2f} seconds. These results depend on your angle and velocity settings.",
+        text_te=f"Ipudu results choodamandi! Maximum height = {result['max_height']:.2f} meters. Total range = {result['range']:.2f} meters. Time of flight = {result['time_of_flight']:.2f} seconds. Kabbati 45° angle maximum range ki ideal.",
+        category="results"
+    ))
+    
+    if prev_angle is not None and prev_angle != angle:
+        diff = angle - prev_angle
+        direction_en = "increased" if diff > 0 else "decreased"
+        direction_te = "increase ayyindi" if diff > 0 else "decrease ayyindi"
+        if diff > 0:
+            chunks.append(AudioChunk(
+                chunk_id="angle_change_up",
+                title="Angle Increased Effect",
+                title_te="ఏంగిల్ పెరిగినప్పుడు",
+                text=f"You increased the angle from {prev_angle} to {angle} degrees. Higher angle means the projectile goes higher but travels a shorter distance. The vertical component increases while horizontal component decreases.",
+                text_te=f"Angle {prev_angle} నుండి {angle} degrees కి {direction_te}. Higher angle ante, projectile more height ki reach avutundi but short distance travel avutundi. Vertical component increase avutundi. Horizontal component decrease avutundi.",
+                category="change"
+            ))
+        else:
+            chunks.append(AudioChunk(
+                chunk_id="angle_change_down",
+                title="Angle Decreased Effect",
+                title_te="ఏంగిల్ తగ్గినప్పుడు",
+                text=f"You decreased the angle from {prev_angle} to {angle} degrees. Lower angle means the projectile travels farther but reaches a lower maximum height. The horizontal component increases while vertical component decreases.",
+                text_te=f"Angle {prev_angle} నుండి {angle} degrees కి {direction_te}. Lower angle ante, projectile more distance travel avutundi but low height ki reach avutundi. Horizontal component increase avutundi. Vertical component decrease avutundi.",
+                category="change"
+            ))
+    
+    if prev_velocity is not None and prev_velocity != velocity:
+        diff = velocity - prev_velocity
+        direction_en = "increased" if diff > 0 else "decreased"
+        direction_te = "increase ayyindi" if diff > 0 else "decrease ayyindi"
+        if diff > 0:
+            chunks.append(AudioChunk(
+                chunk_id="velocity_change_up",
+                title="Velocity Increased Effect",
+                title_te="వెలాసిటీ పెరిగినప్పుడు",
+                text=f"You increased the velocity from {prev_velocity} to {velocity} meters per second. Higher velocity means the projectile has more initial energy, so both height and range increase. Remember: range and height are proportional to velocity squared!",
+                text_te=f"Velocity {prev_velocity} నుండి {velocity} m/s కి {direction_te}. Higher velocity ante, projectile more initial energy undi. Kabbati both height and range increase avutundi. Physics lo, Range ∝ v² and Height ∝ v².",
+                category="change"
+            ))
+        else:
+            chunks.append(AudioChunk(
+                chunk_id="velocity_change_down",
+                title="Velocity Decreased Effect",
+                title_te="వెలాసిటీ తగ్గినప్పుడు",
+                text=f"You decreased the velocity from {prev_velocity} to {velocity} meters per second. Lower velocity means less initial energy, so both height and range decrease.",
+                text_te=f"Velocity {prev_velocity} నుండి {velocity} m/s కి {direction_te}. Lower velocity ante, initial energy decrease avutundi. Kabbati both height and range decrease avutundi.",
+                category="change"
+            ))
+    
+    if prev_gravity is not None and prev_gravity != gravity:
+        diff = gravity - prev_gravity
+        direction_te = "increase ayyindi" if diff > 0 else "decrease ayyindi"
+        if diff > 0:
+            chunks.append(AudioChunk(
+                chunk_id="gravity_change_up",
+                title="Gravity Increased Effect",
+                title_te="గ్రావిటీ పెరిగినప్పుడు",
+                text=f"You increased gravity from {prev_gravity} to {gravity} meters per second squared. Stronger gravity pulls the projectile down faster, reducing both flight time and maximum height. Compare: Moon has 1.6 m/s², Earth has 9.81 m/s², Jupiter has 24.8 m/s²!",
+                text_te=f"Gravity {prev_gravity} నుండి {gravity} m/s² కి {direction_te}. Stronger gravity ante, projectile fast ga ground ki vellipovali. Kabbati flight time and maximum height both decrease avutundi. Moon lo gravity 1.6, Jupiter lo 24.8.",
+                category="change"
+            ))
+        else:
+            chunks.append(AudioChunk(
+                chunk_id="gravity_change_down",
+                title="Gravity Decreased Effect",
+                title_te="గ్రావిటీ తగ్గినప్పుడు",
+                text=f"You decreased gravity from {prev_gravity} to {gravity} meters per second squared. Weaker gravity means the projectile stays in the air longer and reaches a higher maximum height.",
+                text_te=f"Gravity {prev_gravity} నుండి {gravity} m/s² కి {direction_te}. Weak gravity ante, projectile long time air lo undi and more height reach avutundi.",
+                category="change"
+            ))
+    
+    chunks.append(AudioChunk(
+        chunk_id="summary",
+        title="Key Takeaways",
+        title_te="ముఖ్యమైన అంశాలు",
+        text=f"Let me summarize the key points! The angle determines how high and far the projectile goes. The velocity affects both height and range. Gravity pulls the projectile down. For maximum range on Earth, an angle of 45 degrees is ideal. Try different combinations to see how these parameters interact!",
+        text_te=f"Ipudu key points summarize cheyyamandi! Angle ante, projectile height and distance decide avutundi. Velocity ante, both height and range affect avutundi. Gravity ante, projectile ni ground ki pull cheyyutundi. Earth lo maximum range ki 45° ideal angle. Experimentation cheyyandi!",
+        category="summary"
+    ))
+    
+    if include_formula and custom_formula:
+        formula_speech = _convert_formula_to_speech(custom_formula)
+        chunks.append(AudioChunk(
+            chunk_id="custom_formula",
+            title="Custom Formula Explanation",
+            title_te="కస్టమ్ ఫార్ములా వివరణ",
+            text=f"You're using a custom formula: {formula_speech}. This formula describes the relationship between horizontal distance, vertical height, launch angle, initial velocity, and gravity. In this formula, y represents vertical height, x represents horizontal distance, theta represents launch angle, v represents velocity, and g represents gravity.",
+            text_te=f"Niiku custom formula use cheyyataaniki: {formula_speech}. I formula lo y = vertical height, x = horizontal distance, θ = launch angle, v = velocity, g = gravity.",
+            category="formula"
+        ))
+    
+    return chunks
+
+
+def synthesize_chunk(chunk: AudioChunk, language: str = "en-IN") -> AudioChunk:
+    if language == "te-IN":
+        text = chunk.text_te
+    else:
+        text = chunk.text
+    
+    result = synthesize_speech(text, target_language_code=language)
+    
+    if result.get("audio_url"):
+        if language == "te-IN":
+            chunk.audio_url_te = result["audio_url"]
+        else:
+            chunk.audio_url_en = result["audio_url"]
+    
+    return chunk
 
 
 def generate_speech_explanation(angle: float, velocity: float, gravity: float,

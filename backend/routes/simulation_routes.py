@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 from services.cache_service import get_cached_result, set_cached_result
 from services.physics_service import calculate_trajectory
 from services.supabase_client import store_simulation
-from services.speech_service import generate_explanation_text, synthesize_speech, generate_explanation_text_telugu
+from services.speech_service import generate_explanation_text, synthesize_speech, generate_explanation_text_telugu, generate_chunked_explanations, synthesize_chunk
 
 simulation_bp = Blueprint('simulation', __name__)
 
@@ -94,3 +94,74 @@ def simulate():
     logger.info("Cached result saved")
     
     return jsonify(full_result)
+
+
+@simulation_bp.route('/chunks', methods=['POST'])
+def get_audio_chunks():
+    data = request.get_json() or {}
+    
+    angle = data.get('angle', 45)
+    velocity = data.get('velocity', 20)
+    gravity = data.get('gravity', 9.81)
+    custom_formula = data.get('custom_formula')
+    include_formula = data.get('include_formula', False)
+    language = data.get('language', 'te-IN')
+    
+    print(f"\n=== Chunked Audio Request ===")
+    print(f"angle: {angle}, velocity: {velocity}, gravity: {gravity}, language: {language}")
+    logger.info(f"Chunked audio request: angle={angle}, velocity={velocity}, gravity={gravity}, language={language}")
+    
+    chunks = generate_chunked_explanations(
+        angle, velocity, gravity,
+        custom_formula=custom_formula,
+        include_formula=include_formula
+    )
+    
+    print(f"Generated {len(chunks)} explanation chunks")
+    logger.info(f"Generated {len(chunks)} explanation chunks")
+    
+    chunk_data = []
+    for chunk in chunks:
+        chunk = synthesize_chunk(chunk, language=language)
+        chunk_data.append(chunk.to_dict())
+    
+    return jsonify({
+        'chunks': chunk_data,
+        'total_chunks': len(chunk_data)
+    })
+
+
+@simulation_bp.route('/chunk/<chunk_id>', methods=['POST'])
+def get_single_chunk_audio(chunk_id):
+    data = request.get_json() or {}
+    
+    angle = data.get('angle', 45)
+    velocity = data.get('velocity', 20)
+    gravity = data.get('gravity', 9.81)
+    custom_formula = data.get('custom_formula')
+    include_formula = data.get('include_formula', False)
+    language = data.get('language', 'te-IN')
+    
+    print(f"\n=== Single Chunk Request: {chunk_id} ===")
+    logger.info(f"Single chunk request: chunk_id={chunk_id}, language={language}")
+    
+    chunks = generate_chunked_explanations(
+        angle, velocity, gravity,
+        custom_formula=custom_formula,
+        include_formula=include_formula
+    )
+    
+    target_chunk = None
+    for chunk in chunks:
+        if chunk.chunk_id == chunk_id:
+            target_chunk = chunk
+            break
+    
+    if target_chunk is None:
+        return jsonify({'error': 'Chunk not found', 'chunk_id': chunk_id}), 404
+    
+    target_chunk = synthesize_chunk(target_chunk, language=language)
+    
+    return jsonify({
+        'chunk': target_chunk.to_dict()
+    })
