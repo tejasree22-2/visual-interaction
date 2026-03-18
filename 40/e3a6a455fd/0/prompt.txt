@@ -1,0 +1,7 @@
+Search the codebase to find:
+1. Any audio-related files or components
+2. Any files that handle number formatting or display
+3. Any text-to-speech (TTS) or speech synthesis related code
+4. Any files with patterns like "speak", "audio", "number", "tts", "speech", "voice"
+
+Return the file paths and relevant code snippets that show how numbers are currently handled in the codebase.
