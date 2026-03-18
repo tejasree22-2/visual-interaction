@@ -3,7 +3,7 @@
   "checkpoint_id": "4e66ebcb4d75",
   "strategy": "manual-commit",
   "branch": "main",
-  "checkpoints_count": 8,
+  "checkpoints_count": 12,
   "files_touched": [
     "backend/routes/simulation_routes.py",
     "frontend/lib/models/simulation_model.dart",
@@ -25,13 +25,19 @@
       "transcript": "/4e/66ebcb4d75/1/full.jsonl",
       "content_hash": "/4e/66ebcb4d75/1/content_hash.txt",
       "prompt": "/4e/66ebcb4d75/1/prompt.txt"
+    },
+    {
+      "metadata": "/4e/66ebcb4d75/2/metadata.json",
+      "transcript": "/4e/66ebcb4d75/2/full.jsonl",
+      "content_hash": "/4e/66ebcb4d75/2/content_hash.txt",
+      "prompt": "/4e/66ebcb4d75/2/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 45345,
-    "cache_creation_tokens": 427346,
-    "cache_read_tokens": 1349365,
-    "output_tokens": 13004,
-    "api_call_count": 65
+    "input_tokens": 49229,
+    "cache_creation_tokens": 631350,
+    "cache_read_tokens": 1381395,
+    "output_tokens": 15127,
+    "api_call_count": 83
   }
 }
