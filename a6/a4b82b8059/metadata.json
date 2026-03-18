@@ -1,0 +1,26 @@
+{
+  "cli_version": "0.5.0",
+  "checkpoint_id": "a6a4b82b8059",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "frontend/lib/models/simulation_model.dart",
+    "frontend/lib/screens/simulation_screen.dart"
+  ],
+  "sessions": [
+    {
+      "metadata": "/a6/a4b82b8059/0/metadata.json",
+      "transcript": "/a6/a4b82b8059/0/full.jsonl",
+      "content_hash": "/a6/a4b82b8059/0/content_hash.txt",
+      "prompt": "/a6/a4b82b8059/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 32559,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 404160,
+    "output_tokens": 3515,
+    "api_call_count": 24
+  }
+}
