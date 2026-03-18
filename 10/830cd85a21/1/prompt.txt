@@ -1,0 +1,1 @@
+i want the speech to text in the telugu explaination make sure the button works perfectly that with one click it should start explanation and again click it should stop explanation and in frontend remove the speech to text because now backend is working
