@@ -17,7 +17,7 @@ class _FormulaEditorState extends State<FormulaEditor> {
   void initState() {
     super.initState();
     _formulaController = TextEditingController(
-      text: 'y = x * tan(θ) - (g * x²) / (2 * v² * cos²(θ))',
+      text: widget.model.customFormula,
     );
   }
 
@@ -25,6 +25,10 @@ class _FormulaEditorState extends State<FormulaEditor> {
   void dispose() {
     _formulaController.dispose();
     super.dispose();
+  }
+
+  void _onFormulaChanged(String value) {
+    widget.model.setCustomFormula(value);
   }
 
   @override
@@ -42,6 +46,7 @@ class _FormulaEditorState extends State<FormulaEditor> {
             const SizedBox(height: 8),
             TextField(
               controller: _formulaController,
+              onChanged: _onFormulaChanged,
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),
                 hintText: 'Enter custom formula',

@@ -35,8 +35,13 @@ class _SimulationScreenState extends State<SimulationScreen> {
     final angle = _model.angle.toStringAsFixed(1);
     final velocity = _model.velocity.toStringAsFixed(1);
     final gravity = _model.gravity.toStringAsFixed(1);
-    _speechService.speak(
-      'Projectile motion with angle $angle degrees, initial velocity $velocity meters per second, and gravity $gravity meters per second squared.',
+    final formula = _model.customFormula;
+
+    _speechService.speakWithFormula(
+      angle: _model.angle,
+      velocity: _model.velocity,
+      gravity: _model.gravity,
+      customFormula: formula,
     );
   }
 
@@ -57,9 +62,7 @@ class _SimulationScreenState extends State<SimulationScreen> {
         children: [
           Expanded(
             flex: 3,
-            child: _is3DView
-                ? Graph3D(model: _model)
-                : Graph2D(model: _model),
+            child: _is3DView ? Graph3D(model: _model) : Graph2D(model: _model),
           ),
           Expanded(
             flex: 2,
@@ -67,7 +70,7 @@ class _SimulationScreenState extends State<SimulationScreen> {
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
-                  ViewToggle(onToggle: _toggleView),
+                  ViewToggle(onToggle: _toggleView, value: _is3DView),
                   const SizedBox(height: 16),
                   ControlPanel(model: _model),
                   const SizedBox(height: 16),
@@ -77,6 +80,12 @@ class _SimulationScreenState extends State<SimulationScreen> {
             ),
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _playExplanation,
+        icon: const Icon(Icons.volume_up),
+        label: const Text('Text to Speech'),
+        tooltip: 'Play audio explanation',
       ),
     );
   }

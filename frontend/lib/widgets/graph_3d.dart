@@ -62,6 +62,25 @@ class _Graph3DState extends State<Graph3D> with SingleTickerProviderStateMixin {
           ),
         ),
         Positioned(
+          left: 16,
+          top: 16,
+          child: Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.black54,
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: Text(
+              widget.model.customFormula,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 12,
+                fontFamily: 'monospace',
+              ),
+            ),
+          ),
+        ),
+        Positioned(
           right: 16,
           top: 16,
           child: FloatingActionButton(
@@ -161,6 +180,7 @@ class _Projectile3DPainter extends CustomPainter {
     return oldDelegate.model.angle != model.angle ||
         oldDelegate.model.velocity != model.velocity ||
         oldDelegate.model.gravity != model.gravity ||
+        oldDelegate.model.customFormula != model.customFormula ||
         oldDelegate.animationValue != animationValue;
   }
 }

@@ -2,8 +2,13 @@ import 'package:flutter/material.dart';
 
 class ViewToggle extends StatelessWidget {
   final Function(bool) onToggle;
+  final bool value;
 
-  const ViewToggle({super.key, required this.onToggle});
+  const ViewToggle({
+    super.key,
+    required this.onToggle,
+    required this.value,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -16,7 +21,7 @@ class ViewToggle extends StatelessWidget {
             const Text('2D'),
             const SizedBox(width: 8),
             Switch(
-              value: false,
+              value: value,
               onChanged: (value) => onToggle(value),
             ),
             const SizedBox(width: 8),

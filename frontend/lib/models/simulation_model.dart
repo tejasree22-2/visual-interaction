@@ -8,19 +8,25 @@ class SimulationModel extends ChangeNotifier {
   double _angle = 45.0;
   double _velocity = 20.0;
   double _gravity = 9.8;
+  String _customFormula = 'y = x * tan(θ) - (g * x²) / (2 * v² * cos²(θ))';
   String _explanationText = '';
   String _speechAudioUrl = '';
+
+  SimulationModel() {
+    _fetchFromBackend();
+  }
 
   double get angle => _angle;
   double get velocity => _velocity;
   double get gravity => _gravity;
+  String get customFormula => _customFormula;
   String get explanationText => _explanationText;
   String get speechAudioUrl => _speechAudioUrl;
 
   Future<void> _fetchFromBackend() async {
     try {
       debugPrint(
-          'Fetching from backend: angle=$_angle, velocity=$_velocity, gravity=$_gravity');
+          'Fetching from backend: angle=$_angle, velocity=$_velocity, gravity=$_gravity, formula=$_customFormula');
 
       final response = await http.post(
         Uri.parse('$baseUrl/api/simulate'),
@@ -29,6 +35,7 @@ class SimulationModel extends ChangeNotifier {
           'angle': _angle,
           'velocity': _velocity,
           'gravity': _gravity,
+          'custom_formula': _customFormula,
         }),
       );
 
@@ -64,6 +71,13 @@ class SimulationModel extends ChangeNotifier {
   void setGravity(double value) {
     debugPrint('Slider changed: gravity = $value');
     _gravity = value;
+    notifyListeners();
+    _fetchFromBackend();
+  }
+
+  void setCustomFormula(String formula) {
+    debugPrint('Custom formula changed: $formula');
+    _customFormula = formula;
     notifyListeners();
     _fetchFromBackend();
   }

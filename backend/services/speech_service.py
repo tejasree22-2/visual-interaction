@@ -12,6 +12,22 @@ load_dotenv(env_path)
 SARVAM_API_URL = "https://api.sarvam.ai/text-to-speech"
 
 
+def _convert_formula_to_speech(formula: str) -> str:
+    if not formula:
+        return formula
+    return (formula
+            .replace('θ', 'theta')
+            .replace('²', ' squared')
+            .replace('³', ' cubed')
+            .replace('*', ' multiplied by ')
+            .replace('/', ' divided by ')
+            .replace('+', ' plus ')
+            .replace('-', ' minus ')
+            .replace('=', ' equals ')
+            .replace('(', ' open parenthesis ')
+            .replace(')', ' close parenthesis '))
+
+
 def get_api_key():
     api_key = os.environ.get("SARVAM_API_KEY")
     if not api_key:
@@ -22,8 +38,16 @@ def get_api_key():
 
 def generate_explanation_text(angle: float, velocity: float, gravity: float, 
                                 prev_angle: Optional[float] = None, prev_velocity: Optional[float] = None, 
-                                prev_gravity: Optional[float] = None) -> str:
+                                prev_gravity: Optional[float] = None,
+                                custom_formula: Optional[str] = None,
+                                include_formula: bool = False) -> str:
     parts = []
+    
+    if include_formula and custom_formula:
+        formula_speech = _convert_formula_to_speech(custom_formula)
+        parts.append(f"The projectile motion formula being used is: {formula_speech}. ")
+        parts.append("This formula describes the relationship between the horizontal distance, vertical height, launch angle, initial velocity, and gravity. ")
+        parts.append("In this formula, y represents the vertical height, x represents the horizontal distance, theta represents the launch angle, v represents the initial velocity, and g represents gravitational acceleration. ")
     
     parts.append(f"In this projectile motion simulation, the projectile is launched at an angle of {angle} degrees with an initial velocity of {velocity} meters per second under a gravitational acceleration of {gravity} meters per second squared.")
     
@@ -113,10 +137,13 @@ def get_audio_stream(text: str):
 
 def generate_speech_explanation(angle: float, velocity: float, gravity: float,
                                 prev_angle: Optional[float] = None, prev_velocity: Optional[float] = None,
-                                prev_gravity: Optional[float] = None) -> dict:
+                                prev_gravity: Optional[float] = None,
+                                custom_formula: Optional[str] = None,
+                                include_formula: bool = False) -> dict:
     explanation_text = generate_explanation_text(
         angle, velocity, gravity,
-        prev_angle, prev_velocity, prev_gravity
+        prev_angle, prev_velocity, prev_gravity,
+        custom_formula, include_formula
     )
     
     return synthesize_speech(explanation_text)

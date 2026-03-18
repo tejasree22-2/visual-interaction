@@ -20,24 +20,26 @@ def _generate_cache_key(angle, velocity, gravity):
 @simulation_bp.route('/simulation', methods=['POST'])
 @simulation_bp.route('/simulate', methods=['POST'])
 def simulate():
-    # Check if this is a text-to-speech request
-    if request.get_json().get('text'):
-        text = request.get_json().get('text')
+    data = request.get_json() or {}
+    
+    text = data.get('text')
+    if text:
         speech_result = synthesize_speech(text)
         return jsonify({
             'speech_audio_url': speech_result.get('audio_url'),
             'error': speech_result.get('error')
         })
     
-    data = request.get_json()
-    
     angle = data.get('angle')
     velocity = data.get('velocity')
     gravity = data.get('gravity')
+    custom_formula = data.get('custom_formula')
+    include_formula = data.get('include_formula', False)
     
     print(f"\n=== Slider Changed ===")
     print(f"angle: {angle}, velocity: {velocity}, gravity: {gravity}")
-    logger.info(f"Slider Changed: angle={angle}, velocity={velocity}, gravity={gravity}")
+    print(f"custom_formula: {custom_formula}, include_formula: {include_formula}")
+    logger.info(f"Slider Changed: angle={angle}, velocity={velocity}, gravity={gravity}, custom_formula={custom_formula}")
     
     cache_key = _generate_cache_key(angle, velocity, gravity)
     
@@ -53,7 +55,11 @@ def simulate():
     print(f"Physics calculated: max_height={physics_result['max_height']}, range={physics_result['range']}")
     logger.info(f"Physics: max_height={physics_result['max_height']}, range={physics_result['range']}")
     
-    explanation_text = generate_explanation_text(angle, velocity, gravity)
+    explanation_text = generate_explanation_text(
+        angle, velocity, gravity,
+        custom_formula=custom_formula,
+        include_formula=include_formula
+    )
     print(f"Calling Sarvam TTS API...")
     logger.info("Calling Sarvam TTS API...")
     speech_result = synthesize_speech(explanation_text)
