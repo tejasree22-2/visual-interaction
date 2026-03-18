@@ -1,0 +1,22 @@
+the control slides not able to adjust the values and backend not connect to sarvam or supabase etc what happening i can't understand
+
+---
+
+yes
+
+---
+
+what is the error occure
+
+---
+
+Error [32:27] Argument of type "ResponseT" cannot be assigned to parameter "s" of type "str | bytes | bytearray" in function "loads"
+  Type "ResponseT" is not assignable to type "str | bytes | bytearray"
+    Type "Awaitable[Any]" is not assignable to type "str | bytes | bytearray"
+      "Awaitable[Any]" is not assignable to "str"
+      "Awaitable[Any]" is not assignable to "bytes"
+      "Awaitable[Any]" is not assignable to "bytearray" what is this
+
+---
+
+once again test all the code with running all these commands in this
