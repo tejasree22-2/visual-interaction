@@ -129,8 +129,6 @@ class _Projectile3DPainter extends CustomPainter {
     final trajectory = model.trajectory;
     if (trajectory.isEmpty) return;
 
-    final maxRange = model.range > 0 ? model.range : 1.0;
-    final maxHeight = model.maxHeightBackend > 0 ? model.maxHeightBackend : 1.0;
     const scale = 3.0;
 
     final path = Path();

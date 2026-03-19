@@ -107,26 +107,10 @@ def _digit_to_word(d: str) -> str:
     return ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"][int(d)]
 
 
-def convert_numbers_to_words(text: str) -> str:
-    import re
-    pattern = r'[-+]?\d*\.\d+|\d+'
-    
-    def replace_number(match):
-        num_str = match.group()
-        try:
-            num = float(num_str)
-            return _number_to_words(num)
-        except ValueError:
-            return num_str
-    
-    return re.sub(pattern, replace_number, text)
-
-
 def get_api_key():
     api_key = os.environ.get("SARVAM_API_KEY")
     if not api_key:
         print("SARVAM_API_KEY not found. Please add SARVAM_API_KEY to your .env file.")
-        print("Get your API key from: https://dashboard.sarvam.ai")
     return api_key
 
 
@@ -276,11 +260,6 @@ def synthesize_speech(text: str, target_language_code: str = "en-IN",
     return {"error": "Max retries exceeded", "audio_url": None}
 
 
-def get_audio_stream(text: str):
-    result = synthesize_speech(text)
-    return result.get("audio_url")
-
-
 def generate_explanation_text_telugu(angle: float, velocity: float, gravity: float, 
                                     prev_angle: Optional[float] = None, prev_velocity: Optional[float] = None, 
                                     prev_gravity: Optional[float] = None,
@@ -391,28 +370,6 @@ def synthesize_chunk(chunk: AudioChunk, language: str = "en-IN", save_to_file: b
     return chunk
 
 
-def generate_speech_explanation(angle: float, velocity: float, gravity: float,
-                                prev_angle: Optional[float] = None, prev_velocity: Optional[float] = None,
-                                prev_gravity: Optional[float] = None,
-                                custom_formula: Optional[str] = None,
-                                include_formula: bool = False,
-                                language: str = "en-IN") -> dict:
-    if language == "te-IN":
-        explanation_text = generate_explanation_text_telugu(
-            angle, velocity, gravity,
-            prev_angle, prev_velocity, prev_gravity,
-            custom_formula, include_formula
-        )
-    else:
-        explanation_text = generate_explanation_text(
-            angle, velocity, gravity,
-            prev_angle, prev_velocity, prev_gravity,
-            custom_formula, include_formula
-        )
-    
-    return synthesize_speech(explanation_text, target_language_code=language)
-
-
 def combine_audio_chunks(audio_urls: List[str], output_format: str = "mp3") -> Optional[str]:
     if not PYDUB_AVAILABLE or AudioSegment is None:
         print("pydub not installed. Cannot combine audio chunks.")
@@ -435,7 +392,6 @@ def combine_audio_chunks(audio_urls: List[str], output_format: str = "mp3") -> O
         
         for i, url in enumerate(audio_urls):
             if not url:
-                print(f"Warning: Empty URL for chunk {i}")
                 continue
             
             audio = None
@@ -446,21 +402,15 @@ def combine_audio_chunks(audio_urls: List[str], output_format: str = "mp3") -> O
                 if os.path.exists(file_path):
                     try:
                         audio = AudioSegment.from_file(file_path)
-                    except Exception as e:
-                        print(f"Warning: Could not load audio file {file_path}: {e}")
+                    except Exception:
                         continue
                 else:
-                    print(f"Warning: Audio file not found: {file_path}")
                     continue
             elif url.startswith("data:audio"):
                 try:
                     base64_data = url.split(",", 1)[1]
                     audio_bytes = base64.b64decode(base64_data)
-                    
-                    if not audio_bytes or len(audio_bytes) < 500:
-                        print(f"Warning: Suspiciously small audio data for chunk {i}: {len(audio_bytes) if audio_bytes else 0} bytes")
-                except Exception as e:
-                    print(f"Warning: Failed to decode base64 for chunk {i}: {e}")
+                except Exception:
                     continue
             
             if audio_bytes:
@@ -469,8 +419,7 @@ def combine_audio_chunks(audio_urls: List[str], output_format: str = "mp3") -> O
                 except Exception:
                     try:
                         audio = AudioSegment.from_file(io.BytesIO(audio_bytes), format="wav")
-                    except Exception as e:
-                        print(f"Warning: Could not parse audio for chunk {i}: {e}")
+                    except Exception:
                         continue
             
             if audio:
@@ -480,39 +429,24 @@ def combine_audio_chunks(audio_urls: List[str], output_format: str = "mp3") -> O
                     if audio.channels != target_channels:
                         audio = audio.set_channels(target_channels)
                     
-                    audio_length_ms = len(audio)
-                    
                     if valid_chunks > 0 and len(combined_seg) > 0:
-                        overlap_duration = 150
-                        if overlap_duration > 0:
-                            combined_seg = combined_seg.append(audio, crossfade=overlap_duration)
-                        else:
-                            combined_seg += audio
+                        combined_seg = combined_seg.append(audio, crossfade=150)
                     else:
                         combined_seg += audio
                     
                     if i < len(audio_urls) - 1:
-                        silence_duration_ms = 300
-                        silence = AudioSegment.silent(duration=silence_duration_ms, frame_rate=target_sample_rate)
+                        silence = AudioSegment.silent(duration=300, frame_rate=target_sample_rate)
                         combined_seg += silence
                     
                     valid_chunks += 1
-                    print(f"Chunk {i} processed successfully, length: {audio_length_ms}ms")
-                except Exception as e:
-                    print(f"Error combining chunk {i}: {e}")
+                except Exception:
                     continue
         
-        print(f"Total valid chunks combined: {valid_chunks}/{len(audio_urls)}")
-        
         if valid_chunks == 0:
-            print("No valid audio chunks to combine")
             return None
         
         if len(combined_seg) == 0:
-            print("Combined audio is empty")
             return None
-        
-        print(f"Final combined audio length: {len(combined_seg)}ms")
         
         combined_seg = combined_seg.set_frame_rate(target_sample_rate)
         combined_seg = combined_seg.set_channels(target_channels)
@@ -528,8 +462,5 @@ def combine_audio_chunks(audio_urls: List[str], output_format: str = "mp3") -> O
             output_path = os.path.join(media_dir, f"combined_{audio_hash}.wav")
             combined_seg.export(output_path, format="wav")
             return f"/media/combined_{audio_hash}.wav"
-    except Exception as e:
-        print(f"Error combining audio chunks: {e}")
-        import traceback
-        traceback.print_exc()
+    except Exception:
         return None

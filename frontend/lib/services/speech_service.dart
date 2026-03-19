@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -10,7 +9,7 @@ class SpeechService {
   static String get baseUrl => ApiService.apiBaseUrl;
   final AudioPlayer _audioPlayer = AudioPlayer();
   final FlutterTts _flutterTts = FlutterTts();
-  bool _useBackendTts = true;
+  final bool _useBackendTts = true;
   Function? _onComplete;
 
   SpeechService() {
@@ -73,7 +72,7 @@ class SpeechService {
           }
         }
       } catch (e) {
-        debugPrint('Backend TTS failed: $e');
+        // Fallback to local TTS on error
       }
     }
 
@@ -84,7 +83,6 @@ class SpeechService {
         'Maximum height: ${_numberToWords((velocity * velocity * math.sin(angle * math.pi / 180) * math.sin(angle * math.pi / 180)) / (2 * gravity))}. '
         'Range: ${_numberToWords((velocity * velocity * math.sin(2 * angle * math.pi / 180)) / gravity)}.';
 
-    debugPrint('Using fallback TTS with formula');
     await _flutterTts.speak(explanation);
   }
 
@@ -221,11 +219,10 @@ class SpeechService {
           }
         }
       } catch (e) {
-        debugPrint('Backend TTS failed: $e');
+        // Fallback to local TTS on error
       }
     }
 
-    debugPrint('Using fallback TTS');
     await _flutterTts.speak(text);
   }
 

@@ -56,9 +56,6 @@ class SimulationModel extends ChangeNotifier {
 
   Future<void> _fetchFromBackend() async {
     try {
-      debugPrint(
-          'Fetching from backend: angle=$_angle, velocity=$_velocity, gravity=$_gravity, formula=$_customFormula');
-
       final response = await http.post(
         Uri.parse('$baseUrl/api/simulate'),
         headers: {'Content-Type': 'application/json'},
@@ -84,27 +81,19 @@ class SimulationModel extends ChangeNotifier {
         _timeOfFlight = (data['time_of_flight'] as num?)?.toDouble() ?? 0;
 
         if (_trajectory.isEmpty) {
-          debugPrint(
-              'Backend returned empty trajectory, using local calculation');
           _calculateTrajectoryLocally();
         } else {
-          debugPrint(
-              'Response received: audio_url=${_speechAudioUrl.isNotEmpty ? "present" : "not present"}, trajectory_points=${_trajectory.length}');
           notifyListeners();
         }
       } else {
-        debugPrint(
-            'Error: HTTP ${response.statusCode}, using local calculation');
         _calculateTrajectoryLocally();
       }
     } catch (e) {
-      debugPrint('Error fetching from backend: $e, using local calculation');
       _calculateTrajectoryLocally();
     }
   }
 
   void setAngle(double value) {
-    debugPrint('Slider changed: angle = $value');
     _angle = value;
     _updateFormula();
     notifyListeners();
@@ -112,7 +101,6 @@ class SimulationModel extends ChangeNotifier {
   }
 
   void setVelocity(double value) {
-    debugPrint('Slider changed: velocity = $value');
     _velocity = value;
     _updateFormula();
     notifyListeners();
@@ -120,7 +108,6 @@ class SimulationModel extends ChangeNotifier {
   }
 
   void setGravity(double value) {
-    debugPrint('Slider changed: gravity = $value');
     _gravity = value;
     _updateFormula();
     notifyListeners();
@@ -133,24 +120,8 @@ class SimulationModel extends ChangeNotifier {
   }
 
   void setCustomFormula(String formula) {
-    debugPrint('Custom formula changed: $formula');
     _customFormula = formula;
     notifyListeners();
     _fetchFromBackend();
-  }
-
-  double get maxRange {
-    final angleRad = _angle * 3.14159 / 180;
-    return (_velocity *
-            _velocity *
-            (2 * _angle.abs() > 180 ? -1 : 1) *
-            (2 * _angle.abs() > 180 ? 0 : 1)) /
-        _gravity;
-  }
-
-  double get maxHeight {
-    final angleRad = _angle * 3.14159 / 180;
-    return (_velocity * _velocity * (angleRad.abs() * angleRad.abs())) /
-        (2 * _gravity);
   }
 }

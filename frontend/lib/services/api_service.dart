@@ -32,21 +32,4 @@ class ApiService {
       return {'error': e.toString()};
     }
   }
-
-  Future<List<List<double>>> calculateTrajectory({
-    required double angle,
-    required double velocity,
-    required double gravity,
-  }) async {
-    final result = await getSimulationData({
-      'angle': angle,
-      'velocity': velocity,
-      'gravity': gravity,
-    });
-    final trajectoryData = result['trajectory'];
-    if (trajectoryData == null) return [];
-    return (trajectoryData as List<dynamic>)
-        .map((e) => [(e[0] as num).toDouble(), (e[1] as num).toDouble()])
-        .toList();
-  }
 }

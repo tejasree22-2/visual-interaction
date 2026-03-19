@@ -1,9 +1,6 @@
 import hashlib
-import logging
 from flask import Blueprint, request, jsonify
 from concurrent.futures import ThreadPoolExecutor, as_completed
-
-logger = logging.getLogger(__name__)
 
 from services.cache_service import get_cached_result, set_cached_result
 from services.physics_service import calculate_trajectory
@@ -41,24 +38,21 @@ def simulate():
     include_formula = data.get('include_formula', False)
     language = data.get('language', 'en-IN')
     
-    print(f"\n=== Slider Changed ===")
+    print(f"=== Slider Changed ===")
     print(f"angle: {angle}, velocity: {velocity}, gravity: {gravity}")
+    print(f"angle: {angle}, velocity: {velocity}, gravity: {gravity}, language: {language}")
     print(f"custom_formula: {custom_formula}, include_formula: {include_formula}")
-    logger.info(f"Slider Changed: angle={angle}, velocity={velocity}, gravity={gravity}, custom_formula={custom_formula}")
     
     cache_key = _generate_cache_key(angle, velocity, gravity, custom_formula, language)
     
     cached_result = get_cached_result(cache_key)
     if cached_result:
-        print(f"Cache: HIT → returning cached data")
-        logger.info("Cache: HIT → returning cached data")
+        print("Cache: HIT")
         return jsonify(cached_result)
     
-    print(f"Cache: MISS → calculating new data...")
-    logger.info("Cache: MISS → calculating new data...")
+    print("Cache: MISS → calculating new data...")
     physics_result = calculate_trajectory(angle, velocity, gravity)
-    print(f"Physics calculated: max_height={physics_result['max_height']}, range={physics_result['range']}")
-    logger.info(f"Physics: max_height={physics_result['max_height']}, range={physics_result['range']}")
+    print(f"Physics calculated: max_height={physics_result['max_height']:.4f}, range={physics_result['range']:.4f}")
     
     if language == "te-IN":
         explanation_text = generate_explanation_text_telugu(
@@ -73,15 +67,12 @@ def simulate():
             include_formula=include_formula
         )
     
-    print(f"Calling Sarvam TTS API...")
-    logger.info("Calling Sarvam TTS API...")
+    print("Calling Sarvam TTS API...")
     speech_result = synthesize_speech(explanation_text, target_language_code=language, save_file=True)
-    print(f"TTS completed: audio_url={'present' if speech_result.get('audio_url') else 'NOT present'}")
-    logger.info(f"TTS: audio_url={'present' if speech_result.get('audio_url') else 'NOT present'}")
+    print(f"TTS completed: audio_url={'present' if speech_result.get('audio_url') else 'not generated'}")
     
     store_simulation(angle, velocity, gravity)
-    print(f"Saved to database")
-    logger.info("Saved to database")
+    print("Saved to database")
     
     full_result = {
         'trajectory': physics_result['trajectory'],
@@ -93,8 +84,7 @@ def simulate():
     }
     
     set_cached_result(cache_key, full_result)
-    print(f"Cached result saved\n")
-    logger.info("Cached result saved")
+    print("Cached result saved")
     
     return jsonify(full_result)
 
@@ -110,24 +100,23 @@ def get_audio_chunks():
     include_formula = data.get('include_formula', False)
     language = data.get('language', 'te-IN')
     
-    print(f"\n=== Chunked Audio Request ===")
+    print(f"=== Slider Changed ===")
+    print(f"angle: {angle}, velocity: {velocity}, gravity: {gravity}")
     print(f"angle: {angle}, velocity: {velocity}, gravity: {gravity}, language: {language}")
-    logger.info(f"Chunked audio request: angle={angle}, velocity={velocity}, gravity={gravity}, language={language}")
+    print(f"custom_formula: {custom_formula}, include_formula: {include_formula}")
     
     chunks = generate_chunked_explanations(
         angle, velocity, gravity,
         custom_formula=custom_formula,
         include_formula=include_formula
     )
-    
     print(f"Generated {len(chunks)} explanation chunks")
-    logger.info(f"Generated {len(chunks)} explanation chunks")
+    print("Calling Sarvam TTS API...")
     
     def synthesize_single_chunk(chunk):
         try:
             return synthesize_chunk(chunk, language=language)
         except Exception as e:
-            print(f"Error synthesizing chunk {chunk.chunk_id}: {e}")
             return None
     
     chunk_data = []
@@ -144,18 +133,15 @@ def get_audio_chunks():
                 if audio_url:
                     audio_urls.append(audio_url)
                 else:
-                    print(f"Warning: No audio generated for chunk {chunk.chunk_id}")
                     failed_chunks += 1
             else:
                 failed_chunks += 1
     
-    print(f"Audio chunks: {len(audio_urls)} successful, {failed_chunks} failed out of {len(chunks)} total")
+    print(f"TTS completed: audio_url={'present' if audio_urls else 'not generated'}")
     
     combined_audio_url = None
     if audio_urls:
         combined_audio_url = combine_audio_chunks(audio_urls)
-        print(f"Combined audio created: {'success' if combined_audio_url else 'failed'}")
-        logger.info(f"Combined audio: {'success' if combined_audio_url else 'failed'}")
     
     return jsonify({
         'chunks': chunk_data,
@@ -174,9 +160,6 @@ def get_single_chunk_audio(chunk_id):
     custom_formula = data.get('custom_formula')
     include_formula = data.get('include_formula', False)
     language = data.get('language', 'te-IN')
-    
-    print(f"\n=== Single Chunk Request: {chunk_id} ===")
-    logger.info(f"Single chunk request: chunk_id={chunk_id}, language={language}")
     
     chunks = generate_chunked_explanations(
         angle, velocity, gravity,
