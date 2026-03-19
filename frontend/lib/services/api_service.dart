@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 class ApiService {
   static String get baseUrl {
     if (kIsWeb) {
-      return 'http://localhost:5000';
+      return 'https://visual-interaction-backend.onrender.com';
     }
     return 'http://10.0.2.2:5000';
   }
