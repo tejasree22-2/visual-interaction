@@ -1,0 +1,23 @@
+Custom Domains
+You can point custom domains you own to this service.
+
+
+Name
+1
+visual-interaction.9622.online
+Menu
+Verified Status
+Verified
+Certificate Status
+Certificate Issued this is frontend deployment and Custom Domains
+You can point custom domains you own to this service.
+
+
+Name
+1
+visual-interaction-api.9622.online
+Menu
+Verified Status
+Verified
+Certificate Status
+Certificate Issued  and this for backend now according to this change the urls
