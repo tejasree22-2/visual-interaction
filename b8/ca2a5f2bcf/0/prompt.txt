@@ -1,0 +1,1 @@
+i have deployed the backend in the render https://visual-interaction-backend.onrender.com/health with this url now in frontend where you find http://localhost:5000 replace it with render url
