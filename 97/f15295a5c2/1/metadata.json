@@ -1,0 +1,23 @@
+{
+  "cli_version": "0.5.0",
+  "checkpoint_id": "97f15295a5c2",
+  "session_id": "ses_2fde4047bffeKuUn7rsphHCHd6",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-19T08:17:36.156381565Z",
+  "branch": "main",
+  "checkpoints_count": 0,
+  "files_touched": [
+    "frontend/lib/services/api_service.dart"
+  ],
+  "agent": "OpenCode",
+  "turn_id": "02b84c7a8c86",
+  "initial_attribution": {
+    "calculated_at": "2026-03-19T08:17:36.1559159Z",
+    "agent_lines": 1,
+    "human_added": 81,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 82,
+    "agent_percentage": 1.2195121951219512
+  }
+}
