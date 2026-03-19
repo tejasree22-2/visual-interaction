@@ -3,7 +3,7 @@
   "checkpoint_id": "b8ca2a5f2bcf",
   "strategy": "manual-commit",
   "branch": "main",
-  "checkpoints_count": 3,
+  "checkpoints_count": 4,
   "files_touched": [
     "frontend/lib/services/api_service.dart"
   ],
@@ -19,13 +19,19 @@
       "transcript": "/b8/ca2a5f2bcf/1/full.jsonl",
       "content_hash": "/b8/ca2a5f2bcf/1/content_hash.txt",
       "prompt": "/b8/ca2a5f2bcf/1/prompt.txt"
+    },
+    {
+      "metadata": "/b8/ca2a5f2bcf/2/metadata.json",
+      "transcript": "/b8/ca2a5f2bcf/2/full.jsonl",
+      "content_hash": "/b8/ca2a5f2bcf/2/content_hash.txt",
+      "prompt": "/b8/ca2a5f2bcf/2/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 1679,
-    "cache_creation_tokens": 23905,
-    "cache_read_tokens": 69733,
-    "output_tokens": 1532,
-    "api_call_count": 8
+    "input_tokens": 6486,
+    "cache_creation_tokens": 38121,
+    "cache_read_tokens": 92916,
+    "output_tokens": 2226,
+    "api_call_count": 11
   }
 }
