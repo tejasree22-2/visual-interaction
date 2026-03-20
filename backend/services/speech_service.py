@@ -6,6 +6,8 @@ from datetime import datetime
 from typing import Optional, List, Dict
 from dotenv import load_dotenv
 import math
+import logging
+import subprocess
 
 try:
     from pydub import AudioSegment
@@ -14,11 +16,27 @@ except ImportError:
     AudioSegment = None
     PYDUB_AVAILABLE = False
 
+logger = logging.getLogger('visual-interaction-backend.speech')
+
 project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 env_path = os.path.join(project_root, '.env')
 load_dotenv(env_path)
 
 SARVAM_API_URL = "https://api.sarvam.ai/text-to-speech"
+
+
+def _check_ffmpeg():
+    try:
+        result = subprocess.run(['ffmpeg', '-version'], capture_output=True, text=True, timeout=5)
+        if result.returncode == 0:
+            logger.info("ffmpeg: FOUND")
+            return True
+    except Exception:
+        pass
+    logger.warning("ffmpeg: NOT FOUND - Audio conversion may fail")
+    return False
+
+FFMPEG_AVAILABLE = _check_ffmpeg()
 
 
 class AudioChunk:
@@ -110,7 +128,8 @@ def _digit_to_word(d: str) -> str:
 def get_api_key():
     api_key = os.environ.get("SARVAM_API_KEY")
     if not api_key:
-        print("SARVAM_API_KEY not found. Please add SARVAM_API_KEY to your .env file.")
+        logger.error("SARVAM_API_KEY not found in environment variables!")
+        logger.error("Please add SARVAM_API_KEY to your .env file")
     return api_key
 
 
@@ -175,7 +194,11 @@ def synthesize_speech(text: str, target_language_code: str = "en-IN",
     api_key = get_api_key()
     
     if not api_key:
-        return {"error": "API key missing", "audio_url": None}
+        logger.error("TTS FAILED: API key missing")
+        return {"error": "API key missing - check .env file", "audio_url": None, "error_code": "MISSING_API_KEY"}
+    
+    if not PYDUB_AVAILABLE:
+        logger.warning("pydub not installed - audio conversion may fail")
     
     headers = {
         "api-subscription-key": api_key,
@@ -183,11 +206,13 @@ def synthesize_speech(text: str, target_language_code: str = "en-IN",
     }
     
     clean_text = text.replace('\n', ' ').strip()
+    text_was_truncated = False
     if len(clean_text) > max_chars:
         clean_text = clean_text[:max_chars]
         if clean_text.rfind('.') > max_chars - 50:
             clean_text = clean_text[:clean_text.rfind('.') + 1]
-        print(f"Warning: Text truncated from {len(text)} to {len(clean_text)} characters for Sarvam API")
+        text_was_truncated = True
+        logger.warning(f"Text truncated from {len(text)} to {len(clean_text)} characters for Sarvam API")
     
     payload = {
         "inputs": [clean_text],
@@ -197,8 +222,11 @@ def synthesize_speech(text: str, target_language_code: str = "en-IN",
         "speech_sample_rate": 16000
     }
     
+    logger.info(f"TTS Request: lang={target_language_code}, text_length={len(clean_text)}, truncated={text_was_truncated}, save_file={save_file}")
+    
     for attempt in range(max_retries):
         try:
+            logger.info(f"TTS API call (attempt {attempt + 1}/{max_retries})...")
             response = requests.post(SARVAM_API_URL, headers=headers, json=payload, timeout=60)
             response.raise_for_status()
             
@@ -207,12 +235,15 @@ def synthesize_speech(text: str, target_language_code: str = "en-IN",
             if result.get("audios") and len(result["audios"]) > 0:
                 audio_base64 = result["audios"][0]
                 if not audio_base64 or len(audio_base64) < 500:
-                    print(f"Warning: Suspiciously short audio data for text: {text[:50]}... (attempt {attempt + 1}/{max_retries})")
+                    logger.warning(f"TTS: Suspiciously short audio data ({len(audio_base64) if audio_base64 else 0} chars) for text: {text[:50]}...")
                     if attempt < max_retries - 1:
                         import time
                         time.sleep(1)
                         continue
-                    return {"error": "Audio data too short", "audio_url": None}
+                    logger.error("TTS FAILED: Audio data too short")
+                    return {"error": "Audio data too short - API returned invalid data", "audio_url": None, "error_code": "SHORT_AUDIO"}
+                
+                logger.info(f"TTS SUCCESS: Received audio data ({len(audio_base64)} chars base64)")
                 
                 if save_file:
                     import hashlib
@@ -224,14 +255,22 @@ def synthesize_speech(text: str, target_language_code: str = "en-IN",
                     
                     audio_bytes = base64.b64decode(audio_base64)
                     try:
-                        audio = AudioSegment.from_wav(io.BytesIO(audio_bytes))
-                        audio.export(audio_path, format="mp3", bitrate="64k")
-                        return {
-                            "audio_url": f"/media/speech_{audio_hash}.mp3",
-                            "request_id": result.get("request_id")
-                        }
+                        if PYDUB_AVAILABLE and AudioSegment:
+                            audio = AudioSegment.from_wav(io.BytesIO(audio_bytes))
+                            audio.export(audio_path, format="mp3", bitrate="64k")
+                            logger.info(f"TTS SAVED: {audio_path}")
+                            return {
+                                "audio_url": f"/media/speech_{audio_hash}.mp3",
+                                "request_id": result.get("request_id")
+                            }
+                        else:
+                            logger.error("TTS FAILED: pydub not installed")
+                            return {"error": "pydub not installed - cannot convert audio", "audio_url": None, "error_code": "PYDUB_MISSING"}
                     except Exception as e:
-                        print(f"Warning: Could not convert to MP3, using base64: {e}")
+                        logger.error(f"TTS ERROR: Could not convert to MP3: {e}")
+                        if not FFMPEG_AVAILABLE:
+                            logger.error("TTS ERROR: ffmpeg is required for audio conversion. Please install ffmpeg.")
+                        return {"error": f"Could not convert audio: {str(e)}", "audio_url": None, "error_code": "CONVERSION_FAILED"}
                 
                 audio_data_url = f"data:audio/wav;base64,{audio_base64}"
                 return {
@@ -239,25 +278,27 @@ def synthesize_speech(text: str, target_language_code: str = "en-IN",
                     "request_id": result.get("request_id")
                 }
             else:
-                print(f"Warning: No audio returned from API for text: {text[:50]}... (attempt {attempt + 1}/{max_retries})")
+                logger.warning(f"TTS: No audio returned from API for text: {text[:50]}... (attempt {attempt + 1}/{max_retries})")
                 if attempt < max_retries - 1:
                     import time
                     time.sleep(1)
                     continue
-                return {"error": "No audio returned from API", "audio_url": None}
+                logger.error("TTS FAILED: API returned no audio data")
+                return {"error": "No audio returned from API", "audio_url": None, "error_code": "NO_AUDIO_RESPONSE"}
                 
         except requests.exceptions.RequestException as e:
-            print(f"Error calling Sarvam API (attempt {attempt + 1}/{max_retries}): {e}")
+            logger.error(f"TTS ERROR: API request failed (attempt {attempt + 1}/{max_retries}): {e}")
             if attempt < max_retries - 1:
                 import time
                 time.sleep(2)
                 continue
-            return {"error": str(e), "audio_url": None}
+            return {"error": f"API request failed: {str(e)}", "audio_url": None, "error_code": "REQUEST_FAILED"}
         except Exception as e:
-            print(f"Unexpected error in synthesize_speech: {e}")
-            return {"error": str(e), "audio_url": None}
+            logger.error(f"TTS ERROR: Unexpected error: {e}")
+            return {"error": str(e), "audio_url": None, "error_code": "UNEXPECTED_ERROR"}
     
-    return {"error": "Max retries exceeded", "audio_url": None}
+    logger.error("TTS FAILED: Max retries exceeded")
+    return {"error": "Max retries exceeded", "audio_url": None, "error_code": "MAX_RETRIES"}
 
 
 def generate_explanation_text_telugu(angle: float, velocity: float, gravity: float, 
@@ -372,11 +413,17 @@ def synthesize_chunk(chunk: AudioChunk, language: str = "en-IN", save_to_file: b
 
 def combine_audio_chunks(audio_urls: List[str], output_format: str = "mp3") -> Optional[str]:
     if not PYDUB_AVAILABLE or AudioSegment is None:
-        print("pydub not installed. Cannot combine audio chunks.")
+        logger.error("COMBINE FAILED: pydub not installed")
         return None
     
+    if not FFMPEG_AVAILABLE:
+        logger.warning("ffmpeg not found - audio conversion may fail")
+    
     if not audio_urls:
+        logger.warning("COMBINE: No audio URLs provided")
         return None
+    
+    logger.info(f"COMBINE: Starting to combine {len(audio_urls)} audio chunks")
     
     try:
         import wave
@@ -387,11 +434,14 @@ def combine_audio_chunks(audio_urls: List[str], output_format: str = "mp3") -> O
         target_sample_rate = 16000
         target_channels = 1
         valid_chunks = 0
+        failed_chunks = 0
         
         media_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "media")
         
         for i, url in enumerate(audio_urls):
             if not url:
+                logger.warning(f"COMBINE: Skipping empty URL at index {i}")
+                failed_chunks += 1
                 continue
             
             audio = None
@@ -401,16 +451,24 @@ def combine_audio_chunks(audio_urls: List[str], output_format: str = "mp3") -> O
                 file_path = os.path.join(media_dir, os.path.basename(url))
                 if os.path.exists(file_path):
                     try:
+                        logger.info(f"COMBINE: Loading file {file_path}")
                         audio = AudioSegment.from_file(file_path)
-                    except Exception:
+                    except Exception as e:
+                        logger.error(f"COMBINE: Could not load file {file_path}: {e}")
+                        failed_chunks += 1
                         continue
                 else:
+                    logger.error(f"COMBINE: File not found: {file_path}")
+                    failed_chunks += 1
                     continue
             elif url.startswith("data:audio"):
                 try:
                     base64_data = url.split(",", 1)[1]
                     audio_bytes = base64.b64decode(base64_data)
-                except Exception:
+                    logger.info(f"COMBINE: Decoded base64 audio ({len(audio_bytes)} bytes)")
+                except Exception as e:
+                    logger.error(f"COMBINE: Could not decode base64 audio: {e}")
+                    failed_chunks += 1
                     continue
             
             if audio_bytes:
@@ -419,7 +477,9 @@ def combine_audio_chunks(audio_urls: List[str], output_format: str = "mp3") -> O
                 except Exception:
                     try:
                         audio = AudioSegment.from_file(io.BytesIO(audio_bytes), format="wav")
-                    except Exception:
+                    except Exception as e:
+                        logger.error(f"COMBINE: Could not parse audio bytes: {e}")
+                        failed_chunks += 1
                         continue
             
             if audio:
@@ -439,13 +499,20 @@ def combine_audio_chunks(audio_urls: List[str], output_format: str = "mp3") -> O
                         combined_seg += silence
                     
                     valid_chunks += 1
-                except Exception:
+                    logger.info(f"COMBINE: Chunk {i+1} added successfully")
+                except Exception as e:
+                    logger.error(f"COMBINE: Error processing chunk {i+1}: {e}")
+                    failed_chunks += 1
                     continue
         
+        logger.info(f"COMBINE: Processed {valid_chunks} chunks successfully, {failed_chunks} failed")
+        
         if valid_chunks == 0:
+            logger.error("COMBINE FAILED: No valid audio chunks to combine")
             return None
         
         if len(combined_seg) == 0:
+            logger.error("COMBINE FAILED: Combined audio is empty")
             return None
         
         combined_seg = combined_seg.set_frame_rate(target_sample_rate)
@@ -456,11 +523,22 @@ def combine_audio_chunks(audio_urls: List[str], output_format: str = "mp3") -> O
         
         if output_format == "mp3":
             output_path = os.path.join(media_dir, f"combined_{audio_hash}.mp3")
-            combined_seg.export(output_path, format="mp3", bitrate="64k")
-            return f"/media/combined_{audio_hash}.mp3"
+            try:
+                combined_seg.export(output_path, format="mp3", bitrate="64k")
+                logger.info(f"COMBINE SUCCESS: Exported to {output_path}")
+                return f"/media/combined_{audio_hash}.mp3"
+            except Exception as e:
+                logger.error(f"COMBINE FAILED: Could not export MP3: {e}")
+                if not FFMPEG_AVAILABLE:
+                    logger.error("COMBINE: ffmpeg is required for MP3 export")
+                return None
         else:
             output_path = os.path.join(media_dir, f"combined_{audio_hash}.wav")
             combined_seg.export(output_path, format="wav")
+            logger.info(f"COMBINE SUCCESS: Exported to {output_path}")
             return f"/media/combined_{audio_hash}.wav"
-    except Exception:
+    except Exception as e:
+        logger.error(f"COMBINE FAILED: Unexpected error: {e}")
+        import traceback
+        logger.error(f"COMBINE: Traceback: {traceback.format_exc()}")
         return None
