@@ -1,0 +1,29 @@
+=== Slider Changed ===
+angle: 45, velocity: 20, gravity: 9.8
+angle: 45, velocity: 20, gravity: 9.8, language: te-IN
+custom_formula: y = x * tan(45.0°) - (9.8 * x²) / (2 * 20.0² * cos²(45.0°)), include_formula: False
+Generated 6 explanation chunks
+Cache: MISS → calculating new data...
+Physics calculated: max_height=10.2041, range=40.8163
+Calling Sarvam TTS API...
+TTS completed: audio_url=present
+Saved to database
+Cached result saved these are ok in code lets keep
+
+---
+
+no
+
+---
+
+but i want these response while running backend === Slider Changed ===
+angle: 45, velocity: 20, gravity: 9.8
+angle: 45, velocity: 20, gravity: 9.8, language: te-IN
+custom_formula: y = x * tan(45.0°) - (9.8 * x²) / (2 * 20.0² * cos²(45.0°)), include_formula: False
+Generated 6 explanation chunks
+Cache: MISS → calculating new data...
+Physics calculated: max_height=10.2041, range=40.8163
+Calling Sarvam TTS API...
+TTS completed: audio_url=present
+Saved to database
+Cached result saved these are ok in code lets keep
