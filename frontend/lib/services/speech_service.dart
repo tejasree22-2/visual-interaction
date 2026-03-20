@@ -72,7 +72,7 @@ class SpeechService {
           }
         }
       } catch (e) {
-        // Fallback to local TTS on error
+        print('Backend TTS failed: $e');
       }
     }
 
@@ -82,7 +82,6 @@ class SpeechService {
         '${_numberToWords(velocity)} m/s velocity tho launch avutundi. '
         'Maximum height: ${_numberToWords((velocity * velocity * math.sin(angle * math.pi / 180) * math.sin(angle * math.pi / 180)) / (2 * gravity))}. '
         'Range: ${_numberToWords((velocity * velocity * math.sin(2 * angle * math.pi / 180)) / gravity)}.';
-
     await _flutterTts.speak(explanation);
   }
 
@@ -219,7 +218,7 @@ class SpeechService {
           }
         }
       } catch (e) {
-        // Fallback to local TTS on error
+        print('Backend TTS failed: $e');
       }
     }
 
