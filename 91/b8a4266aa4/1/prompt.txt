@@ -1,0 +1,1 @@
+the error that is audio not found go through all the project and check what is the reason for this and the when we run the backend the log not shown error or not succed or not and i want that to
