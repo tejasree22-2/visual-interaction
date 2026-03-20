@@ -1,0 +1,38 @@
+{
+  "cli_version": "0.5.0",
+  "checkpoint_id": "91b8a4266aa4",
+  "session_id": "ses_2f60677c3ffePYHNA0aOQfM4bc",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-20T06:49:49.163453555Z",
+  "branch": "main",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "backend/app.py",
+    "backend/routes/simulation_routes.py",
+    "backend/services/cache_service.py",
+    "backend/services/speech_service.py",
+    "backend/services/supabase_client.py"
+  ],
+  "agent": "OpenCode",
+  "model": "big-pickle",
+  "turn_id": "4c0e73a864b8",
+  "token_usage": {
+    "input_tokens": 28311,
+    "cache_creation_tokens": 58947,
+    "cache_read_tokens": 1073427,
+    "output_tokens": 10898,
+    "api_call_count": 34
+  },
+  "session_metrics": {
+    "turn_count": 2
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-20T06:49:48.915511221Z",
+    "agent_lines": 543,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 543,
+    "agent_percentage": 100
+  }
+}
