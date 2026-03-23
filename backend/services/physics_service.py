@@ -1,7 +1,11 @@
 import math
+import logging
+
+logger = logging.getLogger('visual-interaction-backend.physics')
 
 
 def calculate_trajectory(angle, velocity, gravity):
+    logger.info(f"Calculating trajectory: angle={angle}, velocity={velocity}, gravity={gravity}")
     angle_rad = math.radians(angle)
     
     vx = velocity * math.cos(angle_rad)

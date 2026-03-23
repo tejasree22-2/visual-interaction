@@ -24,19 +24,18 @@ def _get_redis_client():
     redis_url = os.environ.get("REDIS_URL")
     
     if not redis_url:
-        logger.warning("REDIS: REDIS_URL not set - caching disabled")
+        logger.warning("Redis: REDIS_URL not set - caching disabled")
         return None
     
     try:
         import redis
-        logger.info("REDIS: Connecting...")
+        logger.info("Redis: Connecting...")
         _redis_client = redis.from_url(redis_url, decode_responses=True)
         _redis_client.ping()
-        logger.info("REDIS: Connected successfully")
+        logger.info("Redis: Connected successfully")
         return _redis_client
     except Exception as e:
-        logger.error(f"REDIS: Connection failed - {e}")
-        logger.error("REDIS: Caching is disabled. Simulation will always calculate new data.")
+        logger.error(f"Redis: Connection failed - {e}")
         _redis_client = None
         return None
 
@@ -49,10 +48,10 @@ def get_cached_result(key):
     try:
         cached = client.get(key)
         if cached and isinstance(cached, str):
-            logger.info(f"CACHE HIT: {key}")
+            logger.info(f"Cache: HIT - {key}")
             return json.loads(cached)
     except Exception as e:
-        logger.error(f"CACHE READ ERROR: {e}")
+        logger.error(f"Cache: Read error - {e}")
     return None
 
 
@@ -63,9 +62,9 @@ def set_cached_result(key, value):
     
     try:
         client.setex(key, CACHE_TTL, json.dumps(value))
-        logger.info(f"CACHE SAVED: {key} (TTL: {CACHE_TTL}s)")
+        logger.info(f"Cache: Saved - {key}")
     except Exception as e:
-        logger.error(f"CACHE WRITE ERROR: {e}")
+        logger.error(f"Cache: Write error - {e}")
 
 
 def clear_cache():
@@ -73,9 +72,9 @@ def clear_cache():
     if client:
         try:
             client.flushdb()
-            logger.info("CACHE: Cleared all cached data")
+            logger.info("Cache: Cleared")
         except Exception as e:
-            logger.error(f"CACHE CLEAR ERROR: {e}")
+            logger.error(f"Cache: Clear error - {e}")
 
 
 CHANGES_TTL = 7200
@@ -95,14 +94,14 @@ def track_user_change(session_id: str, changes: dict) -> dict:
     
     if session_id not in _changes_history:
         _changes_history[session_id] = []
-        logger.info(f"USER CHANGES: New session tracking started - {session_id}")
+        logger.info(f"New session tracking: {session_id}")
     
     _changes_history[session_id].append(change_entry)
     
     if len(_changes_history[session_id]) > 100:
         _changes_history[session_id] = _changes_history[session_id][-100:]
     
-    logger.info(f"USER CHANGES: [{session_id}] {change_entry['field']}: {change_entry['old_value']} → {change_entry['new_value']}")
+    logger.info(f"Track change: {change_entry['field']} = {change_entry['old_value']} → {change_entry['new_value']}")
     
     client = _get_redis_client()
     if client:
@@ -111,9 +110,8 @@ def track_user_change(session_id: str, changes: dict) -> dict:
             client.lpush(changes_key, json.dumps(change_entry))
             client.ltrim(changes_key, 0, 99)
             client.expire(changes_key, CHANGES_TTL)
-            logger.info(f"CACHE: User changes saved for session {session_id}")
         except Exception as e:
-            logger.error(f"CACHE: Failed to save user changes - {e}")
+            logger.error(f"Cache: Failed to save user changes - {e}")
     
     return change_entry
 
@@ -126,10 +124,9 @@ def get_user_changes(session_id: str, limit: int = 50) -> list:
             changes_key = f"user_changes:{session_id}"
             cached_changes = client.lrange(changes_key, 0, limit - 1)
             if cached_changes:
-                logger.info(f"CACHE: Retrieved {len(cached_changes)} cached changes for session {session_id}")
                 return [json.loads(c) for c in cached_changes]
         except Exception as e:
-            logger.error(f"CACHE: Failed to retrieve user changes - {e}")
+            logger.error(f"Cache: Failed to retrieve user changes - {e}")
     
     return _changes_history.get(session_id, [])[-limit:]
 
@@ -139,13 +136,12 @@ def clear_user_changes(session_id: str):
     
     if session_id in _changes_history:
         del _changes_history[session_id]
-        logger.info(f"USER CHANGES: Cleared history for session {session_id}")
+        logger.info(f"Cleared history for session: {session_id}")
     
     client = _get_redis_client()
     if client:
         try:
             changes_key = f"user_changes:{session_id}"
             client.delete(changes_key)
-            logger.info(f"CACHE: Deleted cached changes for session {session_id}")
         except Exception as e:
-            logger.error(f"CACHE: Failed to clear user changes - {e}")
+            logger.error(f"Cache: Failed to clear user changes - {e}")

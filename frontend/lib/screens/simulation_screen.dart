@@ -52,7 +52,7 @@ class _SimulationScreenState extends State<SimulationScreen> {
         velocity: _model.velocity,
         gravity: _model.gravity,
         customFormula: formula,
-        language: 'te-IN',
+        language: 'en-IN',
       );
       setState(() {
         _isPlaying = true;
@@ -102,7 +102,7 @@ class _SimulationScreenState extends State<SimulationScreen> {
                     velocity: _model.velocity,
                     gravity: _model.gravity,
                     customFormula: _model.customFormula,
-                    language: 'te-IN',
+                    language: 'en-IN',
                   ),
                 ],
               ),

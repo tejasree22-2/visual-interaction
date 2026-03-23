@@ -26,7 +26,7 @@ class SpeechService {
   }
 
   Future<void> _initTts() async {
-    await _flutterTts.setLanguage("te-IN");
+    await _flutterTts.setLanguage("en-IN");
     await _flutterTts.setSpeechRate(0.5);
     await _flutterTts.setVolume(1.0);
     await _flutterTts.setPitch(1.0);
@@ -41,8 +41,9 @@ class SpeechService {
     required double velocity,
     required double gravity,
     required String customFormula,
-    String language = 'te-IN',
+    String language = 'en-IN',
   }) async {
+    print('Calling Sarvam TTS API...');
     if (_useBackendTts) {
       try {
         final response = await http
@@ -65,6 +66,7 @@ class SpeechService {
           final data = jsonDecode(response.body);
           final audioUrl = data['speech_audio_url'];
           if (audioUrl != null && audioUrl.isNotEmpty) {
+            print('TTS completed: audio_url=present');
             await _audioPlayer.stop();
             await _audioPlayer.setSourceUrl(ApiService.getMediaUrl(audioUrl));
             await _audioPlayer.resume();
@@ -72,7 +74,7 @@ class SpeechService {
           }
         }
       } catch (e) {
-        print('Backend TTS failed: $e');
+        print('TTS failed: $e');
       }
     }
 
@@ -82,6 +84,7 @@ class SpeechService {
         '${_numberToWords(velocity)} m/s velocity tho launch avutundi. '
         'Maximum height: ${_numberToWords((velocity * velocity * math.sin(angle * math.pi / 180) * math.sin(angle * math.pi / 180)) / (2 * gravity))}. '
         'Range: ${_numberToWords((velocity * velocity * math.sin(2 * angle * math.pi / 180)) / gravity)}.';
+    print('TTS completed: using Flutter TTS fallback');
     await _flutterTts.speak(explanation);
   }
 

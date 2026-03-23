@@ -7,7 +7,7 @@ class ApiService {
     if (kIsWeb) {
       return 'https://visual-interaction-api.9622.online';
     }
-    return 'http://10.0.2.2:5000';
+    return 'http://127.0.0.1:5000';
   }
 
   static String get apiBaseUrl => baseUrl;
@@ -22,13 +22,16 @@ class ApiService {
   Future<Map<String, dynamic>> getSimulationData(
       Map<String, dynamic> params) async {
     try {
+      print('Calling Sarvam TTS API...');
       final response = await http.post(
         Uri.parse('$baseUrl/api/simulation'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(params),
       );
+      print('TTS completed: audio_url=present');
       return jsonDecode(response.body);
     } catch (e) {
+      print('TTS failed: $e');
       return {'error': e.toString()};
     }
   }

@@ -15,7 +15,7 @@ def get_db_connection():
     connection_string = os.environ.get("SUPABASE_CONNECTION_STRING")
     if not connection_string:
         if not _db_initialized:
-            logger.warning("DATABASE: SUPABASE_CONNECTION_STRING not set - database disabled")
+            logger.warning("Database: SUPABASE_CONNECTION_STRING not set")
             _db_initialized = True
         return None
     
@@ -25,13 +25,12 @@ def get_db_connection():
     try:
         conn = psycopg2.connect(connection_string)
         if not _db_initialized:
-            logger.info("DATABASE: Connected to Supabase PostgreSQL")
+            logger.info("Database: Connected to Supabase PostgreSQL")
             _db_initialized = True
         _db_available = True
         return conn
     except Exception as e:
-        logger.error(f"DATABASE: Connection failed - {e}")
-        logger.warning("DATABASE: Simulation data will not be saved to database")
+        logger.error(f"Database: Connection failed - {e}")
         _db_initialized = True
         _db_available = False
         return None
@@ -40,7 +39,6 @@ def get_db_connection():
 def store_simulation(angle: float, velocity: float, gravity: float) -> dict | None:
     conn = get_db_connection()
     if not conn:
-        logger.warning(f"DATABASE: Skipping save for simulation (angle={angle}, velocity={velocity}, gravity={gravity})")
         return None
     
     try:
@@ -50,10 +48,10 @@ def store_simulation(angle: float, velocity: float, gravity: float) -> dict | No
                 (angle, velocity, gravity)
             )
             conn.commit()
-            logger.info(f"DATABASE: Saved simulation (angle={angle}, velocity={velocity}, gravity={gravity})")
+            logger.info(f"Database: Saved simulation (angle={angle}, velocity={velocity}, gravity={gravity})")
             return {"success": True}
     except Exception as e:
-        logger.error(f"DATABASE: Error saving simulation - {e}")
+        logger.error(f"Database: Error saving simulation - {e}")
         return None
     finally:
         if conn:

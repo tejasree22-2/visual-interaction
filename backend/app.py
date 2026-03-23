@@ -1,4 +1,4 @@
-from flask import Flask, send_from_directory, make_response
+from flask import Flask, send_from_directory, make_response, request
 from flask_cors import CORS
 from routes.simulation_routes import simulation_bp
 from dotenv import load_dotenv
@@ -12,33 +12,16 @@ load_dotenv()
 app = Flask(__name__)
 CORS(app)
 
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s | %(levelname)-8s | %(name)s | %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S',
-    handlers=[logging.StreamHandler(sys.stdout)]
-)
 logger = logging.getLogger('visual-interaction-backend')
+logger.setLevel(logging.INFO)
 
 media_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "media")
 os.makedirs(media_dir, exist_ok=True)
 
 app.register_blueprint(simulation_bp, url_prefix='/api')
 
-logger.info("=" * 60)
-logger.info("  Visual Interaction Backend Starting...")
-logger.info("=" * 60)
-logger.info(f"  Time: {datetime.now().isoformat()}")
-logger.info(f"  Flask Env: {os.getenv('FLASK_ENV', 'not set')}")
-logger.info(f"  Media Directory: {media_dir}")
-logger.info(f"  Redis URL: {'configured' if os.getenv('REDIS_URL') else 'NOT CONFIGURED'}")
-logger.info(f"  Supabase: {'configured' if os.getenv('SUPABASE_CONNECTION_STRING') else 'NOT CONFIGURED'}")
-logger.info(f"  Sarvam API: {'configured' if os.getenv('SARVAM_API_KEY') else 'NOT CONFIGURED'}")
-logger.info("=" * 60)
-logger.info("  Server ready at http://0.0.0.0:5000")
-logger.info("  Health check: http://0.0.0.0:5000/health")
-logger.info("  API endpoints: /api/simulation, /api/chunks")
-logger.info("=" * 60)
+logger.info("Visual Interaction Backend Starting...")
+logger.info(f"Server ready at http://0.0.0.0:5000")
 
 @app.before_request
 def log_request():
@@ -88,8 +71,14 @@ def health():
     if not (pydub_ok and ffmpeg_ok and sarvam_ok):
         health_status['warnings'] = 'Some audio services may not work properly'
     
-    logger.info(f"Health check: OK - {health_status}")
+    logger.info(f"Health check: OK")
     return health_status
+
+@app.route('/test-text')
+def test_text():
+    from services.speech_service import generate_explanation_text
+    text = generate_explanation_text(45, 20, 9.81)
+    return {'text': text, 'length': len(text)}
 
 @app.route('/media/<path:filename>')
 def serve_media(filename):
@@ -112,7 +101,7 @@ def serve_media(filename):
     }
     mimetype = mime_types.get(ext, 'application/octet-stream')
     
-    logger.info(f"MEDIA 200: Serving {filename} as {mimetype}")
+    logger.info(f"MEDIA: Serving {filename}")
     
     response = make_response(send_from_directory(media_dir, filename))
     response.headers['Content-Type'] = mimetype
@@ -120,7 +109,5 @@ def serve_media(filename):
     return response
 
 if __name__ == '__main__':
-    from flask import request
-    logger.info("Starting Flask development server...")
-    logger.info("=" * 60)
-    app.run(debug=True, host='0.0.0.0', port=5000, threaded=True)
+    logger.info("Starting Flask development server on http://0.0.0.0:5000")
+    app.run(debug=False, host='0.0.0.0', port=5000, threaded=True, use_reloader=False)

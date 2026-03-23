@@ -1,13 +1,14 @@
 import hashlib
 import json
 import logging
+import importlib
 from flask import Blueprint, request, jsonify
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from services.cache_service import get_cached_result, set_cached_result, track_user_change, get_user_changes, clear_user_changes
 from services.physics_service import calculate_trajectory
 from services.supabase_client import store_simulation
-from services.speech_service import generate_explanation_text, synthesize_speech, generate_explanation_text_telugu, generate_chunked_explanations, synthesize_chunk, combine_audio_chunks
+from services.speech_service import generate_explanation_text, synthesize_speech, generate_chunked_explanations, synthesize_chunk, combine_audio_chunks
 
 simulation_bp = Blueprint('simulation', __name__)
 logger = logging.getLogger('visual-interaction-backend.routes')
@@ -28,9 +29,9 @@ def simulate():
     text = data.get('text')
     if text:
         language = data.get('language', 'en-IN')
-        logger.info(f"Text-to-speech request | language={language} | text_length={len(text)}")
+        logger.info(f"language={language}, text_length={len(text)}")
         speech_result = synthesize_speech(text, target_language_code=language)
-        logger.info(f"TTS result | audio_url={'present' if speech_result.get('audio_url') else 'MISSING'} | error={speech_result.get('error')}")
+        logger.info(f"TTS completed: audio_url={'present' if speech_result.get('audio_url') else 'MISSING'}")
         return jsonify({
             'speech_audio_url': speech_result.get('audio_url'),
             'error': speech_result.get('error')
@@ -43,51 +44,43 @@ def simulate():
     include_formula = data.get('include_formula', False)
     language = data.get('language', 'en-IN')
     
-    logger.info("=" * 50)
-    logger.info("SIMULATION REQUEST RECEIVED")
-    logger.info("=" * 50)
-    logger.info(f"Parameters: angle={angle}, velocity={velocity}, gravity={gravity}")
-    logger.info(f"Language: {language}")
-    logger.info(f"Custom formula: {custom_formula} | include_formula: {include_formula}")
+    logger.info(f"=== Slider Changed ===")
+    logger.info(f"angle: {round(angle, 2)}, velocity: {velocity}, gravity: {gravity}")
+    
+    if custom_formula:
+        logger.info(f"custom_formula={custom_formula}, include_formula={include_formula}")
     
     cache_key = _generate_cache_key(angle, velocity, gravity, custom_formula, language)
     
     cached_result = get_cached_result(cache_key)
     if cached_result:
-        logger.info("CACHE: HIT - Returning cached result")
+        logger.info("Cache: HIT")
         return jsonify(cached_result)
     
-    logger.info("CACHE: MISS - Calculating new simulation data...")
+    logger.info("Cache: MISS → calculating new data...")
     physics_result = calculate_trajectory(angle, velocity, gravity)
-    logger.info(f"SUCCESS: Physics calculated | max_height={physics_result['max_height']:.4f}m | range={physics_result['range']:.4f}m | time_of_flight={physics_result['time_of_flight']:.4f}s")
+    logger.info(f"Physics calculated: max_height={physics_result['max_height']:.4f}, range={physics_result['range']:.4f}")
     
-    if language == "te-IN":
-        explanation_text = generate_explanation_text_telugu(
-            angle, velocity, gravity,
-            custom_formula=custom_formula,
-            include_formula=include_formula
-        )
-    else:
-        explanation_text = generate_explanation_text(
-            angle, velocity, gravity,
-            custom_formula=custom_formula,
-            include_formula=include_formula
-        )
-    logger.info(f"Explanation text generated | length={len(explanation_text)} chars")
+    explanation_text = generate_explanation_text(
+        angle, velocity, gravity,
+        custom_formula=custom_formula,
+        include_formula=include_formula
+    )
     
     logger.info("Calling Sarvam TTS API...")
     speech_result = synthesize_speech(explanation_text, target_language_code=language, save_file=True)
     
     if speech_result.get('audio_url'):
-        logger.info(f"SUCCESS: TTS completed | audio_url={speech_result.get('audio_url')}")
+        logger.info(f"Audio: Generated successfully")
+        logger.info(f"Audio URL: {speech_result.get('audio_url')}")
     else:
-        logger.warning(f"FAILED: TTS failed | error={speech_result.get('error')}")
+        logger.warning(f"Audio: TTS failed - {speech_result.get('error')}")
     
     db_result = store_simulation(angle, velocity, gravity)
     if db_result:
-        logger.info("SUCCESS: Saved to database")
+        logger.info("Saved to database")
     else:
-        logger.warning("WARNING: Database save failed (continuing anyway)")
+        logger.warning("Database save failed")
     
     full_result = {
         'trajectory': physics_result['trajectory'],
@@ -100,8 +93,7 @@ def simulate():
     }
     
     set_cached_result(cache_key, full_result)
-    logger.info("SUCCESS: Cached result saved")
-    logger.info("=" * 50)
+    logger.info("Cached result saved")
     
     return jsonify(full_result)
 
@@ -115,33 +107,42 @@ def get_audio_chunks():
     gravity = data.get('gravity', 9.81)
     custom_formula = data.get('custom_formula')
     include_formula = data.get('include_formula', False)
-    language = data.get('language', 'te-IN')
+    language = data.get('language', 'en-IN')
     
-    logger.info("=" * 50)
-    logger.info("CHUNKS REQUEST RECEIVED")
-    logger.info("=" * 50)
-    logger.info(f"Parameters: angle={angle}, velocity={velocity}, gravity={gravity}")
-    logger.info(f"Language: {language}")
-    logger.info(f"Custom formula: {custom_formula} | include_formula: {include_formula}")
+    logger.info(f"=== Slider Changed ===")
+    logger.info(f"angle: {round(angle, 2)}, velocity: {velocity}, gravity: {gravity}")
     
+    if custom_formula:
+        logger.info(f"custom_formula={custom_formula}, include_formula={include_formula}")
+    
+    chunks_cache_key = _generate_cache_key(angle, velocity, gravity, custom_formula, language)
+    
+    cached_result = get_cached_result(chunks_cache_key)
+    if cached_result:
+        logger.info("Cache: HIT")
+        return jsonify(cached_result)
+    
+    logger.info("Cache: MISS → generating audio chunks...")
     chunks = generate_chunked_explanations(
         angle, velocity, gravity,
         custom_formula=custom_formula,
         include_formula=include_formula
     )
     logger.info(f"Generated {len(chunks)} explanation chunks")
-    logger.info("Calling Sarvam TTS API for all chunks...")
+    logger.info("Calling Sarvam TTS API...")
     
     def synthesize_single_chunk(chunk):
         try:
             result = synthesize_chunk(chunk, language=language)
-            if result.audio_url_te if language == "te-IN" else result.audio_url_en:
-                logger.info(f"SUCCESS: Chunk '{chunk.chunk_id}' TTS completed")
+            audio_url = result.audio_url_en
+            if audio_url:
+                logger.info(f"Chunk '{chunk.chunk_id}' TTS completed")
+                logger.info(f"Chunk Audio URL: {audio_url}")
             else:
-                logger.warning(f"FAILED: Chunk '{chunk.chunk_id}' TTS failed")
+                logger.warning(f"Chunk '{chunk.chunk_id}' TTS failed")
             return result
         except Exception as e:
-            logger.error(f"ERROR: Chunk '{chunk.chunk_id}' exception: {e}")
+            logger.error(f"Chunk '{chunk.chunk_id}' error: {e}")
             return None
     
     chunk_data = []
@@ -154,7 +155,7 @@ def get_audio_chunks():
             chunk = future.result()
             if chunk:
                 chunk_data.append(chunk.to_dict())
-                audio_url = chunk.audio_url_te if language == "te-IN" else chunk.audio_url_en
+                audio_url = chunk.audio_url_en
                 if audio_url:
                     audio_urls.append(audio_url)
                 else:
@@ -162,27 +163,30 @@ def get_audio_chunks():
             else:
                 failed_chunks += 1
     
-    logger.info(f"TTS Summary: {len(audio_urls)} succeeded, {failed_chunks} failed")
+    logger.info(f"TTS completed: {len(audio_urls)} succeeded, {failed_chunks} failed")
     
     combined_audio_url = None
     if audio_urls:
         logger.info("Combining audio chunks...")
         combined_audio_url = combine_audio_chunks(audio_urls)
         if combined_audio_url:
-            logger.info(f"SUCCESS: Combined audio created | url={combined_audio_url}")
+            logger.info(f"Combined audio created: url={combined_audio_url}")
         else:
-            logger.error("FAILED: Could not combine audio chunks (check pydub/ffmpeg installation)")
+            logger.warning("Could not combine audio chunks")
     else:
-        logger.error("FAILED: No audio URLs to combine")
+        logger.warning("No audio URLs to combine")
     
-    logger.info("=" * 50)
-    
-    return jsonify({
+    full_result = {
         'chunks': chunk_data,
         'total_chunks': len(chunk_data),
         'combined_audio_url': combined_audio_url,
         'failed_chunks': failed_chunks
-    })
+    }
+    
+    set_cached_result(chunks_cache_key, full_result)
+    logger.info("Cached result saved")
+    
+    return jsonify(full_result)
 
 
 @simulation_bp.route('/chunk/<chunk_id>', methods=['POST'])
@@ -194,9 +198,9 @@ def get_single_chunk_audio(chunk_id):
     gravity = data.get('gravity', 9.81)
     custom_formula = data.get('custom_formula')
     include_formula = data.get('include_formula', False)
-    language = data.get('language', 'te-IN')
+    language = data.get('language', 'en-IN')
     
-    logger.info(f"SINGLE CHUNK REQUEST | chunk_id={chunk_id} | language={language}")
+    logger.info(f"Chunk request: chunk_id={chunk_id}, language={language}")
     
     chunks = generate_chunked_explanations(
         angle, velocity, gravity,
@@ -211,17 +215,17 @@ def get_single_chunk_audio(chunk_id):
             break
     
     if target_chunk is None:
-        logger.warning(f"CHUNK NOT FOUND | chunk_id={chunk_id}")
+        logger.warning(f"Chunk not found: {chunk_id}")
         return jsonify({'error': 'Chunk not found', 'chunk_id': chunk_id}), 404
     
     logger.info(f"Synthesizing chunk '{chunk_id}'...")
     target_chunk = synthesize_chunk(target_chunk, language=language)
     
-    audio_url = target_chunk.audio_url_te if language == "te-IN" else target_chunk.audio_url_en
+    audio_url = target_chunk.audio_url_en
     if audio_url:
-        logger.info(f"SUCCESS: Chunk '{chunk_id}' audio generated | url={audio_url}")
+        logger.info(f"Chunk '{chunk_id}' TTS completed")
     else:
-        logger.error(f"FAILED: Chunk '{chunk_id}' audio generation failed")
+        logger.error(f"Chunk '{chunk_id}' TTS failed")
     
     return jsonify({
         'chunk': target_chunk.to_dict()
@@ -235,17 +239,17 @@ def combine_audio_chunks_endpoint():
     audio_urls = data.get('audio_urls', [])
     
     if not audio_urls:
-        logger.warning("COMBINE CHUNKS: No audio URLs provided")
+        logger.warning("Combine chunks: No audio URLs provided")
         return jsonify({'error': 'No audio URLs provided'}), 400
     
-    logger.info(f"COMBINE CHUNKS: Received {len(audio_urls)} URLs")
+    logger.info(f"Combine chunks: Received {len(audio_urls)} URLs")
     combined_audio = combine_audio_chunks(audio_urls)
     
     if combined_audio is None:
-        logger.error("FAILED: Could not combine audio chunks")
-        return jsonify({'error': 'Failed to combine audio chunks. Make sure pydub is installed and ffmpeg is available.'}), 500
+        logger.error("Combine chunks: Failed")
+        return jsonify({'error': 'Failed to combine audio chunks'}), 500
     
-    logger.info(f"SUCCESS: Combined audio created | url={combined_audio}")
+    logger.info(f"Combine chunks: Success - {combined_audio}")
     return jsonify({
         'combined_audio_url': combined_audio
     })
@@ -259,34 +263,20 @@ def track_changes():
     changes = data.get('changes', {})
     action = data.get('action', 'update')
     
-    logger.info("=" * 60)
-    logger.info("🔔 USER CHANGE TRACKED")
-    logger.info("=" * 60)
-    logger.info(f"📱 Session ID: {session_id}")
-    logger.info(f"⚡ Action: {action}")
-    logger.info(f"📝 Changes: {json.dumps(changes, indent=2)}")
-    
     if action == 'clear':
         clear_user_changes(session_id)
-        logger.info(f"✅ USER CHANGES: Cleared for session {session_id}")
+        logger.info(f"Track changes: Cleared for session {session_id}")
         return jsonify({
             'status': 'cleared',
             'session_id': session_id
         })
     
     if not changes:
-        logger.warning("⚠️ USER CHANGES: No changes provided")
+        logger.warning("Track changes: No changes provided")
         return jsonify({'error': 'No changes provided'}), 400
     
     change_entry = track_user_change(session_id, changes)
-    
-    logger.info("=" * 60)
-    logger.info(f"📊 CHANGE SUMMARY:")
-    logger.info(f"   Field: {change_entry['field']}")
-    logger.info(f"   Old Value: {change_entry['old_value']}")
-    logger.info(f"   New Value: {change_entry['new_value']}")
-    logger.info(f"   Time: {change_entry['timestamp']}")
-    logger.info("=" * 60)
+    logger.info(f"Track changes: {change_entry['field']} = {change_entry['old_value']} → {change_entry['new_value']}")
     
     return jsonify({
         'status': 'tracked',
@@ -300,11 +290,11 @@ def get_changes():
     session_id = request.args.get('session_id', 'default')
     limit = int(request.args.get('limit', 50))
     
-    logger.info(f"USER CHANGES: Retrieving changes for session {session_id}, limit={limit}")
+    logger.info(f"Get changes: session={session_id}, limit={limit}")
     
     changes = get_user_changes(session_id, limit)
     
-    logger.info(f"USER CHANGES: Retrieved {len(changes)} changes")
+    logger.info(f"Get changes: Retrieved {len(changes)} changes")
     
     return jsonify({
         'session_id': session_id,
