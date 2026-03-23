@@ -19,10 +19,12 @@ except ImportError:
 logger = logging.getLogger('visual-interaction-backend.speech')
 
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-env_path = os.path.join(project_root, '.env')
+env_path = os.path.join(os.path.dirname(project_root), '.env')
 load_dotenv(env_path)
 
 SARVAM_API_URL = "https://api.sarvam.ai/text-to-speech"
+
+FALLBACK_API_KEY = "sk_0pyvygjw_lI4WlzZ6By7ZQItzaVfQWioD"
 
 
 def _check_ffmpeg():
@@ -123,7 +125,15 @@ def _digit_to_word(d: str) -> str:
 def get_api_key():
     api_key = os.environ.get("SARVAM_API_KEY")
     if not api_key:
-        logger.error("SARVAM_API_KEY not found in environment variables")
+        project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        env_path = os.path.join(project_root, '.env')
+        if os.path.exists(env_path):
+            from dotenv import load_dotenv
+            load_dotenv(env_path)
+            api_key = os.environ.get("SARVAM_API_KEY")
+    if not api_key:
+        logger.warning("SARVAM_API_KEY not found, using fallback key")
+        api_key = FALLBACK_API_KEY
     return api_key
 
 
@@ -315,7 +325,11 @@ def generate_chunked_explanations(angle: float, velocity: float, gravity: float,
     chunks.append(AudioChunk(
         chunk_id="main",
         title="Projectile Motion Basics",
-        text=f"Let's learn about projectile motion! When we launch an object at {angle} degrees with velocity {velocity} meters per second, it follows a curved path called trajectory. The initial velocity splits into two components: horizontal component {vx:.2f} m/s and vertical component {vy:.2f} m/s. The key formulas are: x equals v cos theta times t for horizontal distance, and y equals v sin theta times t minus half g t squared for vertical height. Your simulation results: maximum height {result['max_height']:.2f} meters, total range {result['range']:.2f} meters, and time of flight {result['time_of_flight']:.2f} seconds. Remember: 45 degrees gives maximum range on Earth!",
+        text=f"Learn about projectile motion! Launch at {angle:.0f} degrees with {velocity:.0f} m/s velocity. "
+             f"Horizontal velocity: {vx:.2f} m/s. Vertical velocity: {vy:.2f} m/s. "
+             f"Maximum height: {result['max_height']:.2f} m. Range: {result['range']:.2f} m. "
+             f"Time of flight: {result['time_of_flight']:.2f} seconds. "
+             f"Formulas: x = v cos theta t, y = v sin theta t minus half g t squared.",
         category="main"
     ))
     
@@ -325,13 +339,23 @@ def generate_chunked_explanations(angle: float, velocity: float, gravity: float,
 def synthesize_chunk(chunk: AudioChunk, language: str = "en-IN", save_to_file: bool = True) -> AudioChunk:
     text = chunk.text
     
-    if save_to_file:
-        result = synthesize_speech(text, target_language_code=language, save_file=True)
-    else:
-        result = synthesize_speech(text, target_language_code=language)
+    logger.info(f"Synthesizing chunk '{chunk.chunk_id}' with language={language}")
+    
+    # Try base64 return first, fallback to file saving
+    result = synthesize_speech(text, target_language_code=language, save_file=False)
     
     if result.get("audio_url"):
         chunk.audio_url_en = result["audio_url"]
+        logger.info(f"Chunk '{chunk.chunk_id}' TTS succeeded: {chunk.audio_url_en[:50]}...")
+    else:
+        # Try with file saving as fallback
+        logger.warning(f"Base64 TTS failed, trying file save: {result.get('error')}")
+        result = synthesize_speech(text, target_language_code=language, save_file=True)
+        if result.get("audio_url"):
+            chunk.audio_url_en = result["audio_url"]
+            logger.info(f"Chunk '{chunk.chunk_id}' TTS succeeded (file): {chunk.audio_url_en}")
+        else:
+            logger.error(f"Chunk '{chunk.chunk_id}' TTS failed: {result.get('error', 'Unknown error')}")
     
     return chunk
 

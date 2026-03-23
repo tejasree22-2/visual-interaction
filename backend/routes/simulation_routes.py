@@ -100,6 +100,8 @@ def simulate():
 
 @simulation_bp.route('/chunks', methods=['POST'])
 def get_audio_chunks():
+    from services.speech_service import get_api_key
+    
     data = request.get_json() or {}
     
     angle = data.get('angle', 45)
@@ -108,8 +110,11 @@ def get_audio_chunks():
     custom_formula = data.get('custom_formula')
     include_formula = data.get('include_formula', False)
     language = data.get('language', 'en-IN')
+    bypass_cache = data.get('bypass_cache', False)
     
-    logger.info(f"=== Slider Changed ===")
+    api_key = get_api_key()
+    logger.info(f"=== CHUNKS REQUEST ===")
+    logger.info(f"API key loaded: {bool(api_key)}")
     logger.info(f"angle: {round(angle, 2)}, velocity: {velocity}, gravity: {gravity}")
     
     if custom_formula:
@@ -117,22 +122,35 @@ def get_audio_chunks():
     
     chunks_cache_key = _generate_cache_key(angle, velocity, gravity, custom_formula, language)
     
-    cached_result = get_cached_result(chunks_cache_key)
-    if cached_result:
-        logger.info("Cache: HIT")
-        return jsonify(cached_result)
+    if not bypass_cache:
+        cached_result = get_cached_result(chunks_cache_key)
+        if cached_result:
+            if cached_result.get('combined_audio_url') or (cached_result.get('chunks') and any(c.get('audio_url_en') for c in cached_result['chunks'])):
+                logger.info("Cache: HIT with audio")
+                return jsonify(cached_result)
+            logger.info("Cache: HIT but no audio, regenerating...")
     
     logger.info("Cache: MISS → generating audio chunks...")
-    chunks = generate_chunked_explanations(
-        angle, velocity, gravity,
-        custom_formula=custom_formula,
-        include_formula=include_formula
-    )
+    try:
+        chunks = generate_chunked_explanations(
+            angle, velocity, gravity,
+            custom_formula=custom_formula,
+            include_formula=include_formula
+        )
+    except Exception as e:
+        logger.error(f"Failed to generate chunks: {e}")
+        return jsonify({'error': f'Failed to generate explanation chunks: {str(e)}'}), 500
+    
     logger.info(f"Generated {len(chunks)} explanation chunks")
     logger.info("Calling Sarvam TTS API...")
+    logger.info(f"Using language: {language}")
     
     def synthesize_single_chunk(chunk):
         try:
+            from services.speech_service import get_api_key
+            api_key_check = get_api_key()
+            logger.info(f"Inside synthesize - API key loaded: {bool(api_key_check)}")
+            
             result = synthesize_chunk(chunk, language=language)
             audio_url = result.audio_url_en
             if audio_url:
@@ -165,16 +183,26 @@ def get_audio_chunks():
     
     logger.info(f"TTS completed: {len(audio_urls)} succeeded, {failed_chunks} failed")
     
+    if failed_chunks == len(chunks):
+        logger.error("All chunks failed TTS synthesis")
+        return jsonify({'error': 'Failed to synthesize audio for all chunks'}), 500
+    
     combined_audio_url = None
     if audio_urls:
         logger.info("Combining audio chunks...")
-        combined_audio_url = combine_audio_chunks(audio_urls)
-        if combined_audio_url:
-            logger.info(f"Combined audio created: url={combined_audio_url}")
-        else:
-            logger.warning("Could not combine audio chunks")
+        try:
+            combined_audio_url = combine_audio_chunks(audio_urls)
+            if combined_audio_url:
+                logger.info(f"Combined audio created: url={combined_audio_url}")
+            else:
+                logger.warning("Could not combine audio chunks")
+                return jsonify({'error': 'Failed to combine audio chunks'}), 500
+        except Exception as e:
+            logger.error(f"Error combining audio chunks: {e}")
+            return jsonify({'error': f'Failed to combine audio: {str(e)}'}), 500
     else:
         logger.warning("No audio URLs to combine")
+        return jsonify({'error': 'No audio generated'}), 500
     
     full_result = {
         'chunks': chunk_data,

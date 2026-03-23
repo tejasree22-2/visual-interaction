@@ -33,6 +33,8 @@ class SimulationModel extends ChangeNotifier {
   double get maxHeightBackend => _maxHeight;
   double get range => _range;
   double get timeOfFlight => _timeOfFlight;
+  double get horizontalVelocity => _velocity * math.cos(_angle * math.pi / 180);
+  double get verticalVelocity => _velocity * math.sin(_angle * math.pi / 180);
 
   void _calculateTrajectoryLocally() {
     final angleRad = _angle * math.pi / 180;

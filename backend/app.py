@@ -76,9 +76,10 @@ def health():
 
 @app.route('/test-text')
 def test_text():
-    from services.speech_service import generate_explanation_text
+    from services.speech_service import generate_explanation_text, get_api_key
     text = generate_explanation_text(45, 20, 9.81)
-    return {'text': text, 'length': len(text)}
+    api_key = get_api_key()
+    return {'text': text, 'length': len(text), 'api_key_loaded': bool(api_key)}
 
 @app.route('/media/<path:filename>')
 def serve_media(filename):

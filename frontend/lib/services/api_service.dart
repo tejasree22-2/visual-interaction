@@ -14,7 +14,9 @@ class ApiService {
 
   static String getMediaUrl(String path) {
     if (path.startsWith('/media/')) {
-      return '$baseUrl$path';
+      final url = '$baseUrl$path';
+      print('getMediaUrl: $path -> $url');
+      return url;
     }
     return path;
   }

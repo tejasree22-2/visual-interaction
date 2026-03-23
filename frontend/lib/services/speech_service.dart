@@ -21,7 +21,9 @@ class SpeechService {
     _audioPlayer.setPlayerMode(PlayerMode.lowLatency);
     _audioPlayer.setReleaseMode(ReleaseMode.stop);
     _audioPlayer.onPlayerComplete.listen((_) {
-      _onComplete?.call();
+      if (_onComplete != null) {
+        _onComplete!();
+      }
     });
   }
 
@@ -60,7 +62,7 @@ class SpeechService {
                 'language': language,
               }),
             )
-            .timeout(const Duration(seconds: 15));
+            .timeout(const Duration(seconds: 30));
 
         if (response.statusCode == 200) {
           final data = jsonDecode(response.body);
@@ -73,18 +75,39 @@ class SpeechService {
             return;
           }
         }
+        print('Backend TTS returned empty audio URL');
       } catch (e) {
-        print('TTS failed: $e');
+        print('Backend TTS failed: $e');
       }
     }
 
-    final formulaText = _convertFormulaToSpeech(customFormula);
-    final explanation = 'Formula: $formulaText. '
-        'Ipudu i simulation lo, projectile ${_numberToWords(angle)} degrees angle daari, '
-        '${_numberToWords(velocity)} m/s velocity tho launch avutundi. '
-        'Maximum height: ${_numberToWords((velocity * velocity * math.sin(angle * math.pi / 180) * math.sin(angle * math.pi / 180)) / (2 * gravity))}. '
-        'Range: ${_numberToWords((velocity * velocity * math.sin(2 * angle * math.pi / 180)) / gravity)}.';
-    print('TTS completed: using Flutter TTS fallback');
+    await _speakFallbackWithTts(angle, velocity, gravity, customFormula);
+  }
+
+  Future<void> _speakFallbackWithTts(double angle, double velocity,
+      double gravity, String customFormula) async {
+    print('Using Flutter TTS fallback');
+    double maxHeight = (velocity *
+            velocity *
+            math.sin(angle * math.pi / 180) *
+            math.sin(angle * math.pi / 180)) /
+        (2 * gravity);
+    double range =
+        (velocity * velocity * math.sin(2 * angle * math.pi / 180)) / gravity;
+
+    String formulaText =
+        customFormula.isNotEmpty ? _convertFormulaToSpeech(customFormula) : '';
+
+    String explanation = '';
+    if (formulaText.isNotEmpty) {
+      explanation += 'The projectile motion formula is: $formulaText. ';
+    }
+    explanation +=
+        'In this simulation, the projectile is launched at an angle of ${angle.toStringAsFixed(1)} degrees '
+        'with an initial velocity of ${velocity.toStringAsFixed(1)} meters per second. '
+        'The maximum height reached is ${maxHeight.toStringAsFixed(2)} meters. '
+        'The total range covered is ${range.toStringAsFixed(2)} meters.';
+
     await _flutterTts.speak(explanation);
   }
 
@@ -220,6 +243,9 @@ class SpeechService {
             return;
           }
         }
+        final errorData = jsonDecode(response.body);
+        print(
+            'Backend TTS error: ${response.statusCode} - ${errorData['error'] ?? 'Unknown error'}');
       } catch (e) {
         print('Backend TTS failed: $e');
       }
