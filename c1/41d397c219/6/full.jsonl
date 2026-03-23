@@ -1,0 +1,623 @@
+{
+  "info": {
+    "id": "ses_2f5d7121fffeLv92abMCcy6k3y",
+    "slug": "crisp-cabin",
+    "projectID": "0eddc3b0503d540472052df40a9e122b14441051",
+    "directory": "/home/tejasree/visual-task/visual-interaction",
+    "title": "Flask dev server startup and restart behavior",
+    "version": "1.2.27",
+    "summary": {
+      "additions": 2,
+      "deletions": 9,
+      "files": 1
+    },
+    "time": {
+      "created": 1773991947745,
+      "updated": 1773992090338
+    }
+  },
+  "messages": [
+    {
+      "info": {
+        "role": "user",
+        "time": {
+          "created": 1773991947767
+        },
+        "summary": {
+          "diffs": [
+            {
+              "file": "backend/app.py",
+              "before": "from flask import Flask, send_from_directory, make_response, request\nfrom flask_cors import CORS\nfrom routes.simulation_routes import simulation_bp\nfrom dotenv import load_dotenv\nimport os\nimport logging\nimport sys\nfrom datetime import datetime\n\nload_dotenv()\n\napp = Flask(__name__)\nCORS(app)\n\nlogging.getLogger('werkzeug').setLevel(logging.WARNING)\n\nlogging.basicConfig(\n    level=logging.INFO,\n    format='%(asctime)s | %(levelname)-8s | %(name)s | %(message)s',\n    datefmt='%Y-%m-%d %H:%M:%S',\n    handlers=[logging.StreamHandler(sys.stdout)]\n)\nlogger = logging.getLogger('visual-interaction-backend')\n\nmedia_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), \"media\")\nos.makedirs(media_dir, exist_ok=True)\n\napp.register_blueprint(simulation_bp, url_prefix='/api')\n\nlogger.info(\"Visual Interaction Backend Starting...\")\nlogger.info(f\"Server ready at http://0.0.0.0:5000\")\n\n@app.before_request\ndef log_request():\n    logger.info(f\"REQUEST: {request.method} {request.path}\")\n\n@app.after_request\ndef log_response(response):\n    logger.info(f\"RESPONSE: {request.method} {request.path} → {response.status_code}\")\n    return response\n\n@app.route('/health')\ndef health():\n    import subprocess\n    import importlib.util\n    \n    pydub_ok = importlib.util.find_spec(\"pydub\") is not None\n    ffmpeg_ok = False\n    try:\n        result = subprocess.run(['ffmpeg', '-version'], capture_output=True, timeout=5)\n        ffmpeg_ok = result.returncode == 0\n    except Exception:\n        pass\n    \n    redis_ok = os.getenv('REDIS_URL') is not None\n    supabase_ok = os.getenv('SUPABASE_CONNECTION_STRING') is not None\n    sarvam_ok = os.getenv('SARVAM_API_KEY') is not None\n    \n    media_files = len(os.listdir(media_dir)) if os.path.exists(media_dir) else 0\n    \n    health_status = {\n        'status': 'healthy',\n        'timestamp': datetime.now().isoformat(),\n        'audio': {\n            'pydub': pydub_ok,\n            'ffmpeg': ffmpeg_ok\n        },\n        'services': {\n            'redis': redis_ok,\n            'supabase': supabase_ok,\n            'sarvam': sarvam_ok\n        },\n        'media': {\n            'files_count': media_files\n        }\n    }\n    \n    if not (pydub_ok and ffmpeg_ok and sarvam_ok):\n        health_status['warnings'] = 'Some audio services may not work properly'\n    \n    logger.info(f\"Health check: OK\")\n    return health_status\n\n@app.route('/media/<path:filename>')\ndef serve_media(filename):\n    import os\n    from flask import abort\n    \n    file_path = os.path.join(media_dir, filename)\n    \n    if not os.path.exists(file_path):\n        logger.warning(f\"MEDIA 404: File not found - {filename}\")\n        abort(404)\n    \n    ext = os.path.splitext(filename)[1].lower()\n    mime_types = {\n        '.mp3': 'audio/mpeg',\n        '.wav': 'audio/wav',\n        '.ogg': 'audio/ogg',\n        '.m4a': 'audio/mp4',\n        '.json': 'application/json'\n    }\n    mimetype = mime_types.get(ext, 'application/octet-stream')\n    \n    logger.info(f\"MEDIA: Serving {filename}\")\n    \n    response = make_response(send_from_directory(media_dir, filename))\n    response.headers['Content-Type'] = mimetype\n    response.headers['Accept-Ranges'] = 'bytes'\n    return response\n\nif __name__ == '__main__':\n    logger.info(\"Starting Flask development server on http://0.0.0.0:5000\")\n    app.run(debug=True, host='0.0.0.0', port=5000, threaded=True)\n",
+              "after": "from flask import Flask, send_from_directory, make_response, request\nfrom flask_cors import CORS\nfrom routes.simulation_routes import simulation_bp\nfrom dotenv import load_dotenv\nimport os\nimport logging\nimport sys\nfrom datetime import datetime\n\nload_dotenv()\n\napp = Flask(__name__)\nCORS(app)\n\nlogging.getLogger('werkzeug').setLevel(logging.WARNING)\n\nlogging.basicConfig(\n    level=logging.INFO,\n    format='%(asctime)s | %(levelname)-8s | %(name)s | %(message)s',\n    datefmt='%Y-%m-%d %H:%M:%S',\n    handlers=[logging.StreamHandler(sys.stdout)]\n)\nlogger = logging.getLogger('visual-interaction-backend')\n\nmedia_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), \"media\")\nos.makedirs(media_dir, exist_ok=True)\n\napp.register_blueprint(simulation_bp, url_prefix='/api')\n\nlogger.info(\"Visual Interaction Backend Starting...\")\nlogger.info(f\"Server ready at http://0.0.0.0:5000\")\n\n@app.before_request\ndef log_request():\n    logger.info(f\"REQUEST: {request.method} {request.path}\")\n\n@app.after_request\ndef log_response(response):\n    logger.info(f\"RESPONSE: {request.method} {request.path} → {response.status_code}\")\n    return response\n\n@app.route('/health')\ndef health():\n    import subprocess\n    import importlib.util\n    \n    pydub_ok = importlib.util.find_spec(\"pydub\") is not None\n    ffmpeg_ok = False\n    try:\n        result = subprocess.run(['ffmpeg', '-version'], capture_output=True, timeout=5)\n        ffmpeg_ok = result.returncode == 0\n    except Exception:\n        pass\n    \n    redis_ok = os.getenv('REDIS_URL') is not None\n    supabase_ok = os.getenv('SUPABASE_CONNECTION_STRING') is not None\n    sarvam_ok = os.getenv('SARVAM_API_KEY') is not None\n    \n    media_files = len(os.listdir(media_dir)) if os.path.exists(media_dir) else 0\n    \n    health_status = {\n        'status': 'healthy',\n        'timestamp': datetime.now().isoformat(),\n        'audio': {\n            'pydub': pydub_ok,\n            'ffmpeg': ffmpeg_ok\n        },\n        'services': {\n            'redis': redis_ok,\n            'supabase': supabase_ok,\n            'sarvam': sarvam_ok\n        },\n        'media': {\n            'files_count': media_files\n        }\n    }\n    \n    if not (pydub_ok and ffmpeg_ok and sarvam_ok):\n        health_status['warnings'] = 'Some audio services may not work properly'\n    \n    logger.info(f\"Health check: OK\")\n    return health_status\n\n@app.route('/media/<path:filename>')\ndef serve_media(filename):\n    import os\n    from flask import abort\n    \n    file_path = os.path.join(media_dir, filename)\n    \n    if not os.path.exists(file_path):\n        logger.warning(f\"MEDIA 404: File not found - {filename}\")\n        abort(404)\n    \n    ext = os.path.splitext(filename)[1].lower()\n    mime_types = {\n        '.mp3': 'audio/mpeg',\n        '.wav': 'audio/wav',\n        '.ogg': 'audio/ogg',\n        '.m4a': 'audio/mp4',\n        '.json': 'application/json'\n    }\n    mimetype = mime_types.get(ext, 'application/octet-stream')\n    \n    logger.info(f\"MEDIA: Serving {filename}\")\n    \n    response = make_response(send_from_directory(media_dir, filename))\n    response.headers['Content-Type'] = mimetype\n    response.headers['Accept-Ranges'] = 'bytes'\n    return response\n\nif __name__ == '__main__':\n    logger.info(\"Starting Flask development server on http://0.0.0.0:5000\")\n    app.run(debug=False, host='0.0.0.0', port=5000, threaded=True)\n",
+              "additions": 1,
+              "deletions": 1,
+              "status": "modified"
+            }
+          ]
+        },
+        "agent": "build",
+        "model": {
+          "providerID": "opencode",
+          "modelID": "big-pickle"
+        },
+        "id": "msg_d0a28ede8001Ep68R130reoSE1",
+        "sessionID": "ses_2f5d7121fffeLv92abMCcy6k3y"
+      },
+      "parts": [
+        {
+          "type": "text",
+          "text": "~/visual-task/visual-interaction/backend$ python app.py\n * Serving Flask app 'app'\n * Debug mode: on\nWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.\n * Running on all addresses (0.0.0.0)\n * Running on http://127.0.0.1:5000\n * Running on http://172.20.199.176:5000\nPress CTRL+C to quit\n * Restarting with stat\n * Debugger is active!\n * Debugger PIN: 117-926-129   before it shows like this i just want it ",
+          "id": "prt_d0a28edea001rvQtQxNmNZiOeL",
+          "sessionID": "ses_2f5d7121fffeLv92abMCcy6k3y",
+          "messageID": "msg_d0a28ede8001Ep68R130reoSE1"
+        }
+      ]
+    },
+    {
+      "info": {
+        "role": "assistant",
+        "time": {
+          "created": 1773991947790,
+          "completed": 1773991954855
+        },
+        "parentID": "msg_d0a28ede8001Ep68R130reoSE1",
+        "modelID": "big-pickle",
+        "providerID": "opencode",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/home/tejasree/visual-task/visual-interaction",
+          "root": "/home/tejasree/visual-task/visual-interaction"
+        },
+        "cost": 0,
+        "tokens": {
+          "total": 11600,
+          "input": 65,
+          "output": 67,
+          "reasoning": 0,
+          "cache": {
+            "read": 11326,
+            "write": 142
+          }
+        },
+        "finish": "tool-calls",
+        "id": "msg_d0a28ee0e001PvBwiJHOWHbvUU",
+        "sessionID": "ses_2f5d7121fffeLv92abMCcy6k3y"
+      },
+      "parts": [
+        {
+          "type": "step-start",
+          "snapshot": "b660a9643790f9ba46799b62c10565884e78231f",
+          "id": "prt_d0a2902a1001GhD1nNKkpWPrp8",
+          "sessionID": "ses_2f5d7121fffeLv92abMCcy6k3y",
+          "messageID": "msg_d0a28ee0e001PvBwiJHOWHbvUU"
+        },
+        {
+          "type": "reasoning",
+          "text": "The user wants to run Flask app but with debug mode off. They want the simpler output without all the warnings and debugger info.",
+          "metadata": {
+            "anthropic": {
+              "signature": "08c7b50a72c705e8789e4420c7f3ca24ba4e979504a82add353269637b9aecd2"
+            }
+          },
+          "time": {
+            "start": 1773991953059,
+            "end": 1773991954373
+          },
+          "id": "prt_d0a2902a30016p72SHcRMfYSZP",
+          "sessionID": "ses_2f5d7121fffeLv92abMCcy6k3y",
+          "messageID": "msg_d0a28ee0e001PvBwiJHOWHbvUU"
+        },
+        {
+          "type": "tool",
+          "callID": "call_function_bhdcxhffpma6_1",
+          "tool": "read",
+          "state": {
+            "status": "completed",
+            "input": {
+              "filePath": "/home/tejasree/visual-task/visual-interaction/backend/app.py"
+            },
+            "output": "<path>/home/tejasree/visual-task/visual-interaction/backend/app.py</path>\n<type>file</type>\n<content>1: from flask import Flask, send_from_directory, make_response, request\n2: from flask_cors import CORS\n3: from routes.simulation_routes import simulation_bp\n4: from dotenv import load_dotenv\n5: import os\n6: import logging\n7: import sys\n8: from datetime import datetime\n9: \n10: load_dotenv()\n11: \n12: app = Flask(__name__)\n13: CORS(app)\n14: \n15: logging.getLogger('werkzeug').setLevel(logging.WARNING)\n16: \n17: logging.basicConfig(\n18:     level=logging.INFO,\n19:     format='%(asctime)s | %(levelname)-8s | %(name)s | %(message)s',\n20:     datefmt='%Y-%m-%d %H:%M:%S',\n21:     handlers=[logging.StreamHandler(sys.stdout)]\n22: )\n23: logger = logging.getLogger('visual-interaction-backend')\n24: \n25: media_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), \"media\")\n26: os.makedirs(media_dir, exist_ok=True)\n27: \n28: app.register_blueprint(simulation_bp, url_prefix='/api')\n29: \n30: logger.info(\"Visual Interaction Backend Starting...\")\n31: logger.info(f\"Server ready at http://0.0.0.0:5000\")\n32: \n33: @app.before_request\n34: def log_request():\n35:     logger.info(f\"REQUEST: {request.method} {request.path}\")\n36: \n37: @app.after_request\n38: def log_response(response):\n39:     logger.info(f\"RESPONSE: {request.method} {request.path} → {response.status_code}\")\n40:     return response\n41: \n42: @app.route('/health')\n43: def health():\n44:     import subprocess\n45:     import importlib.util\n46:     \n47:     pydub_ok = importlib.util.find_spec(\"pydub\") is not None\n48:     ffmpeg_ok = False\n49:     try:\n50:         result = subprocess.run(['ffmpeg', '-version'], capture_output=True, timeout=5)\n51:         ffmpeg_ok = result.returncode == 0\n52:     except Exception:\n53:         pass\n54:     \n55:     redis_ok = os.getenv('REDIS_URL') is not None\n56:     supabase_ok = os.getenv('SUPABASE_CONNECTION_STRING') is not None\n57:     sarvam_ok = os.getenv('SARVAM_API_KEY') is not None\n58:     \n59:     media_files = len(os.listdir(media_dir)) if os.path.exists(media_dir) else 0\n60:     \n61:     health_status = {\n62:         'status': 'healthy',\n63:         'timestamp': datetime.now().isoformat(),\n64:         'audio': {\n65:             'pydub': pydub_ok,\n66:             'ffmpeg': ffmpeg_ok\n67:         },\n68:         'services': {\n69:             'redis': redis_ok,\n70:             'supabase': supabase_ok,\n71:             'sarvam': sarvam_ok\n72:         },\n73:         'media': {\n74:             'files_count': media_files\n75:         }\n76:     }\n77:     \n78:     if not (pydub_ok and ffmpeg_ok and sarvam_ok):\n79:         health_status['warnings'] = 'Some audio services may not work properly'\n80:     \n81:     logger.info(f\"Health check: OK\")\n82:     return health_status\n83: \n84: @app.route('/media/<path:filename>')\n85: def serve_media(filename):\n86:     import os\n87:     from flask import abort\n88:     \n89:     file_path = os.path.join(media_dir, filename)\n90:     \n91:     if not os.path.exists(file_path):\n92:         logger.warning(f\"MEDIA 404: File not found - {filename}\")\n93:         abort(404)\n94:     \n95:     ext = os.path.splitext(filename)[1].lower()\n96:     mime_types = {\n97:         '.mp3': 'audio/mpeg',\n98:         '.wav': 'audio/wav',\n99:         '.ogg': 'audio/ogg',\n100:         '.m4a': 'audio/mp4',\n101:         '.json': 'application/json'\n102:     }\n103:     mimetype = mime_types.get(ext, 'application/octet-stream')\n104:     \n105:     logger.info(f\"MEDIA: Serving {filename}\")\n106:     \n107:     response = make_response(send_from_directory(media_dir, filename))\n108:     response.headers['Content-Type'] = mimetype\n109:     response.headers['Accept-Ranges'] = 'bytes'\n110:     return response\n111: \n112: if __name__ == '__main__':\n113:     logger.info(\"Starting Flask development server on http://0.0.0.0:5000\")\n114:     app.run(debug=True, host='0.0.0.0', port=5000, threaded=True)\n\n(End of file - total 114 lines)\n</content>",
+            "title": "backend/app.py",
+            "metadata": {
+              "preview": "from flask import Flask, send_from_directory, make_response, request\nfrom flask_cors import CORS\nfrom routes.simulation_routes import simulation_bp\nfrom dotenv import load_dotenv\nimport os\nimport logging\nimport sys\nfrom datetime import datetime\n\nload_dotenv()\n\napp = Flask(__name__)\nCORS(app)\n\nlogging.getLogger('werkzeug').setLevel(logging.WARNING)\n\nlogging.basicConfig(\n    level=logging.INFO,\n    format='%(asctime)s | %(levelname)-8s | %(name)s | %(message)s',\n    datefmt='%Y-%m-%d %H:%M:%S',",
+              "truncated": false,
+              "loaded": []
+            },
+            "time": {
+              "start": 1773991954712,
+              "end": 1773991954792
+            }
+          },
+          "id": "prt_d0a2907c7001kwkpHXIZLF2jvj",
+          "sessionID": "ses_2f5d7121fffeLv92abMCcy6k3y",
+          "messageID": "msg_d0a28ee0e001PvBwiJHOWHbvUU"
+        },
+        {
+          "type": "step-finish",
+          "reason": "tool-calls",
+          "snapshot": "b660a9643790f9ba46799b62c10565884e78231f",
+          "cost": 0,
+          "tokens": {
+            "total": 11600,
+            "input": 65,
+            "output": 67,
+            "reasoning": 0,
+            "cache": {
+              "read": 11326,
+              "write": 142
+            }
+          },
+          "id": "prt_d0a29096f001M9CXVK3wF3IZtX",
+          "sessionID": "ses_2f5d7121fffeLv92abMCcy6k3y",
+          "messageID": "msg_d0a28ee0e001PvBwiJHOWHbvUU"
+        }
+      ]
+    },
+    {
+      "info": {
+        "role": "assistant",
+        "time": {
+          "created": 1773991954859,
+          "completed": 1773991963420
+        },
+        "parentID": "msg_d0a28ede8001Ep68R130reoSE1",
+        "modelID": "big-pickle",
+        "providerID": "opencode",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/home/tejasree/visual-task/visual-interaction",
+          "root": "/home/tejasree/visual-task/visual-interaction"
+        },
+        "cost": 0,
+        "tokens": {
+          "total": 12974,
+          "input": 1234,
+          "output": 200,
+          "reasoning": 0,
+          "cache": {
+            "read": 11326,
+            "write": 214
+          }
+        },
+        "finish": "tool-calls",
+        "id": "msg_d0a2909ab0014DojTL1ioUO4i3",
+        "sessionID": "ses_2f5d7121fffeLv92abMCcy6k3y"
+      },
+      "parts": [
+        {
+          "type": "step-start",
+          "snapshot": "b660a9643790f9ba46799b62c10565884e78231f",
+          "id": "prt_d0a2915e70011a1R36mpnWYsW5",
+          "sessionID": "ses_2f5d7121fffeLv92abMCcy6k3y",
+          "messageID": "msg_d0a2909ab0014DojTL1ioUO4i3"
+        },
+        {
+          "type": "reasoning",
+          "text": "The user wants to disable debug mode. I need to change `debug=True` to `debug=False` in the app.run() call at the end.",
+          "metadata": {
+            "anthropic": {
+              "signature": "890119108555dbe0e9f01c2189a8140f2889acf2070444362f4f8a39200da128"
+            }
+          },
+          "time": {
+            "start": 1773991957992,
+            "end": 1773991959358
+          },
+          "id": "prt_d0a2915e8001dJ77cvnJ7YFiFH",
+          "sessionID": "ses_2f5d7121fffeLv92abMCcy6k3y",
+          "messageID": "msg_d0a2909ab0014DojTL1ioUO4i3"
+        },
+        {
+          "type": "tool",
+          "callID": "call_function_vy3mj8tmmj3f_1",
+          "tool": "edit",
+          "state": {
+            "status": "completed",
+            "input": {
+              "filePath": "/home/tejasree/visual-task/visual-interaction/backend/app.py",
+              "oldString": "if __name__ == '__main__':\n    logger.info(\"Starting Flask development server on http://0.0.0.0:5000\")\n    app.run(debug=True, host='0.0.0.0', port=5000, threaded=True)",
+              "newString": "if __name__ == '__main__':\n    logger.info(\"Starting Flask development server on http://0.0.0.0:5000\")\n    app.run(debug=False, host='0.0.0.0', port=5000, threaded=True)"
+            },
+            "output": "Edit applied successfully.",
+            "title": "backend/app.py",
+            "metadata": {
+              "diagnostics": {
+                "/home/tejasree/visual-task/visual-interaction/backend/app.py": []
+              },
+              "diff": "Index: /home/tejasree/visual-task/visual-interaction/backend/app.py\n===================================================================\n--- /home/tejasree/visual-task/visual-interaction/backend/app.py\n+++ /home/tejasree/visual-task/visual-interaction/backend/app.py\n@@ -110,5 +110,5 @@\n     return response\n \n if __name__ == '__main__':\n     logger.info(\"Starting Flask development server on http://0.0.0.0:5000\")\n-    app.run(debug=True, host='0.0.0.0', port=5000, threaded=True)\n+    app.run(debug=False, host='0.0.0.0', port=5000, threaded=True)\n",
+              "filediff": {
+                "file": "/home/tejasree/visual-task/visual-interaction/backend/app.py",
+                "before": "from flask import Flask, send_from_directory, make_response, request\nfrom flask_cors import CORS\nfrom routes.simulation_routes import simulation_bp\nfrom dotenv import load_dotenv\nimport os\nimport logging\nimport sys\nfrom datetime import datetime\n\nload_dotenv()\n\napp = Flask(__name__)\nCORS(app)\n\nlogging.getLogger('werkzeug').setLevel(logging.WARNING)\n\nlogging.basicConfig(\n    level=logging.INFO,\n    format='%(asctime)s | %(levelname)-8s | %(name)s | %(message)s',\n    datefmt='%Y-%m-%d %H:%M:%S',\n    handlers=[logging.StreamHandler(sys.stdout)]\n)\nlogger = logging.getLogger('visual-interaction-backend')\n\nmedia_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), \"media\")\nos.makedirs(media_dir, exist_ok=True)\n\napp.register_blueprint(simulation_bp, url_prefix='/api')\n\nlogger.info(\"Visual Interaction Backend Starting...\")\nlogger.info(f\"Server ready at http://0.0.0.0:5000\")\n\n@app.before_request\ndef log_request():\n    logger.info(f\"REQUEST: {request.method} {request.path}\")\n\n@app.after_request\ndef log_response(response):\n    logger.info(f\"RESPONSE: {request.method} {request.path} → {response.status_code}\")\n    return response\n\n@app.route('/health')\ndef health():\n    import subprocess\n    import importlib.util\n    \n    pydub_ok = importlib.util.find_spec(\"pydub\") is not None\n    ffmpeg_ok = False\n    try:\n        result = subprocess.run(['ffmpeg', '-version'], capture_output=True, timeout=5)\n        ffmpeg_ok = result.returncode == 0\n    except Exception:\n        pass\n    \n    redis_ok = os.getenv('REDIS_URL') is not None\n    supabase_ok = os.getenv('SUPABASE_CONNECTION_STRING') is not None\n    sarvam_ok = os.getenv('SARVAM_API_KEY') is not None\n    \n    media_files = len(os.listdir(media_dir)) if os.path.exists(media_dir) else 0\n    \n    health_status = {\n        'status': 'healthy',\n        'timestamp': datetime.now().isoformat(),\n        'audio': {\n            'pydub': pydub_ok,\n            'ffmpeg': ffmpeg_ok\n        },\n        'services': {\n            'redis': redis_ok,\n            'supabase': supabase_ok,\n            'sarvam': sarvam_ok\n        },\n        'media': {\n            'files_count': media_files\n        }\n    }\n    \n    if not (pydub_ok and ffmpeg_ok and sarvam_ok):\n        health_status['warnings'] = 'Some audio services may not work properly'\n    \n    logger.info(f\"Health check: OK\")\n    return health_status\n\n@app.route('/media/<path:filename>')\ndef serve_media(filename):\n    import os\n    from flask import abort\n    \n    file_path = os.path.join(media_dir, filename)\n    \n    if not os.path.exists(file_path):\n        logger.warning(f\"MEDIA 404: File not found - {filename}\")\n        abort(404)\n    \n    ext = os.path.splitext(filename)[1].lower()\n    mime_types = {\n        '.mp3': 'audio/mpeg',\n        '.wav': 'audio/wav',\n        '.ogg': 'audio/ogg',\n        '.m4a': 'audio/mp4',\n        '.json': 'application/json'\n    }\n    mimetype = mime_types.get(ext, 'application/octet-stream')\n    \n    logger.info(f\"MEDIA: Serving {filename}\")\n    \n    response = make_response(send_from_directory(media_dir, filename))\n    response.headers['Content-Type'] = mimetype\n    response.headers['Accept-Ranges'] = 'bytes'\n    return response\n\nif __name__ == '__main__':\n    logger.info(\"Starting Flask development server on http://0.0.0.0:5000\")\n    app.run(debug=True, host='0.0.0.0', port=5000, threaded=True)\n",
+                "after": "from flask import Flask, send_from_directory, make_response, request\nfrom flask_cors import CORS\nfrom routes.simulation_routes import simulation_bp\nfrom dotenv import load_dotenv\nimport os\nimport logging\nimport sys\nfrom datetime import datetime\n\nload_dotenv()\n\napp = Flask(__name__)\nCORS(app)\n\nlogging.getLogger('werkzeug').setLevel(logging.WARNING)\n\nlogging.basicConfig(\n    level=logging.INFO,\n    format='%(asctime)s | %(levelname)-8s | %(name)s | %(message)s',\n    datefmt='%Y-%m-%d %H:%M:%S',\n    handlers=[logging.StreamHandler(sys.stdout)]\n)\nlogger = logging.getLogger('visual-interaction-backend')\n\nmedia_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), \"media\")\nos.makedirs(media_dir, exist_ok=True)\n\napp.register_blueprint(simulation_bp, url_prefix='/api')\n\nlogger.info(\"Visual Interaction Backend Starting...\")\nlogger.info(f\"Server ready at http://0.0.0.0:5000\")\n\n@app.before_request\ndef log_request():\n    logger.info(f\"REQUEST: {request.method} {request.path}\")\n\n@app.after_request\ndef log_response(response):\n    logger.info(f\"RESPONSE: {request.method} {request.path} → {response.status_code}\")\n    return response\n\n@app.route('/health')\ndef health():\n    import subprocess\n    import importlib.util\n    \n    pydub_ok = importlib.util.find_spec(\"pydub\") is not None\n    ffmpeg_ok = False\n    try:\n        result = subprocess.run(['ffmpeg', '-version'], capture_output=True, timeout=5)\n        ffmpeg_ok = result.returncode == 0\n    except Exception:\n        pass\n    \n    redis_ok = os.getenv('REDIS_URL') is not None\n    supabase_ok = os.getenv('SUPABASE_CONNECTION_STRING') is not None\n    sarvam_ok = os.getenv('SARVAM_API_KEY') is not None\n    \n    media_files = len(os.listdir(media_dir)) if os.path.exists(media_dir) else 0\n    \n    health_status = {\n        'status': 'healthy',\n        'timestamp': datetime.now().isoformat(),\n        'audio': {\n            'pydub': pydub_ok,\n            'ffmpeg': ffmpeg_ok\n        },\n        'services': {\n            'redis': redis_ok,\n            'supabase': supabase_ok,\n            'sarvam': sarvam_ok\n        },\n        'media': {\n            'files_count': media_files\n        }\n    }\n    \n    if not (pydub_ok and ffmpeg_ok and sarvam_ok):\n        health_status['warnings'] = 'Some audio services may not work properly'\n    \n    logger.info(f\"Health check: OK\")\n    return health_status\n\n@app.route('/media/<path:filename>')\ndef serve_media(filename):\n    import os\n    from flask import abort\n    \n    file_path = os.path.join(media_dir, filename)\n    \n    if not os.path.exists(file_path):\n        logger.warning(f\"MEDIA 404: File not found - {filename}\")\n        abort(404)\n    \n    ext = os.path.splitext(filename)[1].lower()\n    mime_types = {\n        '.mp3': 'audio/mpeg',\n        '.wav': 'audio/wav',\n        '.ogg': 'audio/ogg',\n        '.m4a': 'audio/mp4',\n        '.json': 'application/json'\n    }\n    mimetype = mime_types.get(ext, 'application/octet-stream')\n    \n    logger.info(f\"MEDIA: Serving {filename}\")\n    \n    response = make_response(send_from_directory(media_dir, filename))\n    response.headers['Content-Type'] = mimetype\n    response.headers['Accept-Ranges'] = 'bytes'\n    return response\n\nif __name__ == '__main__':\n    logger.info(\"Starting Flask development server on http://0.0.0.0:5000\")\n    app.run(debug=False, host='0.0.0.0', port=5000, threaded=True)\n",
+                "additions": 1,
+                "deletions": 1
+              },
+              "truncated": false
+            },
+            "time": {
+              "start": 1773991962775,
+              "end": 1773991963378
+            }
+          },
+          "id": "prt_d0a291b3f001311H4msiHKe2Z8",
+          "sessionID": "ses_2f5d7121fffeLv92abMCcy6k3y",
+          "messageID": "msg_d0a2909ab0014DojTL1ioUO4i3"
+        },
+        {
+          "type": "step-finish",
+          "reason": "tool-calls",
+          "snapshot": "7c63aa66f4dd8cfffa5c511531ce955e7bd13450",
+          "cost": 0,
+          "tokens": {
+            "total": 12974,
+            "input": 1234,
+            "output": 200,
+            "reasoning": 0,
+            "cache": {
+              "read": 11326,
+              "write": 214
+            }
+          },
+          "id": "prt_d0a292af40013KWBBjW3tGgCw7",
+          "sessionID": "ses_2f5d7121fffeLv92abMCcy6k3y",
+          "messageID": "msg_d0a2909ab0014DojTL1ioUO4i3"
+        },
+        {
+          "type": "patch",
+          "hash": "b660a9643790f9ba46799b62c10565884e78231f",
+          "files": [
+            "/home/tejasree/visual-task/visual-interaction/backend/app.py"
+          ],
+          "id": "prt_d0a292b14001MLQNWSp8prVLVZ",
+          "sessionID": "ses_2f5d7121fffeLv92abMCcy6k3y",
+          "messageID": "msg_d0a2909ab0014DojTL1ioUO4i3"
+        }
+      ]
+    },
+    {
+      "info": {
+        "role": "assistant",
+        "time": {
+          "created": 1773991963423,
+          "completed": 1773991966467
+        },
+        "parentID": "msg_d0a28ede8001Ep68R130reoSE1",
+        "modelID": "big-pickle",
+        "providerID": "opencode",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/home/tejasree/visual-task/visual-interaction",
+          "root": "/home/tejasree/visual-task/visual-interaction"
+        },
+        "cost": 0,
+        "tokens": {
+          "total": 13043,
+          "input": 79,
+          "output": 50,
+          "reasoning": 0,
+          "cache": {
+            "read": 11468,
+            "write": 1446
+          }
+        },
+        "finish": "stop",
+        "id": "msg_d0a292b1f001PVYw55gs5JjTek",
+        "sessionID": "ses_2f5d7121fffeLv92abMCcy6k3y"
+      },
+      "parts": [
+        {
+          "type": "step-start",
+          "snapshot": "7c63aa66f4dd8cfffa5c511531ce955e7bd13450",
+          "id": "prt_d0a293290001FhIRQ3WVFRb4ij",
+          "sessionID": "ses_2f5d7121fffeLv92abMCcy6k3y",
+          "messageID": "msg_d0a292b1f001PVYw55gs5JjTek"
+        },
+        {
+          "type": "reasoning",
+          "text": "Done. The debug mode is now set to False. The user can now run the app and it will show a cleaner output.",
+          "metadata": {
+            "anthropic": {
+              "signature": "607bc85fc3ff8b49007f84663578e2f2e09d7e7a2c93aa31a7b167eeae17641d"
+            }
+          },
+          "time": {
+            "start": 1773991965329,
+            "end": 1773991965894
+          },
+          "id": "prt_d0a293291001RJT3PdnziNlW17",
+          "sessionID": "ses_2f5d7121fffeLv92abMCcy6k3y",
+          "messageID": "msg_d0a292b1f001PVYw55gs5JjTek"
+        },
+        {
+          "type": "text",
+          "text": "Done. Run `python app.py` - it will now show cleaner output without debug mode warnings.",
+          "time": {
+            "start": 1773991966377,
+            "end": 1773991966377
+          },
+          "id": "prt_d0a2934c7001S7TUV2xlR35G7e",
+          "sessionID": "ses_2f5d7121fffeLv92abMCcy6k3y",
+          "messageID": "msg_d0a292b1f001PVYw55gs5JjTek"
+        },
+        {
+          "type": "step-finish",
+          "reason": "stop",
+          "snapshot": "7c63aa66f4dd8cfffa5c511531ce955e7bd13450",
+          "cost": 0,
+          "tokens": {
+            "total": 13043,
+            "input": 79,
+            "output": 50,
+            "reasoning": 0,
+            "cache": {
+              "read": 11468,
+              "write": 1446
+            }
+          },
+          "id": "prt_d0a2936e8001sFiGHV6fe4a4mQ",
+          "sessionID": "ses_2f5d7121fffeLv92abMCcy6k3y",
+          "messageID": "msg_d0a292b1f001PVYw55gs5JjTek"
+        }
+      ]
+    },
+    {
+      "info": {
+        "role": "user",
+        "time": {
+          "created": 1773992075762
+        },
+        "summary": {
+          "diffs": [
+            {
+              "file": "backend/app.py",
+              "before": "from flask import Flask, send_from_directory, make_response, request\nfrom flask_cors import CORS\nfrom routes.simulation_routes import simulation_bp\nfrom dotenv import load_dotenv\nimport os\nimport logging\nimport sys\nfrom datetime import datetime\n\nload_dotenv()\n\napp = Flask(__name__)\nCORS(app)\n\nlogging.getLogger('werkzeug').setLevel(logging.WARNING)\n\nlogging.basicConfig(\n    level=logging.INFO,\n    format='%(asctime)s | %(levelname)-8s | %(name)s | %(message)s',\n    datefmt='%Y-%m-%d %H:%M:%S',\n    handlers=[logging.StreamHandler(sys.stdout)]\n)\nlogger = logging.getLogger('visual-interaction-backend')\n\nmedia_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), \"media\")\nos.makedirs(media_dir, exist_ok=True)\n\napp.register_blueprint(simulation_bp, url_prefix='/api')\n\nlogger.info(\"Visual Interaction Backend Starting...\")\nlogger.info(f\"Server ready at http://0.0.0.0:5000\")\n\n@app.before_request\ndef log_request():\n    logger.info(f\"REQUEST: {request.method} {request.path}\")\n\n@app.after_request\ndef log_response(response):\n    logger.info(f\"RESPONSE: {request.method} {request.path} → {response.status_code}\")\n    return response\n\n@app.route('/health')\ndef health():\n    import subprocess\n    import importlib.util\n    \n    pydub_ok = importlib.util.find_spec(\"pydub\") is not None\n    ffmpeg_ok = False\n    try:\n        result = subprocess.run(['ffmpeg', '-version'], capture_output=True, timeout=5)\n        ffmpeg_ok = result.returncode == 0\n    except Exception:\n        pass\n    \n    redis_ok = os.getenv('REDIS_URL') is not None\n    supabase_ok = os.getenv('SUPABASE_CONNECTION_STRING') is not None\n    sarvam_ok = os.getenv('SARVAM_API_KEY') is not None\n    \n    media_files = len(os.listdir(media_dir)) if os.path.exists(media_dir) else 0\n    \n    health_status = {\n        'status': 'healthy',\n        'timestamp': datetime.now().isoformat(),\n        'audio': {\n            'pydub': pydub_ok,\n            'ffmpeg': ffmpeg_ok\n        },\n        'services': {\n            'redis': redis_ok,\n            'supabase': supabase_ok,\n            'sarvam': sarvam_ok\n        },\n        'media': {\n            'files_count': media_files\n        }\n    }\n    \n    if not (pydub_ok and ffmpeg_ok and sarvam_ok):\n        health_status['warnings'] = 'Some audio services may not work properly'\n    \n    logger.info(f\"Health check: OK\")\n    return health_status\n\n@app.route('/media/<path:filename>')\ndef serve_media(filename):\n    import os\n    from flask import abort\n    \n    file_path = os.path.join(media_dir, filename)\n    \n    if not os.path.exists(file_path):\n        logger.warning(f\"MEDIA 404: File not found - {filename}\")\n        abort(404)\n    \n    ext = os.path.splitext(filename)[1].lower()\n    mime_types = {\n        '.mp3': 'audio/mpeg',\n        '.wav': 'audio/wav',\n        '.ogg': 'audio/ogg',\n        '.m4a': 'audio/mp4',\n        '.json': 'application/json'\n    }\n    mimetype = mime_types.get(ext, 'application/octet-stream')\n    \n    logger.info(f\"MEDIA: Serving {filename}\")\n    \n    response = make_response(send_from_directory(media_dir, filename))\n    response.headers['Content-Type'] = mimetype\n    response.headers['Accept-Ranges'] = 'bytes'\n    return response\n\nif __name__ == '__main__':\n    logger.info(\"Starting Flask development server on http://0.0.0.0:5000\")\n    app.run(debug=False, host='0.0.0.0', port=5000, threaded=True)\n",
+              "after": "from flask import Flask, send_from_directory, make_response, request\nfrom flask_cors import CORS\nfrom routes.simulation_routes import simulation_bp\nfrom dotenv import load_dotenv\nimport os\nimport logging\nimport sys\nfrom datetime import datetime\n\nload_dotenv()\n\napp = Flask(__name__)\nCORS(app)\n\nlogger = logging.getLogger('visual-interaction-backend')\nlogger.setLevel(logging.INFO)\n\nmedia_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), \"media\")\nos.makedirs(media_dir, exist_ok=True)\n\napp.register_blueprint(simulation_bp, url_prefix='/api')\n\nlogger.info(\"Visual Interaction Backend Starting...\")\nlogger.info(f\"Server ready at http://0.0.0.0:5000\")\n\n@app.before_request\ndef log_request():\n    logger.info(f\"REQUEST: {request.method} {request.path}\")\n\n@app.after_request\ndef log_response(response):\n    logger.info(f\"RESPONSE: {request.method} {request.path} → {response.status_code}\")\n    return response\n\n@app.route('/health')\ndef health():\n    import subprocess\n    import importlib.util\n    \n    pydub_ok = importlib.util.find_spec(\"pydub\") is not None\n    ffmpeg_ok = False\n    try:\n        result = subprocess.run(['ffmpeg', '-version'], capture_output=True, timeout=5)\n        ffmpeg_ok = result.returncode == 0\n    except Exception:\n        pass\n    \n    redis_ok = os.getenv('REDIS_URL') is not None\n    supabase_ok = os.getenv('SUPABASE_CONNECTION_STRING') is not None\n    sarvam_ok = os.getenv('SARVAM_API_KEY') is not None\n    \n    media_files = len(os.listdir(media_dir)) if os.path.exists(media_dir) else 0\n    \n    health_status = {\n        'status': 'healthy',\n        'timestamp': datetime.now().isoformat(),\n        'audio': {\n            'pydub': pydub_ok,\n            'ffmpeg': ffmpeg_ok\n        },\n        'services': {\n            'redis': redis_ok,\n            'supabase': supabase_ok,\n            'sarvam': sarvam_ok\n        },\n        'media': {\n            'files_count': media_files\n        }\n    }\n    \n    if not (pydub_ok and ffmpeg_ok and sarvam_ok):\n        health_status['warnings'] = 'Some audio services may not work properly'\n    \n    logger.info(f\"Health check: OK\")\n    return health_status\n\n@app.route('/media/<path:filename>')\ndef serve_media(filename):\n    import os\n    from flask import abort\n    \n    file_path = os.path.join(media_dir, filename)\n    \n    if not os.path.exists(file_path):\n        logger.warning(f\"MEDIA 404: File not found - {filename}\")\n        abort(404)\n    \n    ext = os.path.splitext(filename)[1].lower()\n    mime_types = {\n        '.mp3': 'audio/mpeg',\n        '.wav': 'audio/wav',\n        '.ogg': 'audio/ogg',\n        '.m4a': 'audio/mp4',\n        '.json': 'application/json'\n    }\n    mimetype = mime_types.get(ext, 'application/octet-stream')\n    \n    logger.info(f\"MEDIA: Serving {filename}\")\n    \n    response = make_response(send_from_directory(media_dir, filename))\n    response.headers['Content-Type'] = mimetype\n    response.headers['Accept-Ranges'] = 'bytes'\n    return response\n\nif __name__ == '__main__':\n    logger.info(\"Starting Flask development server on http://0.0.0.0:5000\")\n    app.run(debug=False, host='0.0.0.0', port=5000, threaded=True)\n",
+              "additions": 1,
+              "deletions": 8,
+              "status": "modified"
+            }
+          ]
+        },
+        "agent": "build",
+        "model": {
+          "providerID": "opencode",
+          "modelID": "big-pickle"
+        },
+        "id": "msg_d0a2ae1e2001Rp4gey4HOjB2hA",
+        "sessionID": "ses_2f5d7121fffeLv92abMCcy6k3y"
+      },
+      "parts": [
+        {
+          "type": "text",
+          "text": "i mean not debug mode in this the debig mode is on exactly when i run python3 app.py it shows like this now it is showing something i can't understand change that",
+          "id": "prt_d0a2ae1e4001CsZ6h266JyWYmW",
+          "sessionID": "ses_2f5d7121fffeLv92abMCcy6k3y",
+          "messageID": "msg_d0a2ae1e2001Rp4gey4HOjB2hA"
+        }
+      ]
+    },
+    {
+      "info": {
+        "role": "assistant",
+        "time": {
+          "created": 1773992075771,
+          "completed": 1773992090293
+        },
+        "parentID": "msg_d0a2ae1e2001Rp4gey4HOjB2hA",
+        "modelID": "big-pickle",
+        "providerID": "opencode",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/home/tejasree/visual-task/visual-interaction",
+          "root": "/home/tejasree/visual-task/visual-interaction"
+        },
+        "cost": 0,
+        "tokens": {
+          "total": 13440,
+          "input": 65,
+          "output": 447,
+          "reasoning": 0,
+          "cache": {
+            "read": 12709,
+            "write": 219
+          }
+        },
+        "finish": "tool-calls",
+        "id": "msg_d0a2ae1fb0019sGNrF9YYDY0II",
+        "sessionID": "ses_2f5d7121fffeLv92abMCcy6k3y"
+      },
+      "parts": [
+        {
+          "type": "step-start",
+          "snapshot": "7c63aa66f4dd8cfffa5c511531ce955e7bd13450",
+          "id": "prt_d0a2aed0300131MgOivogtyDMF",
+          "sessionID": "ses_2f5d7121fffeLv92abMCcy6k3y",
+          "messageID": "msg_d0a2ae1fb0019sGNrF9YYDY0II"
+        },
+        {
+          "type": "reasoning",
+          "text": "The user wants to clean up the Flask startup output. They want it to show just the simple output like:\n\n```\n * Serving Flask app 'app'\n * Debug mode: on\nWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.\n * Running on all addresses (0.0.0.0)\n * Running on http://127.0.0.1:5000\n * Running on http://172.20.199.176:5000\nPress CTRL+C to quit\n```\n\nInstead, it's showing something they can't understand. They want the clean Flask startup message.\n\nThe issue is likely the custom logging configuration is messing up the output. Let me simplify the logging to just show the basic Flask messages without custom formatting.\n\nThe current config:\n```python\nlogging.basicConfig(\n    level=logging.INFO,\n    format='%(asctime)s | %(levelname)-8s | %(name)s | %(message)s',\n    datefmt='%Y-%m-%d %H:%M:%S',\n    handlers=[logging.StreamHandler(sys.stdout)]\n)\n```\n\nThis is overwriting the default Flask/Werkzeug logging format, which is why the output looks different.\n\nI should remove or simplify this logging configuration to let Flask use its default formatting.",
+          "metadata": {
+            "anthropic": {
+              "signature": "7ae4a7536b8a386adb337d90ef71c1407a1f3f19e3f96ac2467209b0aa13b538"
+            }
+          },
+          "time": {
+            "start": 1773992078596,
+            "end": 1773992085304
+          },
+          "id": "prt_d0a2aed04001zZvcKIh2byfgsj",
+          "sessionID": "ses_2f5d7121fffeLv92abMCcy6k3y",
+          "messageID": "msg_d0a2ae1fb0019sGNrF9YYDY0II"
+        },
+        {
+          "type": "text",
+          "text": "The custom logging config is overwriting Flask's output. Let me fix it:",
+          "time": {
+            "start": 1773992085968,
+            "end": 1773992085968
+          },
+          "id": "prt_d0a2b07390013VK5AlF1XWPY2q",
+          "sessionID": "ses_2f5d7121fffeLv92abMCcy6k3y",
+          "messageID": "msg_d0a2ae1fb0019sGNrF9YYDY0II"
+        },
+        {
+          "type": "tool",
+          "callID": "call_function_aj3j19nwckx3_1",
+          "tool": "edit",
+          "state": {
+            "status": "completed",
+            "input": {
+              "filePath": "/home/tejasree/visual-task/visual-interaction/backend/app.py",
+              "oldString": "logging.getLogger('werkzeug').setLevel(logging.WARNING)\n\nlogging.basicConfig(\n    level=logging.INFO,\n    format='%(asctime)s | %(levelname)-8s | %(name)s | %(message)s',\n    datefmt='%Y-%m-%d %H:%M:%S',\n    handlers=[logging.StreamHandler(sys.stdout)]\n)\nlogger = logging.getLogger('visual-interaction-backend')",
+              "newString": "logger = logging.getLogger('visual-interaction-backend')\nlogger.setLevel(logging.INFO)"
+            },
+            "output": "Edit applied successfully.",
+            "title": "backend/app.py",
+            "metadata": {
+              "diagnostics": {
+                "/home/tejasree/visual-task/visual-interaction/backend/app.py": []
+              },
+              "diff": "Index: /home/tejasree/visual-task/visual-interaction/backend/app.py\n===================================================================\n--- /home/tejasree/visual-task/visual-interaction/backend/app.py\n+++ /home/tejasree/visual-task/visual-interaction/backend/app.py\n@@ -11,17 +11,10 @@\n \n app = Flask(__name__)\n CORS(app)\n \n-logging.getLogger('werkzeug').setLevel(logging.WARNING)\n-\n-logging.basicConfig(\n-    level=logging.INFO,\n-    format='%(asctime)s | %(levelname)-8s | %(name)s | %(message)s',\n-    datefmt='%Y-%m-%d %H:%M:%S',\n-    handlers=[logging.StreamHandler(sys.stdout)]\n-)\n logger = logging.getLogger('visual-interaction-backend')\n+logger.setLevel(logging.INFO)\n \n media_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), \"media\")\n os.makedirs(media_dir, exist_ok=True)\n \n",
+              "filediff": {
+                "file": "/home/tejasree/visual-task/visual-interaction/backend/app.py",
+                "before": "from flask import Flask, send_from_directory, make_response, request\nfrom flask_cors import CORS\nfrom routes.simulation_routes import simulation_bp\nfrom dotenv import load_dotenv\nimport os\nimport logging\nimport sys\nfrom datetime import datetime\n\nload_dotenv()\n\napp = Flask(__name__)\nCORS(app)\n\nlogging.getLogger('werkzeug').setLevel(logging.WARNING)\n\nlogging.basicConfig(\n    level=logging.INFO,\n    format='%(asctime)s | %(levelname)-8s | %(name)s | %(message)s',\n    datefmt='%Y-%m-%d %H:%M:%S',\n    handlers=[logging.StreamHandler(sys.stdout)]\n)\nlogger = logging.getLogger('visual-interaction-backend')\n\nmedia_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), \"media\")\nos.makedirs(media_dir, exist_ok=True)\n\napp.register_blueprint(simulation_bp, url_prefix='/api')\n\nlogger.info(\"Visual Interaction Backend Starting...\")\nlogger.info(f\"Server ready at http://0.0.0.0:5000\")\n\n@app.before_request\ndef log_request():\n    logger.info(f\"REQUEST: {request.method} {request.path}\")\n\n@app.after_request\ndef log_response(response):\n    logger.info(f\"RESPONSE: {request.method} {request.path} → {response.status_code}\")\n    return response\n\n@app.route('/health')\ndef health():\n    import subprocess\n    import importlib.util\n    \n    pydub_ok = importlib.util.find_spec(\"pydub\") is not None\n    ffmpeg_ok = False\n    try:\n        result = subprocess.run(['ffmpeg', '-version'], capture_output=True, timeout=5)\n        ffmpeg_ok = result.returncode == 0\n    except Exception:\n        pass\n    \n    redis_ok = os.getenv('REDIS_URL') is not None\n    supabase_ok = os.getenv('SUPABASE_CONNECTION_STRING') is not None\n    sarvam_ok = os.getenv('SARVAM_API_KEY') is not None\n    \n    media_files = len(os.listdir(media_dir)) if os.path.exists(media_dir) else 0\n    \n    health_status = {\n        'status': 'healthy',\n        'timestamp': datetime.now().isoformat(),\n        'audio': {\n            'pydub': pydub_ok,\n            'ffmpeg': ffmpeg_ok\n        },\n        'services': {\n            'redis': redis_ok,\n            'supabase': supabase_ok,\n            'sarvam': sarvam_ok\n        },\n        'media': {\n            'files_count': media_files\n        }\n    }\n    \n    if not (pydub_ok and ffmpeg_ok and sarvam_ok):\n        health_status['warnings'] = 'Some audio services may not work properly'\n    \n    logger.info(f\"Health check: OK\")\n    return health_status\n\n@app.route('/media/<path:filename>')\ndef serve_media(filename):\n    import os\n    from flask import abort\n    \n    file_path = os.path.join(media_dir, filename)\n    \n    if not os.path.exists(file_path):\n        logger.warning(f\"MEDIA 404: File not found - {filename}\")\n        abort(404)\n    \n    ext = os.path.splitext(filename)[1].lower()\n    mime_types = {\n        '.mp3': 'audio/mpeg',\n        '.wav': 'audio/wav',\n        '.ogg': 'audio/ogg',\n        '.m4a': 'audio/mp4',\n        '.json': 'application/json'\n    }\n    mimetype = mime_types.get(ext, 'application/octet-stream')\n    \n    logger.info(f\"MEDIA: Serving {filename}\")\n    \n    response = make_response(send_from_directory(media_dir, filename))\n    response.headers['Content-Type'] = mimetype\n    response.headers['Accept-Ranges'] = 'bytes'\n    return response\n\nif __name__ == '__main__':\n    logger.info(\"Starting Flask development server on http://0.0.0.0:5000\")\n    app.run(debug=False, host='0.0.0.0', port=5000, threaded=True)\n",
+                "after": "from flask import Flask, send_from_directory, make_response, request\nfrom flask_cors import CORS\nfrom routes.simulation_routes import simulation_bp\nfrom dotenv import load_dotenv\nimport os\nimport logging\nimport sys\nfrom datetime import datetime\n\nload_dotenv()\n\napp = Flask(__name__)\nCORS(app)\n\nlogger = logging.getLogger('visual-interaction-backend')\nlogger.setLevel(logging.INFO)\n\nmedia_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), \"media\")\nos.makedirs(media_dir, exist_ok=True)\n\napp.register_blueprint(simulation_bp, url_prefix='/api')\n\nlogger.info(\"Visual Interaction Backend Starting...\")\nlogger.info(f\"Server ready at http://0.0.0.0:5000\")\n\n@app.before_request\ndef log_request():\n    logger.info(f\"REQUEST: {request.method} {request.path}\")\n\n@app.after_request\ndef log_response(response):\n    logger.info(f\"RESPONSE: {request.method} {request.path} → {response.status_code}\")\n    return response\n\n@app.route('/health')\ndef health():\n    import subprocess\n    import importlib.util\n    \n    pydub_ok = importlib.util.find_spec(\"pydub\") is not None\n    ffmpeg_ok = False\n    try:\n        result = subprocess.run(['ffmpeg', '-version'], capture_output=True, timeout=5)\n        ffmpeg_ok = result.returncode == 0\n    except Exception:\n        pass\n    \n    redis_ok = os.getenv('REDIS_URL') is not None\n    supabase_ok = os.getenv('SUPABASE_CONNECTION_STRING') is not None\n    sarvam_ok = os.getenv('SARVAM_API_KEY') is not None\n    \n    media_files = len(os.listdir(media_dir)) if os.path.exists(media_dir) else 0\n    \n    health_status = {\n        'status': 'healthy',\n        'timestamp': datetime.now().isoformat(),\n        'audio': {\n            'pydub': pydub_ok,\n            'ffmpeg': ffmpeg_ok\n        },\n        'services': {\n            'redis': redis_ok,\n            'supabase': supabase_ok,\n            'sarvam': sarvam_ok\n        },\n        'media': {\n            'files_count': media_files\n        }\n    }\n    \n    if not (pydub_ok and ffmpeg_ok and sarvam_ok):\n        health_status['warnings'] = 'Some audio services may not work properly'\n    \n    logger.info(f\"Health check: OK\")\n    return health_status\n\n@app.route('/media/<path:filename>')\ndef serve_media(filename):\n    import os\n    from flask import abort\n    \n    file_path = os.path.join(media_dir, filename)\n    \n    if not os.path.exists(file_path):\n        logger.warning(f\"MEDIA 404: File not found - {filename}\")\n        abort(404)\n    \n    ext = os.path.splitext(filename)[1].lower()\n    mime_types = {\n        '.mp3': 'audio/mpeg',\n        '.wav': 'audio/wav',\n        '.ogg': 'audio/ogg',\n        '.m4a': 'audio/mp4',\n        '.json': 'application/json'\n    }\n    mimetype = mime_types.get(ext, 'application/octet-stream')\n    \n    logger.info(f\"MEDIA: Serving {filename}\")\n    \n    response = make_response(send_from_directory(media_dir, filename))\n    response.headers['Content-Type'] = mimetype\n    response.headers['Accept-Ranges'] = 'bytes'\n    return response\n\nif __name__ == '__main__':\n    logger.info(\"Starting Flask development server on http://0.0.0.0:5000\")\n    app.run(debug=False, host='0.0.0.0', port=5000, threaded=True)\n",
+                "additions": 1,
+                "deletions": 8
+              },
+              "truncated": false
+            },
+            "time": {
+              "start": 1773992089662,
+              "end": 1773992090259
+            }
+          },
+          "id": "prt_d0a2b09d1001zD5yJ1lLhNILOw",
+          "sessionID": "ses_2f5d7121fffeLv92abMCcy6k3y",
+          "messageID": "msg_d0a2ae1fb0019sGNrF9YYDY0II"
+        },
+        {
+          "type": "step-finish",
+          "reason": "tool-calls",
+          "snapshot": "059d4ad0ac904ebcaaeff4f68be259f7091bf19f",
+          "cost": 0,
+          "tokens": {
+            "total": 13440,
+            "input": 65,
+            "output": 447,
+            "reasoning": 0,
+            "cache": {
+              "read": 12709,
+              "write": 219
+            }
+          },
+          "id": "prt_d0a2b1a95001QgPsj3nYFpghF2",
+          "sessionID": "ses_2f5d7121fffeLv92abMCcy6k3y",
+          "messageID": "msg_d0a2ae1fb0019sGNrF9YYDY0II"
+        },
+        {
+          "type": "patch",
+          "hash": "7c63aa66f4dd8cfffa5c511531ce955e7bd13450",
+          "files": [
+            "/home/tejasree/visual-task/visual-interaction/backend/app.py"
+          ],
+          "id": "prt_d0a2b1ab1001v4PklIvXTZJQqS",
+          "sessionID": "ses_2f5d7121fffeLv92abMCcy6k3y",
+          "messageID": "msg_d0a2ae1fb0019sGNrF9YYDY0II"
+        }
+      ]
+    },
+    {
+      "info": {
+        "role": "assistant",
+        "time": {
+          "created": 1773992090297,
+          "completed": 1773992093343
+        },
+        "parentID": "msg_d0a2ae1e2001Rp4gey4HOjB2hA",
+        "modelID": "big-pickle",
+        "providerID": "opencode",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/home/tejasree/visual-task/visual-interaction",
+          "root": "/home/tejasree/visual-task/visual-interaction"
+        },
+        "cost": 0,
+        "tokens": {
+          "total": 13505,
+          "input": 79,
+          "output": 46,
+          "reasoning": 0,
+          "cache": {
+            "read": 12928,
+            "write": 452
+          }
+        },
+        "finish": "stop",
+        "id": "msg_d0a2b1ab9001nn4bSmTW8jz4cp",
+        "sessionID": "ses_2f5d7121fffeLv92abMCcy6k3y"
+      },
+      "parts": [
+        {
+          "type": "step-start",
+          "snapshot": "059d4ad0ac904ebcaaeff4f68be259f7091bf19f",
+          "id": "prt_d0a2b2364001sgiM44C0q15VIu",
+          "sessionID": "ses_2f5d7121fffeLv92abMCcy6k3y",
+          "messageID": "msg_d0a2b1ab9001nn4bSmTW8jz4cp"
+        },
+        {
+          "type": "reasoning",
+          "text": "Now I've removed the werkzeug logging suppression and the custom basicConfig. This should restore the clean Flask startup output.",
+          "metadata": {
+            "anthropic": {
+              "signature": "54400cf52a317864ca9b7b3f27cb8012bc44111ad714b577877be0f8869422ff"
+            }
+          },
+          "time": {
+            "start": 1773992092517,
+            "end": 1773992092929
+          },
+          "id": "prt_d0a2b2365001tNwdFmOg8HfCNt",
+          "sessionID": "ses_2f5d7121fffeLv92abMCcy6k3y",
+          "messageID": "msg_d0a2b1ab9001nn4bSmTW8jz4cp"
+        },
+        {
+          "type": "text",
+          "text": "Done. Now restart with `python app.py` - you'll see the clean Flask startup output.",
+          "time": {
+            "start": 1773992093277,
+            "end": 1773992093277
+          },
+          "id": "prt_d0a2b2502001Dp6UAJOjJxaEU6",
+          "sessionID": "ses_2f5d7121fffeLv92abMCcy6k3y",
+          "messageID": "msg_d0a2b1ab9001nn4bSmTW8jz4cp"
+        },
+        {
+          "type": "step-finish",
+          "reason": "stop",
+          "snapshot": "059d4ad0ac904ebcaaeff4f68be259f7091bf19f",
+          "cost": 0,
+          "tokens": {
+            "total": 13505,
+            "input": 79,
+            "output": 46,
+            "reasoning": 0,
+            "cache": {
+              "read": 12928,
+              "write": 452
+            }
+          },
+          "id": "prt_d0a2b2685001nxRzlPS2Fdet4Q",
+          "sessionID": "ses_2f5d7121fffeLv92abMCcy6k3y",
+          "messageID": "msg_d0a2b1ab9001nn4bSmTW8jz4cp"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "cli_version": "0.5.0",
+  "checkpoint_id": "c141d397c219",
+  "session_id": "ses_2f5d7121fffeLv92abMCcy6k3y",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-23T04:26:34.288770676Z",
+  "branch": "main",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "backend/app.py",
+    "backend/routes/simulation_routes.py",
+    "backend/services/cache_service.py",
+    "backend/services/physics_service.py",
+    "backend/services/speech_service.py",
+    "backend/services/supabase_client.py",
+    "frontend/lib/services/api_service.dart",
+    "frontend/lib/services/speech_service.dart"
+  ],
+  "agent": "OpenCode",
+  "model": "big-pickle",
+  "turn_id": "001ca40b69d3",
+  "token_usage": {
+    "input_tokens": 1522,
+    "cache_creation_tokens": 2473,
+    "cache_read_tokens": 59757,
+    "output_tokens": 810,
+    "api_call_count": 5
+  },
+  "session_metrics": {
+    "turn_count": 2
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-23T04:26:34.266209717Z",
+    "agent_lines": 174,
+    "human_added": 2,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 176,
+    "agent_percentage": 98.86363636363636
+  }
+}
