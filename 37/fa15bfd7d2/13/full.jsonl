@@ -1,0 +1,480 @@
+{
+  "info": {
+    "id": "ses_2f5d3f229ffeWgx2noPpu1k0fD",
+    "slug": "brave-cabin",
+    "projectID": "0eddc3b0503d540472052df40a9e122b14441051",
+    "directory": "/home/tejasree/visual-task/visual-interaction",
+    "title": "Debug mode on not off",
+    "version": "1.2.27",
+    "summary": {
+      "additions": 1,
+      "deletions": 1,
+      "files": 1
+    },
+    "time": {
+      "created": 1773992152535,
+      "updated": 1773992175770
+    }
+  },
+  "messages": [
+    {
+      "info": {
+        "role": "user",
+        "time": {
+          "created": 1773992152557
+        },
+        "summary": {
+          "diffs": [
+            {
+              "file": "backend/app.py",
+              "before": "from flask import Flask, send_from_directory, make_response, request\nfrom flask_cors import CORS\nfrom routes.simulation_routes import simulation_bp\nfrom dotenv import load_dotenv\nimport os\nimport logging\nimport sys\nfrom datetime import datetime\n\nload_dotenv()\n\napp = Flask(__name__)\nCORS(app)\n\nlogger = logging.getLogger('visual-interaction-backend')\nlogger.setLevel(logging.INFO)\n\nmedia_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), \"media\")\nos.makedirs(media_dir, exist_ok=True)\n\napp.register_blueprint(simulation_bp, url_prefix='/api')\n\nlogger.info(\"Visual Interaction Backend Starting...\")\nlogger.info(f\"Server ready at http://0.0.0.0:5000\")\n\n@app.before_request\ndef log_request():\n    logger.info(f\"REQUEST: {request.method} {request.path}\")\n\n@app.after_request\ndef log_response(response):\n    logger.info(f\"RESPONSE: {request.method} {request.path} → {response.status_code}\")\n    return response\n\n@app.route('/health')\ndef health():\n    import subprocess\n    import importlib.util\n    \n    pydub_ok = importlib.util.find_spec(\"pydub\") is not None\n    ffmpeg_ok = False\n    try:\n        result = subprocess.run(['ffmpeg', '-version'], capture_output=True, timeout=5)\n        ffmpeg_ok = result.returncode == 0\n    except Exception:\n        pass\n    \n    redis_ok = os.getenv('REDIS_URL') is not None\n    supabase_ok = os.getenv('SUPABASE_CONNECTION_STRING') is not None\n    sarvam_ok = os.getenv('SARVAM_API_KEY') is not None\n    \n    media_files = len(os.listdir(media_dir)) if os.path.exists(media_dir) else 0\n    \n    health_status = {\n        'status': 'healthy',\n        'timestamp': datetime.now().isoformat(),\n        'audio': {\n            'pydub': pydub_ok,\n            'ffmpeg': ffmpeg_ok\n        },\n        'services': {\n            'redis': redis_ok,\n            'supabase': supabase_ok,\n            'sarvam': sarvam_ok\n        },\n        'media': {\n            'files_count': media_files\n        }\n    }\n    \n    if not (pydub_ok and ffmpeg_ok and sarvam_ok):\n        health_status['warnings'] = 'Some audio services may not work properly'\n    \n    logger.info(f\"Health check: OK\")\n    return health_status\n\n@app.route('/media/<path:filename>')\ndef serve_media(filename):\n    import os\n    from flask import abort\n    \n    file_path = os.path.join(media_dir, filename)\n    \n    if not os.path.exists(file_path):\n        logger.warning(f\"MEDIA 404: File not found - {filename}\")\n        abort(404)\n    \n    ext = os.path.splitext(filename)[1].lower()\n    mime_types = {\n        '.mp3': 'audio/mpeg',\n        '.wav': 'audio/wav',\n        '.ogg': 'audio/ogg',\n        '.m4a': 'audio/mp4',\n        '.json': 'application/json'\n    }\n    mimetype = mime_types.get(ext, 'application/octet-stream')\n    \n    logger.info(f\"MEDIA: Serving {filename}\")\n    \n    response = make_response(send_from_directory(media_dir, filename))\n    response.headers['Content-Type'] = mimetype\n    response.headers['Accept-Ranges'] = 'bytes'\n    return response\n\nif __name__ == '__main__':\n    logger.info(\"Starting Flask development server on http://0.0.0.0:5000\")\n    app.run(debug=False, host='0.0.0.0', port=5000, threaded=True)\n",
+              "after": "from flask import Flask, send_from_directory, make_response, request\nfrom flask_cors import CORS\nfrom routes.simulation_routes import simulation_bp\nfrom dotenv import load_dotenv\nimport os\nimport logging\nimport sys\nfrom datetime import datetime\n\nload_dotenv()\n\napp = Flask(__name__)\nCORS(app)\n\nlogger = logging.getLogger('visual-interaction-backend')\nlogger.setLevel(logging.INFO)\n\nmedia_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), \"media\")\nos.makedirs(media_dir, exist_ok=True)\n\napp.register_blueprint(simulation_bp, url_prefix='/api')\n\nlogger.info(\"Visual Interaction Backend Starting...\")\nlogger.info(f\"Server ready at http://0.0.0.0:5000\")\n\n@app.before_request\ndef log_request():\n    logger.info(f\"REQUEST: {request.method} {request.path}\")\n\n@app.after_request\ndef log_response(response):\n    logger.info(f\"RESPONSE: {request.method} {request.path} → {response.status_code}\")\n    return response\n\n@app.route('/health')\ndef health():\n    import subprocess\n    import importlib.util\n    \n    pydub_ok = importlib.util.find_spec(\"pydub\") is not None\n    ffmpeg_ok = False\n    try:\n        result = subprocess.run(['ffmpeg', '-version'], capture_output=True, timeout=5)\n        ffmpeg_ok = result.returncode == 0\n    except Exception:\n        pass\n    \n    redis_ok = os.getenv('REDIS_URL') is not None\n    supabase_ok = os.getenv('SUPABASE_CONNECTION_STRING') is not None\n    sarvam_ok = os.getenv('SARVAM_API_KEY') is not None\n    \n    media_files = len(os.listdir(media_dir)) if os.path.exists(media_dir) else 0\n    \n    health_status = {\n        'status': 'healthy',\n        'timestamp': datetime.now().isoformat(),\n        'audio': {\n            'pydub': pydub_ok,\n            'ffmpeg': ffmpeg_ok\n        },\n        'services': {\n            'redis': redis_ok,\n            'supabase': supabase_ok,\n            'sarvam': sarvam_ok\n        },\n        'media': {\n            'files_count': media_files\n        }\n    }\n    \n    if not (pydub_ok and ffmpeg_ok and sarvam_ok):\n        health_status['warnings'] = 'Some audio services may not work properly'\n    \n    logger.info(f\"Health check: OK\")\n    return health_status\n\n@app.route('/media/<path:filename>')\ndef serve_media(filename):\n    import os\n    from flask import abort\n    \n    file_path = os.path.join(media_dir, filename)\n    \n    if not os.path.exists(file_path):\n        logger.warning(f\"MEDIA 404: File not found - {filename}\")\n        abort(404)\n    \n    ext = os.path.splitext(filename)[1].lower()\n    mime_types = {\n        '.mp3': 'audio/mpeg',\n        '.wav': 'audio/wav',\n        '.ogg': 'audio/ogg',\n        '.m4a': 'audio/mp4',\n        '.json': 'application/json'\n    }\n    mimetype = mime_types.get(ext, 'application/octet-stream')\n    \n    logger.info(f\"MEDIA: Serving {filename}\")\n    \n    response = make_response(send_from_directory(media_dir, filename))\n    response.headers['Content-Type'] = mimetype\n    response.headers['Accept-Ranges'] = 'bytes'\n    return response\n\nif __name__ == '__main__':\n    logger.info(\"Starting Flask development server on http://0.0.0.0:5000\")\n    app.run(debug=True, host='0.0.0.0', port=5000, threaded=True)\n",
+              "additions": 1,
+              "deletions": 1,
+              "status": "modified"
+            }
+          ]
+        },
+        "agent": "build",
+        "model": {
+          "providerID": "opencode",
+          "modelID": "big-pickle"
+        },
+        "id": "msg_d0a2c0ddf001vWrdVGzVw5C6zw",
+        "sessionID": "ses_2f5d3f229ffeWgx2noPpu1k0fD"
+      },
+      "parts": [
+        {
+          "type": "text",
+          "text": "debug mode on not off",
+          "id": "prt_d0a2c0de0001fg2Zilw5TOheIk",
+          "sessionID": "ses_2f5d3f229ffeWgx2noPpu1k0fD",
+          "messageID": "msg_d0a2c0ddf001vWrdVGzVw5C6zw"
+        }
+      ]
+    },
+    {
+      "info": {
+        "role": "assistant",
+        "time": {
+          "created": 1773992152580,
+          "completed": 1773992161096
+        },
+        "parentID": "msg_d0a2c0ddf001vWrdVGzVw5C6zw",
+        "modelID": "big-pickle",
+        "providerID": "opencode",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/home/tejasree/visual-task/visual-interaction",
+          "root": "/home/tejasree/visual-task/visual-interaction"
+        },
+        "cost": 0,
+        "tokens": {
+          "total": 11538,
+          "input": 65,
+          "output": 137,
+          "reasoning": 0,
+          "cache": {
+            "read": 11326,
+            "write": 10
+          }
+        },
+        "finish": "tool-calls",
+        "id": "msg_d0a2c0e040011Ox7HRq043CgZr",
+        "sessionID": "ses_2f5d3f229ffeWgx2noPpu1k0fD"
+      },
+      "parts": [
+        {
+          "type": "step-start",
+          "snapshot": "059d4ad0ac904ebcaaeff4f68be259f7091bf19f",
+          "id": "prt_d0a2c2066001RP5D9bGrqoMRB9",
+          "sessionID": "ses_2f5d3f229ffeWgx2noPpu1k0fD",
+          "messageID": "msg_d0a2c0e040011Ox7HRq043CgZr"
+        },
+        {
+          "type": "reasoning",
+          "text": "The user seems to be asking about \"debug mode\" being \"on not off\". This is a bit vague - they might be asking about:\n1. A debug mode setting in some code/configuration\n2. They want debug mode to be ON instead of OFF\n3. They found a bug where debug mode is not turning off\n\nLet me first explore the codebase to understand what they might be referring to. I should search for \"debug\" in the codebase to find any debug-related settings or configurations.",
+          "metadata": {
+            "anthropic": {
+              "signature": "e66313e26f214dbb8f41eb584d0b1adfd57788e06e714bf01f61755d71607464"
+            }
+          },
+          "time": {
+            "start": 1773992157287,
+            "end": 1773992161008
+          },
+          "id": "prt_d0a2c2067001XmJgNuqbYOBfBq",
+          "sessionID": "ses_2f5d3f229ffeWgx2noPpu1k0fD",
+          "messageID": "msg_d0a2c0e040011Ox7HRq043CgZr"
+        },
+        {
+          "type": "text",
+          "text": "Let me search the codebase for debug-related configurations.",
+          "time": {
+            "start": 1773992161011,
+            "end": 1773992161011
+          },
+          "id": "prt_d0a2c2ef20011QCzyERXTMn8TR",
+          "sessionID": "ses_2f5d3f229ffeWgx2noPpu1k0fD",
+          "messageID": "msg_d0a2c0e040011Ox7HRq043CgZr"
+        },
+        {
+          "type": "tool",
+          "callID": "call_function_b0utvrhb0f0e_1",
+          "tool": "grep",
+          "state": {
+            "status": "completed",
+            "input": {
+              "pattern": "debug"
+            },
+            "output": "Found 102 matches (showing first 100)\n/home/tejasree/visual-task/visual-interaction/.git/entire-sessions/ses_2f5d3f229ffeWgx2noPpu1k0fD.json:\n  Line 78:   \"last_prompt\": \"debug mode on not off\",\n\n/home/tejasree/visual-task/visual-interaction/.git/entire-sessions/ses_2f5d7121fffeLv92abMCcy6k3y.json:\n  Line 99:   \"last_prompt\": \"i mean not debug mode in this the debig mode is on exactly when i run python3 app.py it shows lik...\",\n\n/home/tejasree/visual-task/visual-interaction/backend/app.py:\n  Line 107:     app.run(debug=False, host='0.0.0.0', port=5000, threaded=True)\n\n/home/tejasree/visual-task/visual-interaction/backend/routes/simulation_routes.py:\n  Line 301: @simulation_bp.route('/debug/changes-dashboard')\n  Line 355:         <p class=\"total\">Auto-refreshes every 2 seconds | <a href=\"/api/debug/changes-dashboard\" style=\"color:#4ec9b0;\">Refresh Now</a></p>\n\n/home/tejasree/visual-task/visual-interaction/.git/entire-sessions/ses_2f5f123ebffeAkLpPv0023y0iV.json:\n  Line 91:   \"last_prompt\": \"i want normal how we debug like that no extra to add\",\n\n/home/tejasree/visual-task/visual-interaction/.git/entire-sessions/ses_2f60677c3ffePYHNA0aOQfM4bc.json:\n  Line 91:   \"last_prompt\": \"i want debugger and that must show the changes\"\n\n/home/tejasree/visual-task/visual-interaction/.git/logs/refs/heads/main:\n  Line 36: 803096e91db37f191ffdebe575443d87360a8714 d8313945f85bca0b51c0f41e315b7a0b64470703 tejasree <ganditejasree@gmail.com> 1773843173 +0000\tcommit: try to fix audio issue through debugging\n  Line 59: 52ef0b8a0c48845494a37420ec2cfcc2787fe88b e5bb11393f56c079788ae2a1e3534d0e55ad15dc tejasree <ganditejasree@gmail.com> 1773989384 +0000\tcommit: add logs in debugger\n\n/home/tejasree/visual-task/visual-interaction/.git/logs/HEAD:\n  Line 36: 803096e91db37f191ffdebe575443d87360a8714 d8313945f85bca0b51c0f41e315b7a0b64470703 tejasree <ganditejasree@gmail.com> 1773843173 +0000\tcommit: try to fix audio issue through debugging\n  Line 59: 52ef0b8a0c48845494a37420ec2cfcc2787fe88b e5bb11393f56c079788ae2a1e3534d0e55ad15dc tejasree <ganditejasree@gmail.com> 1773989384 +0000\tcommit: add logs in debugger\n\n/home/tejasree/visual-task/visual-interaction/.git/COMMIT_EDITMSG:\n  Line 1: add logs in debugger\n\n/home/tejasree/visual-task/visual-interaction/frontend-deploy/main.dart.js:\n  Line 23975: s=s==null?null:s.debugShowSemanticsNodes\n  Line 35538: $1$debugBuildRoot(a){return this.H(this,A.M(\"call\",\"$1$debugBuildRoot\",0,[a],[\"debugBuildRoot\"],0))},\n  Line 35579: $3$debugReport(a,b,c){return this.H(this,A.M(\"call\",\"$3$debugReport\",0,[a,b,c],[\"debugReport\"],0))},\n  Line 77577: hunkHelpers.setOrUpdateInterceptorsByTag({WebGL:J.pj,AnimationEffectReadOnly:J.h,AnimationEffectTiming:J.h,AnimationEffectTimingReadOnly:J.h,AnimationTimeline:J.h,AnimationWorkletGlobalScope:J.h,AuthenticatorAssertionResponse:J.h,AuthenticatorAttestationResponse:J.h,AuthenticatorResponse:J.h,BackgroundFetchFetch:J.h,BackgroundFetchManager:J.h,BackgroundFetchSettledFetch:J.h,BarProp:J.h,BarcodeDetector:J.h,BluetoothRemoteGATTDescriptor:J.h,Body:J.h,BudgetState:J.h,CacheStorage:J.h,CanvasGradient:J.h,CanvasPattern:J.h,CanvasRenderingContext2D:J.h,Client:J.h,Clients:J.h,CookieStore:J.h,Coordinates:J.h,Credential:J.h,CredentialUserData:J.h,CredentialsContainer:J.h,Crypto:J.h,CryptoKey:J.h,CSS:J.h,CSSVariableReferenceValue:J.h,CustomElementRegistry:J.h,DataTransfer:J.h,DataTransferItem:J.h,DeprecatedStorageInfo:J.h,DeprecatedStorageQuota:J.h,DeprecationReport:J.h,DetectedBarcode:J.h,DetectedFace:J.h,DetectedText:J.h,DeviceAcceleration:J.h,DeviceRotationRate:J.h,DirectoryEntry:J.h,webkitFileSystemDirectoryEntry:J.h,FileSystemDirectoryEntry:J.h,DirectoryReader:J.h,WebKitDirectoryReader:J.h,webkitFileSystemDirectoryReader:J.h,FileSystemDirectoryReader:J.h,DocumentOrShadowRoot:J.h,DocumentTimeline:J.h,DOMError:J.h,DOMImplementation:J.h,Iterator:J.h,DOMMatrix:J.h,DOMMatrixReadOnly:J.h,DOMParser:J.h,DOMPoint:J.h,DOMPointReadOnly:J.h,DOMQuad:J.h,DOMStringMap:J.h,Entry:J.h,webkitFileSystemEntry:J.h,FileSystemEntry:J.h,External:J.h,FaceDetector:J.h,FederatedCredential:J.h,FileEntry:J.h,webkitFileSystemFileEntry:J.h,FileSystemFileEntry:J.h,DOMFileSystem:J.h,WebKitFileSystem:J.h,webkitFileSystem:J.h,FileSystem:J.h,FontFace:J.h,FontFaceSource:J.h,FormData:J.h,GamepadButton:J.h,GamepadPose:J.h,Geolocation:J.h,Position:J.h,GeolocationPosition:J.h,Headers:J.h,HTMLHyperlinkElementUtils:J.h,IdleDeadline:J.h,ImageBitmap:J.h,ImageBitmapRenderingContext:J.h,ImageCapture:J.h,InputDeviceCapabilities:J.h,IntersectionObserver:J.h,IntersectionObserverEntry:J.h,InterventionReport:J.h,KeyframeEffe...\n  Line 77578: hunkHelpers.setOrUpdateLeafTags({WebGL:true,AnimationEffectReadOnly:true,AnimationEffectTiming:true,AnimationEffectTimingReadOnly:true,AnimationTimeline:true,AnimationWorkletGlobalScope:true,AuthenticatorAssertionResponse:true,AuthenticatorAttestationResponse:true,AuthenticatorResponse:true,BackgroundFetchFetch:true,BackgroundFetchManager:true,BackgroundFetchSettledFetch:true,BarProp:true,BarcodeDetector:true,BluetoothRemoteGATTDescriptor:true,Body:true,BudgetState:true,CacheStorage:true,CanvasGradient:true,CanvasPattern:true,CanvasRenderingContext2D:true,Client:true,Clients:true,CookieStore:true,Coordinates:true,Credential:true,CredentialUserData:true,CredentialsContainer:true,Crypto:true,CryptoKey:true,CSS:true,CSSVariableReferenceValue:true,CustomElementRegistry:true,DataTransfer:true,DataTransferItem:true,DeprecatedStorageInfo:true,DeprecatedStorageQuota:true,DeprecationReport:true,DetectedBarcode:true,DetectedFace:true,DetectedText:true,DeviceAcceleration:true,DeviceRotationRate:true,DirectoryEntry:true,webkitFileSystemDirectoryEntry:true,FileSystemDirectoryEntry:true,DirectoryReader:true,WebKitDirectoryReader:true,webkitFileSystemDirectoryReader:true,FileSystemDirectoryReader:true,DocumentOrShadowRoot:true,DocumentTimeline:true,DOMError:true,DOMImplementation:true,Iterator:true,DOMMatrix:true,DOMMatrixReadOnly:true,DOMParser:true,DOMPoint:true,DOMPointReadOnly:true,DOMQuad:true,DOMStringMap:true,Entry:true,webkitFileSystemEntry:true,FileSystemEntry:true,External:true,FaceDetector:true,FederatedCredential:true,FileEntry:true,webkitFileSystemFileEntry:true,FileSystemFileEntry:true,DOMFileSystem:true,WebKitFileSystem:true,webkitFileSystem:true,FileSystem:true,FontFace:true,FontFaceSource:true,FormData:true,GamepadButton:true,GamepadPose:true,Geolocation:true,Position:true,GeolocationPosition:true,Headers:true,HTMLHyperlinkElementUtils:true,IdleDeadline:true,ImageBitmap:true,ImageBitmapRenderingContext:true,ImageCapture:true,InputDeviceCapabilities:true,Intersecti...\n\n/home/tejasree/visual-task/visual-interaction/frontend-deploy/flutter_bootstrap.js:\n  Line 1: (()=>{var _={blink:!0,gecko:!1,webkit:!1,unknown:!1},K=()=>navigator.vendor===\"Google Inc.\"||navigator.userAgent.includes(\"Edg/\")?\"blink\":navigator.vendor===\"Apple Computer, Inc.\"?\"webkit\":navigator.vendor===\"\"&&navigator.userAgent.includes(\"Firefox\")?\"gecko\":\"unknown\",C=K(),R=()=>typeof ImageDecoder>\"u\"?!1:C===\"blink\",B=()=>typeof Intl.v8BreakIterator<\"u\"&&typeof Intl.Segmenter<\"u\",z=()=>{let i=[0,97,115,109,1,0,0,0,1,5,1,95,1,120,0];return WebAssembly.validate(new Uint8Array(i))},M=()=>{let i=document.createElement(\"canvas\");return i.width=1,i.height=1,i.getContext(\"webgl2\")!=null?2:i.getContext(\"webgl\")!=null?1:-1},D=()=>window.chrome&&chrome.runtime&&chrome.runtime.id,w={browserEngine:C,hasImageCodecs:R(),hasChromiumBreakIterators:B(),supportsWasmGC:z(),crossOriginIsolated:window.crossOriginIsolated,webGLVersion:M(),isChromeExtension:D()};function c(...i){return new URL(I(...i),document.baseURI).toString()}function I(...i){return i.filter(e=>!!e).map((e,n)=>n===0?S(e):F(S(e))).filter(e=>e.length).join(\"/\")}function F(i){let e=0;for(;e<i.length&&i.charAt(e)===\"/\";)e++;return i.substring(e)}function S(i){let e=i.length;for(;e>0&&i.charAt(e-1)===\"/\";)e--;return i.substring(0,e)}function E(i,e){return i.canvasKitBaseUrl?i.canvasKitBaseUrl:e.engineRevision&&!e.useLocalCanvasKit?I(\"https://www.gstatic.com/flutter-canvaskit\",e.engineRevision):\"canvaskit\"}var v=class{constructor(){this._scriptLoaded=!1}setTrustedTypesPolicy(e){this._ttPolicy=e}async loadEntrypoint(e){let{entrypointUrl:n=c(\"main.dart.js\"),onEntrypointLoaded:t,nonce:r}=e||{};return this._loadJSEntrypoint(n,t,r)}async load(e,n,t,r,a){a??=l=>{l.initializeEngine(t).then(u=>u.runApp())};let{entrypointBaseUrl:s}=t,{entryPointBaseUrl:o}=t;if(!s&&o&&(console.warn(\"[deprecated] `entryPointBaseUrl` is deprecated and will be removed in a future release. Use `entrypointBaseUrl` instead.\"),s=o),e.compileTarget===\"dart2wasm\")return this._loadWasmEntrypoint(e,n,s,a);{let l=e.mainJsPath??\"main.dart.js\",u=c(s,l);return t...\n  Line 2: For more details, see: https://github.com/flutter/flutter/issues/156910`)},t=()=>{let{serviceWorkerVersion:r,serviceWorkerUrl:a=c(`flutter_service_worker.js?v=${r}`),timeoutMillis:s=4e3}=e,o=a;this._ttPolicy!=null&&(o=this._ttPolicy.createScriptURL(o));let l=navigator.serviceWorker.register(o).then(u=>this._getNewServiceWorker(u,r)).then(this._waitForServiceWorkerActivation);return T(l,s,\"prepareServiceWorker\")};return e.serviceWorkerUrl!=null?(n(),t()):navigator.serviceWorker.getRegistration().then(r=>r?t():Promise.resolve())}async _getNewServiceWorker(e,n){if(!e.active&&(e.installing||e.waiting))return console.debug(\"Installing/Activating first service worker.\"),e.installing||e.waiting;if(e.active.scriptURL.endsWith(n))return console.debug(\"Loading from existing service worker.\"),e.active;{let t=await e.update();return console.debug(\"Updating service worker.\"),t.installing||t.waiting||t.active}}async _waitForServiceWorkerActivation(e){if(!e||e.state===\"activated\")if(e){console.debug(\"Service worker already active.\");return}else throw new Error(\"Cannot activate a null service worker!\");return new Promise((n,t)=>{e.addEventListener(\"statechange\",()=>{e.state===\"activated\"&&(console.debug(\"Activated new service worker.\"),n())})})}};var y=class{constructor(e,n=\"flutter-js\"){let t=e||[/\\.js$/,/\\.mjs$/];window.trustedTypes&&(this.policy=trustedTypes.createPolicy(n,{createScriptURL:function(r){if(r.startsWith(\"blob:\"))return r;let a=new URL(r,window.location),s=a.pathname.split(\"/\").pop();if(t.some(l=>l.test(s)))return a.toString();console.error(\"URL rejected by TrustedTypes policy\",n,\":\",r,\"(download prevented)\")}}))}};var k=i=>{let e=WebAssembly.compileStreaming(fetch(i));return(n,t)=>((async()=>{let r=await e,a=await WebAssembly.instantiate(r,n);t(a,r)})(),{})};var U=(i,e,n,t)=>(window.flutterCanvasKitLoaded=(async()=>{if(window.flutterCanvasKit)return window.flutterCanvasKit;let r=n.hasChromiumBreakIterators&&n.hasImageCodecs;if(!r&&e.canvasKitVariant==\"chromium\")thr...\n\n/home/tejasree/visual-task/visual-interaction/frontend-deploy/flutter.js:\n  Line 1: (()=>{var _={blink:!0,gecko:!1,webkit:!1,unknown:!1},K=()=>navigator.vendor===\"Google Inc.\"||navigator.userAgent.includes(\"Edg/\")?\"blink\":navigator.vendor===\"Apple Computer, Inc.\"?\"webkit\":navigator.vendor===\"\"&&navigator.userAgent.includes(\"Firefox\")?\"gecko\":\"unknown\",C=K(),R=()=>typeof ImageDecoder>\"u\"?!1:C===\"blink\",B=()=>typeof Intl.v8BreakIterator<\"u\"&&typeof Intl.Segmenter<\"u\",z=()=>{let i=[0,97,115,109,1,0,0,0,1,5,1,95,1,120,0];return WebAssembly.validate(new Uint8Array(i))},M=()=>{let i=document.createElement(\"canvas\");return i.width=1,i.height=1,i.getContext(\"webgl2\")!=null?2:i.getContext(\"webgl\")!=null?1:-1},D=()=>window.chrome&&chrome.runtime&&chrome.runtime.id,w={browserEngine:C,hasImageCodecs:R(),hasChromiumBreakIterators:B(),supportsWasmGC:z(),crossOriginIsolated:window.crossOriginIsolated,webGLVersion:M(),isChromeExtension:D()};function c(...i){return new URL(I(...i),document.baseURI).toString()}function I(...i){return i.filter(e=>!!e).map((e,n)=>n===0?S(e):F(S(e))).filter(e=>e.length).join(\"/\")}function F(i){let e=0;for(;e<i.length&&i.charAt(e)===\"/\";)e++;return i.substring(e)}function S(i){let e=i.length;for(;e>0&&i.charAt(e-1)===\"/\";)e--;return i.substring(0,e)}function E(i,e){return i.canvasKitBaseUrl?i.canvasKitBaseUrl:e.engineRevision&&!e.useLocalCanvasKit?I(\"https://www.gstatic.com/flutter-canvaskit\",e.engineRevision):\"canvaskit\"}var v=class{constructor(){this._scriptLoaded=!1}setTrustedTypesPolicy(e){this._ttPolicy=e}async loadEntrypoint(e){let{entrypointUrl:n=c(\"main.dart.js\"),onEntrypointLoaded:t,nonce:r}=e||{};return this._loadJSEntrypoint(n,t,r)}async load(e,n,t,r,a){a??=l=>{l.initializeEngine(t).then(u=>u.runApp())};let{entrypointBaseUrl:s}=t,{entryPointBaseUrl:o}=t;if(!s&&o&&(console.warn(\"[deprecated] `entryPointBaseUrl` is deprecated and will be removed in a future release. Use `entrypointBaseUrl` instead.\"),s=o),e.compileTarget===\"dart2wasm\")return this._loadWasmEntrypoint(e,n,s,a);{let l=e.mainJsPath??\"main.dart.js\",u=c(s,l);return t...\n  Line 2: For more details, see: https://github.com/flutter/flutter/issues/156910`)},t=()=>{let{serviceWorkerVersion:r,serviceWorkerUrl:a=c(`flutter_service_worker.js?v=${r}`),timeoutMillis:s=4e3}=e,o=a;this._ttPolicy!=null&&(o=this._ttPolicy.createScriptURL(o));let l=navigator.serviceWorker.register(o).then(u=>this._getNewServiceWorker(u,r)).then(this._waitForServiceWorkerActivation);return T(l,s,\"prepareServiceWorker\")};return e.serviceWorkerUrl!=null?(n(),t()):navigator.serviceWorker.getRegistration().then(r=>r?t():Promise.resolve())}async _getNewServiceWorker(e,n){if(!e.active&&(e.installing||e.waiting))return console.debug(\"Installing/Activating first service worker.\"),e.installing||e.waiting;if(e.active.scriptURL.endsWith(n))return console.debug(\"Loading from existing service worker.\"),e.active;{let t=await e.update();return console.debug(\"Updating service worker.\"),t.installing||t.waiting||t.active}}async _waitForServiceWorkerActivation(e){if(!e||e.state===\"activated\")if(e){console.debug(\"Service worker already active.\");return}else throw new Error(\"Cannot activate a null service worker!\");return new Promise((n,t)=>{e.addEventListener(\"statechange\",()=>{e.state===\"activated\"&&(console.debug(\"Activated new service worker.\"),n())})})}};var y=class{constructor(e,n=\"flutter-js\"){let t=e||[/\\.js$/,/\\.mjs$/];window.trustedTypes&&(this.policy=trustedTypes.createPolicy(n,{createScriptURL:function(r){if(r.startsWith(\"blob:\"))return r;let a=new URL(r,window.location),s=a.pathname.split(\"/\").pop();if(t.some(l=>l.test(s)))return a.toString();console.error(\"URL rejected by TrustedTypes policy\",n,\":\",r,\"(download prevented)\")}}))}};var k=i=>{let e=WebAssembly.compileStreaming(fetch(i));return(n,t)=>((async()=>{let r=await e,a=await WebAssembly.instantiate(r,n);t(a,r)})(),{})};var U=(i,e,n,t)=>(window.flutterCanvasKitLoaded=(async()=>{if(window.flutterCanvasKit)return window.flutterCanvasKit;let r=n.hasChromiumBreakIterators&&n.hasImageCodecs;if(!r&&e.canvasKitVariant==\"chromium\")thr...\n\n/home/tejasree/visual-task/visual-interaction/frontend-deploy/canvaskit/skwasm_heavy.js:\n  Line 19: b&&(a.drawBuffers=(c,e)=>b.drawBuffersWEBGL(c,e))},bb=a=>{a.H=a.getExtension(\"WEBGL_draw_instanced_base_vertex_base_instance\")},cb=a=>{a.K=a.getExtension(\"WEBGL_multi_draw_instanced_base_vertex_base_instance\")},db=a=>{var b=\"ANGLE_instanced_arrays EXT_blend_minmax EXT_disjoint_timer_query EXT_frag_depth EXT_shader_texture_lod EXT_sRGB OES_element_index_uint OES_fbo_render_mipmap OES_standard_derivatives OES_texture_float OES_texture_half_float OES_texture_half_float_linear OES_vertex_array_object WEBGL_color_buffer_float WEBGL_depth_texture WEBGL_draw_buffers EXT_color_buffer_float EXT_conservative_depth EXT_disjoint_timer_query_webgl2 EXT_texture_norm16 NV_shader_noperspective_interpolation WEBGL_clip_cull_distance EXT_clip_control EXT_color_buffer_half_float EXT_depth_clamp EXT_float_blend EXT_polygon_offset_clamp EXT_texture_compression_bptc EXT_texture_compression_rgtc EXT_texture_filter_anisotropic KHR_parallel_shader_compile OES_texture_float_linear WEBGL_blend_func_extended WEBGL_compressed_texture_astc WEBGL_compressed_texture_etc WEBGL_compressed_texture_etc1 WEBGL_compressed_texture_s3tc WEBGL_compressed_texture_s3tc_srgb WEBGL_debug_renderer_info WEBGL_debug_shaders WEBGL_lose_context WEBGL_multi_draw WEBGL_polygon_mode\".split(\" \");\n  Line 22: Za(b);$a(b);ab(b);bb(b);cb(b);2<=a.version&&(b.m=b.getExtension(\"EXT_disjoint_timer_query_webgl2\"));if(2>a.version||!b.m)b.m=b.getExtension(\"EXT_disjoint_timer_query\");db(b).forEach(c=>{c.includes(\"lose_context\")||c.includes(\"debug\")||b.getExtension(c)})}},N,P,qb=a=>{E.bindVertexArray(ib[a])},rb=(a,b)=>{for(var c=0;c<a;c++){var e=r()[b+4*c>>2],f=G[e];f&&(E.deleteTexture(f),f.name=0,G[e]=null)}},sb=(a,b)=>{for(var c=0;c<a;c++){var e=r()[b+4*c>>2];E.deleteVertexArray(ib[e]);ib[e]=null}},tb=[],ub=(a,\n\n/home/tejasree/visual-task/visual-interaction/frontend-deploy/canvaskit/canvaskit.js:\n  Line 15: 0),enableExtensionsByDefault:b(p,\"enableExtensionsByDefault\",1),explicitSwapControl:b(p,\"explicitSwapControl\",0),renderViaOffscreenBackBuffer:b(p,\"renderViaOffscreenBackBuffer\",0)};v.majorVersion=p&&p.majorVersion?p.majorVersion:\"undefined\"!==typeof WebGL2RenderingContext?2:1;if(v.explicitSwapControl)throw\"explicitSwapControl is not supported\";l=na(l,v);if(!l)return 0;oa(l);z.le.getExtension(\"WEBGL_debug_renderer_info\");return l};a.deleteContext=function(l){z===pa[l]&&(z=null);\"object\"==typeof JSEvents&&\n  Line 121: {var b=\"ANGLE_instanced_arrays EXT_blend_minmax EXT_disjoint_timer_query EXT_frag_depth EXT_shader_texture_lod EXT_sRGB OES_element_index_uint OES_fbo_render_mipmap OES_standard_derivatives OES_texture_float OES_texture_half_float OES_texture_half_float_linear OES_vertex_array_object WEBGL_color_buffer_float WEBGL_depth_texture WEBGL_draw_buffers EXT_color_buffer_float EXT_conservative_depth EXT_disjoint_timer_query_webgl2 EXT_texture_norm16 NV_shader_noperspective_interpolation WEBGL_clip_cull_distance EXT_clip_control EXT_color_buffer_half_float EXT_depth_clamp EXT_float_blend EXT_polygon_offset_clamp EXT_texture_compression_bptc EXT_texture_compression_rgtc EXT_texture_filter_anisotropic KHR_parallel_shader_compile OES_texture_float_linear WEBGL_blend_func_extended WEBGL_compressed_texture_astc WEBGL_compressed_texture_etc WEBGL_compressed_texture_etc1 WEBGL_compressed_texture_s3tc WEBGL_compressed_texture_s3tc_srgb WEBGL_debug_renderer_info WEBGL_debug_shaders WEBGL_lose_context WEBGL_multi_draw WEBGL_polygon_mode\".split(\" \");\n  Line 124: b.Re=b.getExtension(\"WEBGL_multi_draw_instanced_base_vertex_base_instance\");2<=a.version&&(b.me=b.getExtension(\"EXT_disjoint_timer_query_webgl2\"));if(2>a.version||!b.me)b.me=b.getExtension(\"EXT_disjoint_timer_query\");Kc(b).forEach(c=>{c.includes(\"lose_context\")||c.includes(\"debug\")||b.getExtension(c)})}},z,V,cd=(a,b)=>{R.bindFramebuffer(a,Oc[b])},dd=a=>{R.bindVertexArray(Rc[a])},ed=a=>R.clear(a),fd=(a,b,c,e)=>R.clearColor(a,b,c,e),gd=a=>R.clearStencil(a),hd=(a,b)=>{for(var c=0;c<a;c++){var e=E[b+\n\n/home/tejasree/visual-task/visual-interaction/frontend-deploy/canvaskit/skwasm.js:\n  Line 19: b&&(a.drawBuffers=(c,e)=>b.drawBuffersWEBGL(c,e))},bb=a=>{a.H=a.getExtension(\"WEBGL_draw_instanced_base_vertex_base_instance\")},cb=a=>{a.K=a.getExtension(\"WEBGL_multi_draw_instanced_base_vertex_base_instance\")},db=a=>{var b=\"ANGLE_instanced_arrays EXT_blend_minmax EXT_disjoint_timer_query EXT_frag_depth EXT_shader_texture_lod EXT_sRGB OES_element_index_uint OES_fbo_render_mipmap OES_standard_derivatives OES_texture_float OES_texture_half_float OES_texture_half_float_linear OES_vertex_array_object WEBGL_color_buffer_float WEBGL_depth_texture WEBGL_draw_buffers EXT_color_buffer_float EXT_conservative_depth EXT_disjoint_timer_query_webgl2 EXT_texture_norm16 NV_shader_noperspective_interpolation WEBGL_clip_cull_distance EXT_clip_control EXT_color_buffer_half_float EXT_depth_clamp EXT_float_blend EXT_polygon_offset_clamp EXT_texture_compression_bptc EXT_texture_compression_rgtc EXT_texture_filter_anisotropic KHR_parallel_shader_compile OES_texture_float_linear WEBGL_blend_func_extended WEBGL_compressed_texture_astc WEBGL_compressed_texture_etc WEBGL_compressed_texture_etc1 WEBGL_compressed_texture_s3tc WEBGL_compressed_texture_s3tc_srgb WEBGL_debug_renderer_info WEBGL_debug_shaders WEBGL_lose_context WEBGL_multi_draw WEBGL_polygon_mode\".split(\" \");\n  Line 22: Za(b);$a(b);ab(b);bb(b);cb(b);2<=a.version&&(b.m=b.getExtension(\"EXT_disjoint_timer_query_webgl2\"));if(2>a.version||!b.m)b.m=b.getExtension(\"EXT_disjoint_timer_query\");db(b).forEach(c=>{c.includes(\"lose_context\")||c.includes(\"debug\")||b.getExtension(c)})}},N,P,qb=a=>{E.bindVertexArray(ib[a])},rb=(a,b)=>{for(var c=0;c<a;c++){var e=r()[b+4*c>>2],f=G[e];f&&(E.deleteTexture(f),f.name=0,G[e]=null)}},sb=(a,b)=>{for(var c=0;c<a;c++){var e=r()[b+4*c>>2];E.deleteVertexArray(ib[e]);ib[e]=null}},tb=[],ub=(a,\n\n/home/tejasree/visual-task/visual-interaction/frontend-deploy/canvaskit/skwasm_heavy.js.symbols:\n  Line 6309: 6308:set_khr_debug_label\\28GrGLGpu*\\2c\\20unsigned\\20int\\2c\\20std::__2::basic_string_view<char\\2c\\20std::__2::char_traits<char>>\\29\n  Line 6374: 6373:portable::debug_y\\28portable::Params*\\2c\\20SkRasterPipelineStage*\\2c\\20float\\2c\\20float\\2c\\20float\\2c\\20float\\29\n  Line 6375: 6374:portable::debug_x\\28portable::Params*\\2c\\20SkRasterPipelineStage*\\2c\\20float\\2c\\20float\\2c\\20float\\2c\\20float\\29\n  Line 10994: 10993:portable::debug_r_255\\28portable::Params*\\2c\\20SkRasterPipelineStage*\\2c\\20float\\2c\\20float\\2c\\20float\\2c\\20float\\29\n  Line 10995: 10994:portable::debug_g_255\\28portable::Params*\\2c\\20SkRasterPipelineStage*\\2c\\20float\\2c\\20float\\2c\\20float\\2c\\20float\\29\n  Line 10996: 10995:portable::debug_b_255\\28portable::Params*\\2c\\20SkRasterPipelineStage*\\2c\\20float\\2c\\20float\\2c\\20float\\2c\\20float\\29\n  Line 10997: 10996:portable::debug_b\\28portable::Params*\\2c\\20SkRasterPipelineStage*\\2c\\20float\\2c\\20float\\2c\\20float\\2c\\20float\\29\n  Line 10998: 10997:portable::debug_a_255\\28portable::Params*\\2c\\20SkRasterPipelineStage*\\2c\\20float\\2c\\20float\\2c\\20float\\2c\\20float\\29\n  Line 10999: 10998:portable::debug_a\\28portable::Params*\\2c\\20SkRasterPipelineStage*\\2c\\20float\\2c\\20float\\2c\\20float\\2c\\20float\\29\n  Line 12790: 12789:SkTQuad::debugInit\\28\\29\n  Line 12802: 12801:SkTCubic::debugInit\\28\\29\n  Line 12813: 12812:SkTConic::debugInit\\28\\29\n\n/home/tejasree/visual-task/visual-interaction/frontend-deploy/canvaskit/skwasm.js.symbols:\n  Line 5672: 5671:set_khr_debug_label\\28GrGLGpu*\\2c\\20unsigned\\20int\\2c\\20std::__2::basic_string_view<char\\2c\\20std::__2::char_traits<char>>\\29\n  Line 5732: 5731:portable::debug_y\\28portable::Params*\\2c\\20SkRasterPipelineStage*\\2c\\20float\\2c\\20float\\2c\\20float\\2c\\20float\\29\n  Line 5733: 5732:portable::debug_x\\28portable::Params*\\2c\\20SkRasterPipelineStage*\\2c\\20float\\2c\\20float\\2c\\20float\\2c\\20float\\29\n  Line 9896: 9895:portable::debug_r_255\\28portable::Params*\\2c\\20SkRasterPipelineStage*\\2c\\20float\\2c\\20float\\2c\\20float\\2c\\20float\\29\n  Line 9897: 9896:portable::debug_g_255\\28portable::Params*\\2c\\20SkRasterPipelineStage*\\2c\\20float\\2c\\20float\\2c\\20float\\2c\\20float\\29\n  Line 9898: 9897:portable::debug_b_255\\28portable::Params*\\2c\\20SkRasterPipelineStage*\\2c\\20float\\2c\\20float\\2c\\20float\\2c\\20float\\29\n  Line 9899: 9898:portable::debug_b\\28portable::Params*\\2c\\20SkRasterPipelineStage*\\2c\\20float\\2c\\20float\\2c\\20float\\2c\\20float\\29\n  Line 9900: 9899:portable::debug_a_255\\28portable::Params*\\2c\\20SkRasterPipelineStage*\\2c\\20float\\2c\\20float\\2c\\20float\\2c\\20float\\29\n  Line 9901: 9900:portable::debug_a\\28portable::Params*\\2c\\20SkRasterPipelineStage*\\2c\\20float\\2c\\20float\\2c\\20float\\2c\\20float\\29\n  Line 11233: 11232:SkTQuad::debugInit\\28\\29\n  Line 11245: 11244:SkTCubic::debugInit\\28\\29\n  Line 11256: 11255:SkTConic::debugInit\\28\\29\n\n/home/tejasree/visual-task/visual-interaction/frontend-deploy/canvaskit/chromium/canvaskit.js:\n  Line 15: 0),enableExtensionsByDefault:b(q,\"enableExtensionsByDefault\",1),explicitSwapControl:b(q,\"explicitSwapControl\",0),renderViaOffscreenBackBuffer:b(q,\"renderViaOffscreenBackBuffer\",0)};v.majorVersion=q&&q.majorVersion?q.majorVersion:\"undefined\"!==typeof WebGL2RenderingContext?2:1;if(v.explicitSwapControl)throw\"explicitSwapControl is not supported\";l=na(l,v);if(!l)return 0;oa(l);z.fe.getExtension(\"WEBGL_debug_renderer_info\");return l};a.deleteContext=function(l){z===pa[l]&&(z=null);\"object\"==typeof JSEvents&&\n  Line 121: {var b=\"ANGLE_instanced_arrays EXT_blend_minmax EXT_disjoint_timer_query EXT_frag_depth EXT_shader_texture_lod EXT_sRGB OES_element_index_uint OES_fbo_render_mipmap OES_standard_derivatives OES_texture_float OES_texture_half_float OES_texture_half_float_linear OES_vertex_array_object WEBGL_color_buffer_float WEBGL_depth_texture WEBGL_draw_buffers EXT_color_buffer_float EXT_conservative_depth EXT_disjoint_timer_query_webgl2 EXT_texture_norm16 NV_shader_noperspective_interpolation WEBGL_clip_cull_distance EXT_clip_control EXT_color_buffer_half_float EXT_depth_clamp EXT_float_blend EXT_polygon_offset_clamp EXT_texture_compression_bptc EXT_texture_compression_rgtc EXT_texture_filter_anisotropic KHR_parallel_shader_compile OES_texture_float_linear WEBGL_blend_func_extended WEBGL_compressed_texture_astc WEBGL_compressed_texture_etc WEBGL_compressed_texture_etc1 WEBGL_compressed_texture_s3tc WEBGL_compressed_texture_s3tc_srgb WEBGL_debug_renderer_info WEBGL_debug_shaders WEBGL_lose_context WEBGL_multi_draw WEBGL_polygon_mode\".split(\" \");\n  Line 124: b.Le=b.getExtension(\"WEBGL_multi_draw_instanced_base_vertex_base_instance\");2<=a.version&&(b.ge=b.getExtension(\"EXT_disjoint_timer_query_webgl2\"));if(2>a.version||!b.ge)b.ge=b.getExtension(\"EXT_disjoint_timer_query\");Kc(b).forEach(c=>{c.includes(\"lose_context\")||c.includes(\"debug\")||b.getExtension(c)})}},z,V,cd=(a,b)=>{R.bindFramebuffer(a,Oc[b])},dd=a=>{R.bindVertexArray(Rc[a])},ed=a=>R.clear(a),fd=(a,b,c,e)=>R.clearColor(a,b,c,e),gd=a=>R.clearStencil(a),hd=(a,b)=>{for(var c=0;c<a;c++){var e=E[b+\n\n/home/tejasree/visual-task/visual-interaction/frontend-deploy/canvaskit/chromium/canvaskit.js.symbols:\n  Line 3871: 3870:set_khr_debug_label\\28GrGLGpu*\\2c\\20unsigned\\20int\\2c\\20std::__2::basic_string_view<char\\2c\\20std::__2::char_traits<char>>\\29\n  Line 3908: 3907:portable::debug_y\\28portable::Params*\\2c\\20SkRasterPipelineStage*\\2c\\20float\\2c\\20float\\2c\\20float\\2c\\20float\\29\n  Line 3909: 3908:portable::debug_x\\28portable::Params*\\2c\\20SkRasterPipelineStage*\\2c\\20float\\2c\\20float\\2c\\20float\\2c\\20float\\29\n  Line 7351: 7350:portable::debug_r_255\\28portable::Params*\\2c\\20SkRasterPipelineStage*\\2c\\20float\\2c\\20float\\2c\\20float\\2c\\20float\\29\n  Line 7352: 7351:portable::debug_g_255\\28portable::Params*\\2c\\20SkRasterPipelineStage*\\2c\\20float\\2c\\20float\\2c\\20float\\2c\\20float\\29\n  Line 7353: 7352:portable::debug_b_255\\28portable::Params*\\2c\\20SkRasterPipelineStage*\\2c\\20float\\2c\\20float\\2c\\20float\\2c\\20float\\29\n  Line 7354: 7353:portable::debug_b\\28portable::Params*\\2c\\20SkRasterPipelineStage*\\2c\\20float\\2c\\20float\\2c\\20float\\2c\\20float\\29\n  Line 7355: 7354:portable::debug_a_255\\28portable::Params*\\2c\\20SkRasterPipelineStage*\\2c\\20float\\2c\\20float\\2c\\20float\\2c\\20float\\29\n  Line 7356: 7355:portable::debug_a\\28portable::Params*\\2c\\20SkRasterPipelineStage*\\2c\\20float\\2c\\20float\\2c\\20float\\2c\\20float\\29\n  Line 8958: 8957:SkTQuad::debugInit\\28\\29\n  Line 8970: 8969:SkTCubic::debugInit\\28\\29\n  Line 8981: 8980:SkTConic::debugInit\\28\\29\n\n/home/tejasree/visual-task/visual-interaction/frontend-deploy/canvaskit/wimp.js:\n  Line 19: b&&(a.drawBuffers=(d,e)=>b.drawBuffersWEBGL(d,e))},ab=a=>{a.ba=a.getExtension(\"WEBGL_draw_instanced_base_vertex_base_instance\")},bb=a=>{a.ca=a.getExtension(\"WEBGL_multi_draw_instanced_base_vertex_base_instance\")},cb=a=>{var b=\"ANGLE_instanced_arrays EXT_blend_minmax EXT_disjoint_timer_query EXT_frag_depth EXT_shader_texture_lod EXT_sRGB OES_element_index_uint OES_fbo_render_mipmap OES_standard_derivatives OES_texture_float OES_texture_half_float OES_texture_half_float_linear OES_vertex_array_object WEBGL_color_buffer_float WEBGL_depth_texture WEBGL_draw_buffers EXT_color_buffer_float EXT_conservative_depth EXT_disjoint_timer_query_webgl2 EXT_texture_norm16 NV_shader_noperspective_interpolation WEBGL_clip_cull_distance EXT_clip_control EXT_color_buffer_half_float EXT_depth_clamp EXT_float_blend EXT_polygon_offset_clamp EXT_texture_compression_bptc EXT_texture_compression_rgtc EXT_texture_filter_anisotropic KHR_parallel_shader_compile OES_texture_float_linear WEBGL_blend_func_extended WEBGL_compressed_texture_astc WEBGL_compressed_texture_etc WEBGL_compressed_texture_etc1 WEBGL_compressed_texture_s3tc WEBGL_compressed_texture_s3tc_srgb WEBGL_debug_renderer_info WEBGL_debug_shaders WEBGL_lose_context WEBGL_multi_draw WEBGL_polygon_mode\".split(\" \");\n  Line 22: Ya(b);Za(b);$a(b);ab(b);bb(b);2<=a.version&&(b.o=b.getExtension(\"EXT_disjoint_timer_query_webgl2\"));if(2>a.version||!b.o)b.o=b.getExtension(\"EXT_disjoint_timer_query\");cb(b).forEach(d=>{d.includes(\"lose_context\")||d.includes(\"debug\")||b.getExtension(d)})}},O,P,pb=(a,b)=>{F.bindFramebuffer(a,eb[b])},qb=a=>F.clear(a),rb=(a,b,d,e)=>F.clearColor(a,b,d,e),sb=a=>F.clearStencil(a),tb=(a,b)=>{u()[a>>2]=b;var d=u()[a>>2];u()[a+4>>2]=(b-d)/4294967296};\n\n/home/tejasree/visual-task/visual-interaction/frontend-deploy/canvaskit/canvaskit.js.symbols:\n  Line 4289: 4288:set_khr_debug_label\\28GrGLGpu*\\2c\\20unsigned\\20int\\2c\\20std::__2::basic_string_view<char\\2c\\20std::__2::char_traits<char>>\\29\n  Line 4329: 4328:portable::debug_y\\28portable::Params*\\2c\\20SkRasterPipelineStage*\\2c\\20float\\2c\\20float\\2c\\20float\\2c\\20float\\29\n  Line 4330: 4329:portable::debug_x\\28portable::Params*\\2c\\20SkRasterPipelineStage*\\2c\\20float\\2c\\20float\\2c\\20float\\2c\\20float\\29\n  Line 7977: 7976:portable::debug_r_255\\28portable::Params*\\2c\\20SkRasterPipelineStage*\\2c\\20float\\2c\\20float\\2c\\20float\\2c\\20float\\29\n  Line 7978: 7977:portable::debug_g_255\\28portable::Params*\\2c\\20SkRasterPipelineStage*\\2c\\20float\\2c\\20float\\2c\\20float\\2c\\20float\\29\n  Line 7979: 7978:portable::debug_b_255\\28portable::Params*\\2c\\20SkRasterPipelineStage*\\2c\\20float\\2c\\20float\\2c\\20float\\2c\\20float\\29\n  Line 7980: 7979:portable::debug_b\\28portable::Params*\\2c\\20SkRasterPipelineStage*\\2c\\20float\\2c\\20float\\2c\\20float\\2c\\20float\\29\n  Line 7981: 7980:portable::debug_a_255\\28portable::Params*\\2c\\20SkRasterPipelineStage*\\2c\\20float\\2c\\20float\\2c\\20float\\2c\\20float\\29\n  Line 7982: 7981:portable::debug_a\\28portable::Params*\\2c\\20SkRasterPipelineStage*\\2c\\20float\\2c\\20float\\2c\\20float\\2c\\20float\\29\n  Line 10008: 10007:SkTQuad::debugInit\\28\\29\n  Line 10020: 10019:SkTCubic::debugInit\\28\\29\n  Line 10031: 10030:SkTConic::debugInit\\28\\29\n\n/home/tejasree/visual-task/visual-interaction/frontend-deploy/canvaskit/wimp.js.symbols:\n  Line 4877: 4876:portable::debug_y\\28portable::Params*\\2c\\20SkRasterPipelineStage*\\2c\\20float\\2c\\20float\\2c\\20float\\2c\\20float\\29\n  Line 4878: 4877:portable::debug_x\\28portable::Params*\\2c\\20SkRasterPipelineStage*\\2c\\20float\\2c\\20float\\2c\\20float\\2c\\20float\\29\n  Line 8875: 8874:portable::debug_r_255\\28portable::Params*\\2c\\20SkRasterPipelineStage*\\2c\\20float\\2c\\20float\\2c\\20float\\2c\\20float\\29\n  Line 8876: 8875:portable::debug_g_255\\28portable::Params*\\2c\\20SkRasterPipelineStage*\\2c\\20float\\2c\\20float\\2c\\20float\\2c\\20float\\29\n  Line 8877: 8876:portable::debug_b_255\\28portable::Params*\\2c\\20SkRasterPipelineStage*\\2c\\20float\\2c\\20float\\2c\\20float\\2c\\20float\\29\n  Line 8878: 8877:portable::debug_b\\28portable::Params*\\2c\\20SkRasterPipelineStage*\\2c\\20float\\2c\\20float\\2c\\20float\\2c\\20float\\29\n  Line 8879: 8878:portable::debug_a_255\\28portable::Params*\\2c\\20SkRasterPipelineStage*\\2c\\20float\\2c\\20float\\2c\\20float\\2c\\20float\\29\n  Line 8880: 8879:portable::debug_a\\28portable::Params*\\2c\\20SkRasterPipelineStage*\\2c\\20float\\2c\\20float\\2c\\20float\\2c\\20float\\29\n  Line 10349: 10348:SkTQuad::debugInit\\28\\29\n  Line 10361: 10360:SkTCubic::debugInit\\28\\29\n  Line 10372: 10371:SkTConic::debugInit\\28\\29\n\n/home/tejasree/visual-task/visual-interaction/docs/run-guide.txt:\n  Line 36: Launching lib/main.dart on Android SDK built for x86_64 in debug mode...\n  Line 45: An Observatory debugger and profiler on Android is available at:\n\n/home/tejasree/visual-task/visual-interaction/docs/setup-guide.md:\n  Line 581: | `FLASK_DEBUG` | No | Enable debug mode | `true` |\n\n/home/tejasree/visual-task/visual-interaction/README.md:\n  Line 154: # Backend with debug\n\n/home/tejasree/visual-task/visual-interaction/frontend/.gitignore:\n  Line 43: /android/app/debug\n\n/home/tejasree/visual-task/visual-interaction/.git/hooks/fsmonitor-watchman.sample:\n  Line 21: # Uncomment for debugging\n  Line 56: \t# Uncomment for debugging watchman output\n  Line 101: \t# Uncomment for debugging the watchman query\n\n(Results truncated: showing 100 of 102 matches (2 hidden). Consider using a more specific path or pattern.)",
+            "title": "debug",
+            "metadata": {
+              "matches": 102,
+              "truncated": true
+            },
+            "time": {
+              "start": 1773992161024,
+              "end": 1773992161050
+            }
+          },
+          "id": "prt_d0a2c2ef3001QCa5RoZbe2Wpzx",
+          "sessionID": "ses_2f5d3f229ffeWgx2noPpu1k0fD",
+          "messageID": "msg_d0a2c0e040011Ox7HRq043CgZr"
+        },
+        {
+          "type": "step-finish",
+          "reason": "tool-calls",
+          "snapshot": "059d4ad0ac904ebcaaeff4f68be259f7091bf19f",
+          "cost": 0,
+          "tokens": {
+            "total": 11538,
+            "input": 65,
+            "output": 137,
+            "reasoning": 0,
+            "cache": {
+              "read": 11326,
+              "write": 10
+            }
+          },
+          "id": "prt_d0a2c2f21001rwDLivLdAqyRt2",
+          "sessionID": "ses_2f5d3f229ffeWgx2noPpu1k0fD",
+          "messageID": "msg_d0a2c0e040011Ox7HRq043CgZr"
+        }
+      ]
+    },
+    {
+      "info": {
+        "role": "assistant",
+        "time": {
+          "created": 1773992161098,
+          "completed": 1773992169630
+        },
+        "parentID": "msg_d0a2c0ddf001vWrdVGzVw5C6zw",
+        "modelID": "big-pickle",
+        "providerID": "opencode",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/home/tejasree/visual-task/visual-interaction",
+          "root": "/home/tejasree/visual-task/visual-interaction"
+        },
+        "cost": 0,
+        "tokens": {
+          "total": 22259,
+          "input": 10638,
+          "output": 143,
+          "reasoning": 0,
+          "cache": {
+            "read": 11326,
+            "write": 152
+          }
+        },
+        "finish": "tool-calls",
+        "id": "msg_d0a2c2f4a001JD2rELVpZ1h594",
+        "sessionID": "ses_2f5d3f229ffeWgx2noPpu1k0fD"
+      },
+      "parts": [
+        {
+          "type": "step-start",
+          "snapshot": "059d4ad0ac904ebcaaeff4f68be259f7091bf19f",
+          "id": "prt_d0a2c431a0016Knsm46OZhKRZr",
+          "sessionID": "ses_2f5d3f229ffeWgx2noPpu1k0fD",
+          "messageID": "msg_d0a2c2f4a001JD2rELVpZ1h594"
+        },
+        {
+          "type": "reasoning",
+          "text": "I see the grep results. The main Flask debug setting is in `/home/tejasree/visual-task/visual-interaction/backend/app.py` at line 107, where it shows `debug=False`. The user seems to be saying \"debug mode on not off\" - meaning they want debug mode to be ON, not OFF.\n\nLet me look at the app.py file to see the current debug setting.",
+          "metadata": {
+            "anthropic": {
+              "signature": "30ed6b60edc05f4a20ce01fb692e3ebc989d400a7dbb4126b116b77d5ad6829b"
+            }
+          },
+          "time": {
+            "start": 1773992166172,
+            "end": 1773992168303
+          },
+          "id": "prt_d0a2c431c001h1TL6HsuTIydcN",
+          "sessionID": "ses_2f5d3f229ffeWgx2noPpu1k0fD",
+          "messageID": "msg_d0a2c2f4a001JD2rELVpZ1h594"
+        },
+        {
+          "type": "tool",
+          "callID": "call_function_hpf04xq2tc9n_1",
+          "tool": "read",
+          "state": {
+            "status": "completed",
+            "input": {
+              "filePath": "/home/tejasree/visual-task/visual-interaction/backend/app.py",
+              "offset": 100,
+              "limit": 20
+            },
+            "output": "<path>/home/tejasree/visual-task/visual-interaction/backend/app.py</path>\n<type>file</type>\n<content>100:     response = make_response(send_from_directory(media_dir, filename))\n101:     response.headers['Content-Type'] = mimetype\n102:     response.headers['Accept-Ranges'] = 'bytes'\n103:     return response\n104: \n105: if __name__ == '__main__':\n106:     logger.info(\"Starting Flask development server on http://0.0.0.0:5000\")\n107:     app.run(debug=False, host='0.0.0.0', port=5000, threaded=True)\n\n(End of file - total 107 lines)\n</content>",
+            "title": "backend/app.py",
+            "metadata": {
+              "preview": "    response = make_response(send_from_directory(media_dir, filename))\n    response.headers['Content-Type'] = mimetype\n    response.headers['Accept-Ranges'] = 'bytes'\n    return response\n\nif __name__ == '__main__':\n    logger.info(\"Starting Flask development server on http://0.0.0.0:5000\")\n    app.run(debug=False, host='0.0.0.0', port=5000, threaded=True)",
+              "truncated": false,
+              "loaded": []
+            },
+            "time": {
+              "start": 1773992169515,
+              "end": 1773992169585
+            }
+          },
+          "id": "REDACTED",
+          "sessionID": "ses_2f5d3f229ffeWgx2noPpu1k0fD",
+          "messageID": "msg_d0a2c2f4a001JD2rELVpZ1h594"
+        },
+        {
+          "type": "step-finish",
+          "reason": "tool-calls",
+          "snapshot": "059d4ad0ac904ebcaaeff4f68be259f7091bf19f",
+          "cost": 0,
+          "tokens": {
+            "total": 22259,
+            "input": 10638,
+            "output": 143,
+            "reasoning": 0,
+            "cache": {
+              "read": 11326,
+              "write": 152
+            }
+          },
+          "id": "prt_d0a2c5079001sJcD3a1k6TWYyh",
+          "sessionID": "ses_2f5d3f229ffeWgx2noPpu1k0fD",
+          "messageID": "msg_d0a2c2f4a001JD2rELVpZ1h594"
+        }
+      ]
+    },
+    {
+      "info": {
+        "role": "assistant",
+        "time": {
+          "created": 1773992169635,
+          "completed": 1773992175730
+        },
+        "parentID": "msg_d0a2c0ddf001vWrdVGzVw5C6zw",
+        "modelID": "big-pickle",
+        "providerID": "opencode",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/home/tejasree/visual-task/visual-interaction",
+          "root": "/home/tejasree/visual-task/visual-interaction"
+        },
+        "cost": 0,
+        "tokens": {
+          "total": 22578,
+          "input": 231,
+          "output": 148,
+          "reasoning": 0,
+          "cache": {
+            "read": 11336,
+            "write": 10863
+          }
+        },
+        "finish": "tool-calls",
+        "id": "msg_d0a2c50a30013PDjop2zgOrWxA",
+        "sessionID": "ses_2f5d3f229ffeWgx2noPpu1k0fD"
+      },
+      "parts": [
+        {
+          "type": "step-start",
+          "snapshot": "059d4ad0ac904ebcaaeff4f68be259f7091bf19f",
+          "id": "prt_d0a2c59c1001dAOlSxDbRHTzk9",
+          "sessionID": "ses_2f5d3f229ffeWgx2noPpu1k0fD",
+          "messageID": "msg_d0a2c50a30013PDjop2zgOrWxA"
+        },
+        {
+          "type": "reasoning",
+          "text": "I can see that in line 107, `debug=False` is set. The user wants to turn debug mode ON, so I need to change `debug=False` to `debug=True`.",
+          "metadata": {
+            "anthropic": {
+              "signature": "881c0e1a6bbcd4125ad56f117bd5800572707e7c06672fc6dd24352d83967f2f"
+            }
+          },
+          "time": {
+            "start": 1773992171970,
+            "end": 1773992173192
+          },
+          "id": "REDACTED",
+          "sessionID": "ses_2f5d3f229ffeWgx2noPpu1k0fD",
+          "messageID": "msg_d0a2c50a30013PDjop2zgOrWxA"
+        },
+        {
+          "type": "tool",
+          "callID": "call_function_dcr57ubcnxfh_1",
+          "tool": "edit",
+          "state": {
+            "status": "completed",
+            "input": {
+              "filePath": "/home/tejasree/visual-task/visual-interaction/backend/app.py",
+              "oldString": "    app.run(debug=False, host='0.0.0.0', port=5000, threaded=True)",
+              "newString": "    app.run(debug=True, host='0.0.0.0', port=5000, threaded=True)"
+            },
+            "output": "Edit applied successfully.",
+            "title": "backend/app.py",
+            "metadata": {
+              "diagnostics": {
+                "/home/tejasree/visual-task/visual-interaction/backend/app.py": []
+              },
+              "diff": "Index: /home/tejasree/visual-task/visual-interaction/backend/app.py\n===================================================================\n--- /home/tejasree/visual-task/visual-interaction/backend/app.py\n+++ /home/tejasree/visual-task/visual-interaction/backend/app.py\n@@ -103,5 +103,5 @@\n     return response\n \n if __name__ == '__main__':\n     logger.info(\"Starting Flask development server on http://0.0.0.0:5000\")\n-    app.run(debug=False, host='0.0.0.0', port=5000, threaded=True)\n+    app.run(debug=True, host='0.0.0.0', port=5000, threaded=True)\n",
+              "filediff": {
+                "file": "/home/tejasree/visual-task/visual-interaction/backend/app.py",
+                "before": "from flask import Flask, send_from_directory, make_response, request\nfrom flask_cors import CORS\nfrom routes.simulation_routes import simulation_bp\nfrom dotenv import load_dotenv\nimport os\nimport logging\nimport sys\nfrom datetime import datetime\n\nload_dotenv()\n\napp = Flask(__name__)\nCORS(app)\n\nlogger = logging.getLogger('visual-interaction-backend')\nlogger.setLevel(logging.INFO)\n\nmedia_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), \"media\")\nos.makedirs(media_dir, exist_ok=True)\n\napp.register_blueprint(simulation_bp, url_prefix='/api')\n\nlogger.info(\"Visual Interaction Backend Starting...\")\nlogger.info(f\"Server ready at http://0.0.0.0:5000\")\n\n@app.before_request\ndef log_request():\n    logger.info(f\"REQUEST: {request.method} {request.path}\")\n\n@app.after_request\ndef log_response(response):\n    logger.info(f\"RESPONSE: {request.method} {request.path} → {response.status_code}\")\n    return response\n\n@app.route('/health')\ndef health():\n    import subprocess\n    import importlib.util\n    \n    pydub_ok = importlib.util.find_spec(\"pydub\") is not None\n    ffmpeg_ok = False\n    try:\n        result = subprocess.run(['ffmpeg', '-version'], capture_output=True, timeout=5)\n        ffmpeg_ok = result.returncode == 0\n    except Exception:\n        pass\n    \n    redis_ok = os.getenv('REDIS_URL') is not None\n    supabase_ok = os.getenv('SUPABASE_CONNECTION_STRING') is not None\n    sarvam_ok = os.getenv('SARVAM_API_KEY') is not None\n    \n    media_files = len(os.listdir(media_dir)) if os.path.exists(media_dir) else 0\n    \n    health_status = {\n        'status': 'healthy',\n        'timestamp': datetime.now().isoformat(),\n        'audio': {\n            'pydub': pydub_ok,\n            'ffmpeg': ffmpeg_ok\n        },\n        'services': {\n            'redis': redis_ok,\n            'supabase': supabase_ok,\n            'sarvam': sarvam_ok\n        },\n        'media': {\n            'files_count': media_files\n        }\n    }\n    \n    if not (pydub_ok and ffmpeg_ok and sarvam_ok):\n        health_status['warnings'] = 'Some audio services may not work properly'\n    \n    logger.info(f\"Health check: OK\")\n    return health_status\n\n@app.route('/media/<path:filename>')\ndef serve_media(filename):\n    import os\n    from flask import abort\n    \n    file_path = os.path.join(media_dir, filename)\n    \n    if not os.path.exists(file_path):\n        logger.warning(f\"MEDIA 404: File not found - {filename}\")\n        abort(404)\n    \n    ext = os.path.splitext(filename)[1].lower()\n    mime_types = {\n        '.mp3': 'audio/mpeg',\n        '.wav': 'audio/wav',\n        '.ogg': 'audio/ogg',\n        '.m4a': 'audio/mp4',\n        '.json': 'application/json'\n    }\n    mimetype = mime_types.get(ext, 'application/octet-stream')\n    \n    logger.info(f\"MEDIA: Serving {filename}\")\n    \n    response = make_response(send_from_directory(media_dir, filename))\n    response.headers['Content-Type'] = mimetype\n    response.headers['Accept-Ranges'] = 'bytes'\n    return response\n\nif __name__ == '__main__':\n    logger.info(\"Starting Flask development server on http://0.0.0.0:5000\")\n    app.run(debug=False, host='0.0.0.0', port=5000, threaded=True)\n",
+                "after": "from flask import Flask, send_from_directory, make_response, request\nfrom flask_cors import CORS\nfrom routes.simulation_routes import simulation_bp\nfrom dotenv import load_dotenv\nimport os\nimport logging\nimport sys\nfrom datetime import datetime\n\nload_dotenv()\n\napp = Flask(__name__)\nCORS(app)\n\nlogger = logging.getLogger('visual-interaction-backend')\nlogger.setLevel(logging.INFO)\n\nmedia_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), \"media\")\nos.makedirs(media_dir, exist_ok=True)\n\napp.register_blueprint(simulation_bp, url_prefix='/api')\n\nlogger.info(\"Visual Interaction Backend Starting...\")\nlogger.info(f\"Server ready at http://0.0.0.0:5000\")\n\n@app.before_request\ndef log_request():\n    logger.info(f\"REQUEST: {request.method} {request.path}\")\n\n@app.after_request\ndef log_response(response):\n    logger.info(f\"RESPONSE: {request.method} {request.path} → {response.status_code}\")\n    return response\n\n@app.route('/health')\ndef health():\n    import subprocess\n    import importlib.util\n    \n    pydub_ok = importlib.util.find_spec(\"pydub\") is not None\n    ffmpeg_ok = False\n    try:\n        result = subprocess.run(['ffmpeg', '-version'], capture_output=True, timeout=5)\n        ffmpeg_ok = result.returncode == 0\n    except Exception:\n        pass\n    \n    redis_ok = os.getenv('REDIS_URL') is not None\n    supabase_ok = os.getenv('SUPABASE_CONNECTION_STRING') is not None\n    sarvam_ok = os.getenv('SARVAM_API_KEY') is not None\n    \n    media_files = len(os.listdir(media_dir)) if os.path.exists(media_dir) else 0\n    \n    health_status = {\n        'status': 'healthy',\n        'timestamp': datetime.now().isoformat(),\n        'audio': {\n            'pydub': pydub_ok,\n            'ffmpeg': ffmpeg_ok\n        },\n        'services': {\n            'redis': redis_ok,\n            'supabase': supabase_ok,\n            'sarvam': sarvam_ok\n        },\n        'media': {\n            'files_count': media_files\n        }\n    }\n    \n    if not (pydub_ok and ffmpeg_ok and sarvam_ok):\n        health_status['warnings'] = 'Some audio services may not work properly'\n    \n    logger.info(f\"Health check: OK\")\n    return health_status\n\n@app.route('/media/<path:filename>')\ndef serve_media(filename):\n    import os\n    from flask import abort\n    \n    file_path = os.path.join(media_dir, filename)\n    \n    if not os.path.exists(file_path):\n        logger.warning(f\"MEDIA 404: File not found - {filename}\")\n        abort(404)\n    \n    ext = os.path.splitext(filename)[1].lower()\n    mime_types = {\n        '.mp3': 'audio/mpeg',\n        '.wav': 'audio/wav',\n        '.ogg': 'audio/ogg',\n        '.m4a': 'audio/mp4',\n        '.json': 'application/json'\n    }\n    mimetype = mime_types.get(ext, 'application/octet-stream')\n    \n    logger.info(f\"MEDIA: Serving {filename}\")\n    \n    response = make_response(send_from_directory(media_dir, filename))\n    response.headers['Content-Type'] = mimetype\n    response.headers['Accept-Ranges'] = 'bytes'\n    return response\n\nif __name__ == '__main__':\n    logger.info(\"Starting Flask development server on http://0.0.0.0:5000\")\n    app.run(debug=True, host='0.0.0.0', port=5000, threaded=True)\n",
+                "additions": 1,
+                "deletions": 1
+              },
+              "truncated": false
+            },
+            "time": {
+              "start": 1773992175107,
+              "end": 1773992175692
+            }
+          },
+          "id": "REDACTED",
+          "sessionID": "ses_2f5d3f229ffeWgx2noPpu1k0fD",
+          "messageID": "msg_d0a2c50a30013PDjop2zgOrWxA"
+        },
+        {
+          "type": "step-finish",
+          "reason": "tool-calls",
+          "snapshot": "129fd7bd65d0b63a4347a3be9a552e5250e8709f",
+          "cost": 0,
+          "tokens": {
+            "total": 22578,
+            "input": 231,
+            "output": 148,
+            "reasoning": 0,
+            "cache": {
+              "read": 11336,
+              "write": 10863
+            }
+          },
+          "id": "prt_d0a2c684e001fWa04q492qu2Ed",
+          "sessionID": "ses_2f5d3f229ffeWgx2noPpu1k0fD",
+          "messageID": "msg_d0a2c50a30013PDjop2zgOrWxA"
+        },
+        {
+          "type": "patch",
+          "hash": "059d4ad0ac904ebcaaeff4f68be259f7091bf19f",
+          "files": [
+            "/home/tejasree/visual-task/visual-interaction/backend/app.py"
+          ],
+          "id": "prt_d0a2c686c001XFugbtY4c78O22",
+          "sessionID": "ses_2f5d3f229ffeWgx2noPpu1k0fD",
+          "messageID": "msg_d0a2c50a30013PDjop2zgOrWxA"
+        }
+      ]
+    },
+    {
+      "info": {
+        "role": "assistant",
+        "time": {
+          "created": 1773992175733,
+          "completed": 1773992180577
+        },
+        "parentID": "msg_d0a2c0ddf001vWrdVGzVw5C6zw",
+        "modelID": "big-pickle",
+        "providerID": "opencode",
+        "mode": "build",
+        "agent": "build",
+        "path": {
+          "cwd": "/home/tejasree/visual-task/visual-interaction",
+          "root": "/home/tejasree/visual-task/visual-interaction"
+        },
+        "cost": 0,
+        "tokens": {
+          "total": 22696,
+          "input": 79,
+          "output": 99,
+          "reasoning": 0,
+          "cache": {
+            "read": 22051,
+            "write": 467
+          }
+        },
+        "finish": "stop",
+        "id": "REDACTED",
+        "sessionID": "ses_2f5d3f229ffeWgx2noPpu1k0fD"
+      },
+      "parts": [
+        {
+          "type": "step-start",
+          "snapshot": "129fd7bd65d0b63a4347a3be9a552e5250e8709f",
+          "id": "prt_d0a2c7178001IiPj76HzRFWP25",
+          "sessionID": "ses_2f5d3f229ffeWgx2noPpu1k0fD",
+          "messageID": "REDACTED"
+        },
+        {
+          "type": "reasoning",
+          "text": "I've changed `debug=False` to `debug=True` in the app.py file. This will enable Flask's debug mode, which provides:\n- Auto-reloading on code changes\n- Detailed error pages with stack traces\n- Debugger pin for interactive debugging\n\nThe user should restart the Flask app for changes to take effect.",
+          "metadata": {
+            "anthropic": {
+              "signature": "6a98936e7f8f05d4fb494c2a05f205866aa1457e21db234c1b81398b5532c3d4"
+            }
+          },
+          "time": {
+            "start": 1773992178041,
+            "end": 1773992179852
+          },
+          "id": "prt_d0a2c71790018u1TgVFUxjgsR3",
+          "sessionID": "ses_2f5d3f229ffeWgx2noPpu1k0fD",
+          "messageID": "REDACTED"
+        },
+        {
+          "type": "text",
+          "text": "Done. Changed `debug=False` to `debug=True` in `backend/app.py:107`. Restart the Flask server for changes to take effect.",
+          "time": {
+            "start": 1773992180294,
+            "end": 1773992180294
+          },
+          "id": "prt_d0a2c788d001vgdgDVCp6Mv2m4",
+          "sessionID": "ses_2f5d3f229ffeWgx2noPpu1k0fD",
+          "messageID": "REDACTED"
+        },
+        {
+          "type": "step-finish",
+          "reason": "stop",
+          "snapshot": "129fd7bd65d0b63a4347a3be9a552e5250e8709f",
+          "cost": 0,
+          "tokens": {
+            "total": 22696,
+            "input": 79,
+            "output": 99,
+            "reasoning": 0,
+            "cache": {
+              "read": 22051,
+              "write": 467
+            }
+          },
+          "id": "prt_d0a2c7b4b001wg3h2NZW3UNjhg",
+          "sessionID": "ses_2f5d3f229ffeWgx2noPpu1k0fD",
+          "messageID": "REDACTED"
+        }
+      ]
+    }
+  ]
+}
