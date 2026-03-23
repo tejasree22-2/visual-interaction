@@ -1,0 +1,21 @@
+=== Slider Changed ===
+angle: 40.69, velocity: 20, gravity: 9.8
+=== Slider Changed ===
+angle: 45.49, velocity: 20, gravity: 9.8
+The Dart compiler exited unexpectedly.   this i want to show when backend is run through debugger with caches also
+
+---
+
+remove from frontend and in backend add audio changes and caches also
+
+---
+
+don't make any changes now and once check over all code try to fix audio not found issue , behave like a senior developer with using this audio in chunks to play audio clearly
+
+---
+
+ok
+
+---
+
+is audio will play ?
