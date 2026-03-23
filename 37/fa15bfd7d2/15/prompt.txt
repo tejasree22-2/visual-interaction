@@ -1,0 +1,60 @@
+python app.py
+ * Serving Flask app 'app'
+ * Debug mode: on
+WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://172.20.199.176:5000
+Press CTRL+C to quit
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 117-926-129
+127.0.0.1 - - [18/Mar/2026 18:29:57] "OPTIONS /api/simulate HTTP/1.1" 200 -
+127.0.0.1 - - [18/Mar/2026 18:29:57] "OPTIONS /api/chunks HTTP/1.1" 200 -
+=== Slider Changed ===
+=== Slider Changed ===
+angle: 45, velocity: 20, gravity: 9.8
+angle: 45, velocity: 20, gravity: 9.8, language: te-IN
+angle: 45, velocity: 20, gravity: 9.8
+angle: 45, velocity: 20, gravity: 9.8, language: en-IN
+custom_formula: y = x * tan(45.0°) - (9.8 * x²) / (2 * 20.0² * cos²(45.0°)), include_formula: False
+custom_formula: y = x * tan(45.0°) - (9.8 * x²) / (2 * 20.0² * cos²(45.0°)), include_formula: True
+Generated 1 explanation chunks
+Calling Sarvam TTS API...
+Warning: Text truncated from 520 to 470 characters for Sarvam API
+Cache: HIT
+127.0.0.1 - - [18/Mar/2026 18:29:57] "POST /api/simulate HTTP/1.1" 200 -
+TTS completed: audio_url=present
+127.0.0.1 - - [18/Mar/2026 18:30:11] "POST /api/chunks HTTP/1.1" 200 -
+127.0.0.1 - - [18/Mar/2026 18:32:36] "OPTIONS /api/simulate HTTP/1.1" 200 -
+=== Slider Changed ===
+angle: 36.32727272727273, velocity: 20, gravity: 9.8
+angle: 36.32727272727273, velocity: 20, gravity: 9.8, language: en-IN
+custom_formula: y = x * tan(36.3°) - (9.8 * x²) / (2 * 20.0² * cos²(36.3°)), include_formula: False
+Cache: MISS → calculating new data...
+Physics calculated: max_height=7.1619, range=38.9602
+Calling Sarvam TTS API...
+Warning: Text truncated from 541 to 463 characters for Sarvam API
+=== Slider Changed ===
+angle: 41.56363636363636, velocity: 20, gravity: 9.8
+angle: 41.56363636363636, velocity: 20, gravity: 9.8, language: en-IN
+custom_formula: y = x * tan(41.6°) - (9.8 * x²) / (2 * 20.0² * cos²(41.6°)), include_formula: False
+Cache: MISS → calculating new data...
+Physics calculated: max_height=8.9830, range=40.5230
+Calling Sarvam TTS API...
+Warning: Text truncated from 524 to 500 characters for Sarvam API
+TTS completed: audio_url=present
+Saved to database
+Cached result saved
+127.0.0.1 - - [18/Mar/2026 18:32:44] "POST /api/simulate HTTP/1.1" 200 -
+TTS completed: audio_url=present
+Saved to database
+Cached result saved   i want like this
+
+---
+
+go through my project according to that create in this formate , ok
+
+---
+
+ok
