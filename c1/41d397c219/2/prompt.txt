@@ -1,0 +1,7 @@
+Explore this codebase to understand its structure. I need to find:
+1. Where the "Full Explanation" button is defined and what it does
+2. How audio is handled in the application
+3. The backend Flask app structure
+4. Any routes related to audio or explanation
+
+Focus on finding files related to: frontend components, buttons, audio handling, and Flask backend routes. Return the relevant file paths and a summary of what you find.
