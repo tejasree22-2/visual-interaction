@@ -1,0 +1,37 @@
+{
+  "cli_version": "0.5.0",
+  "checkpoint_id": "7f6a64d62a9c",
+  "session_id": "ses_2e67fdc72ffeYgH292ESy4gkr6",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-23T07:05:39.168523441Z",
+  "branch": "main",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "frontend-deploy/.last_build_id",
+    "frontend-deploy/assets/fonts/MaterialIcons-Regular.otf",
+    "frontend-deploy/flutter_bootstrap.js",
+    "frontend-deploy/main.dart.js"
+  ],
+  "agent": "OpenCode",
+  "model": "big-pickle",
+  "turn_id": "18d148e1bb6b",
+  "token_usage": {
+    "input_tokens": 75192,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 24000,
+    "output_tokens": 1066,
+    "api_call_count": 8
+  },
+  "session_metrics": {
+    "turn_count": 3
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-23T07:05:39.139808259Z",
+    "agent_lines": 79209,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 79209,
+    "agent_percentage": 100
+  }
+}

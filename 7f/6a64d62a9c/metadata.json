@@ -1,0 +1,28 @@
+{
+  "cli_version": "0.5.0",
+  "checkpoint_id": "7f6a64d62a9c",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "frontend-deploy/.last_build_id",
+    "frontend-deploy/assets/fonts/MaterialIcons-Regular.otf",
+    "frontend-deploy/flutter_bootstrap.js",
+    "frontend-deploy/main.dart.js"
+  ],
+  "sessions": [
+    {
+      "metadata": "/7f/6a64d62a9c/0/metadata.json",
+      "transcript": "/7f/6a64d62a9c/0/full.jsonl",
+      "content_hash": "/7f/6a64d62a9c/0/content_hash.txt",
+      "prompt": "/7f/6a64d62a9c/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 75192,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 24000,
+    "output_tokens": 1066,
+    "api_call_count": 8
+  }
+}
