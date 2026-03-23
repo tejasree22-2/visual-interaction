@@ -1,0 +1,25 @@
+{
+  "cli_version": "0.5.0",
+  "checkpoint_id": "37fa15bfd7d2",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 0,
+  "files_touched": [
+    "backend/app.py",
+    "backend/routes/simulation_routes.py",
+    "backend/services/speech_service.py",
+    "frontend/lib/models/simulation_model.dart",
+    "frontend/lib/screens/simulation_screen.dart",
+    "frontend/lib/services/api_service.dart",
+    "frontend/lib/services/speech_service.dart",
+    "frontend/pubspec.yaml"
+  ],
+  "sessions": [
+    {
+      "metadata": "/37/fa15bfd7d2/0/metadata.json",
+      "transcript": "/37/fa15bfd7d2/0/full.jsonl",
+      "content_hash": "/37/fa15bfd7d2/0/content_hash.txt",
+      "prompt": ""
+    }
+  ]
+}
