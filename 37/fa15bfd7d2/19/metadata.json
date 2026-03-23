@@ -1,0 +1,30 @@
+{
+  "cli_version": "0.5.0",
+  "checkpoint_id": "37fa15bfd7d2",
+  "session_id": "ses_2fde4047bffeKuUn7rsphHCHd6",
+  "strategy": "manual-commit",
+  "created_at": "2026-03-23T06:52:50.257509586Z",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "frontend/lib/models/simulation_model.dart"
+  ],
+  "agent": "OpenCode",
+  "turn_id": "02b84c7a8c86",
+  "token_usage": {
+    "input_tokens": 51181,
+    "cache_creation_tokens": 76173,
+    "cache_read_tokens": 2396563,
+    "output_tokens": 14574,
+    "api_call_count": 49
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-03-23T06:52:49.75378707Z",
+    "agent_lines": 2,
+    "human_added": 120,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 122,
+    "agent_percentage": 1.639344262295082
+  }
+}
