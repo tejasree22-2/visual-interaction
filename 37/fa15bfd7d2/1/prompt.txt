@@ -1,0 +1,16 @@
+flask
+flask-cors
+psycopg2-binary
+redis
+requests
+python-dotenv
+pydub
+gunicorn is there in the requirements.txt
+
+---
+
+then why audio files are not working
+
+---
+
+the sarvam api key is in the .env file
