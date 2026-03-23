@@ -1,0 +1,21 @@
+2026-03-20 06:57:28 | INFO     | visual-interaction-backend | ============================================================
+2026-03-20 06:57:28 | INFO     | visual-interaction-backend |   Visual Interaction Backend Starting...
+2026-03-20 06:57:28 | INFO     | visual-interaction-backend | ============================================================
+2026-03-20 06:57:28 | INFO     | visual-interaction-backend |   Time: 2026-03-20T06:57:28.929939
+2026-03-20 06:57:28 | INFO     | visual-interaction-backend |   Flask Env: development
+2026-03-20 06:57:28 | INFO     | visual-interaction-backend |   Media Directory: /home/tejasree/visual-task/visual-interaction/backend/media
+2026-03-20 06:57:28 | INFO     | visual-interaction-backend |   Redis URL: configured
+2026-03-20 06:57:28 | INFO     | visual-interaction-backend |   Supabase: configured
+2026-03-20 06:57:28 | INFO     | visual-interaction-backend |   Sarvam API: configured
+2026-03-20 06:57:28 | INFO     | visual-interaction-backend | ============================================================
+2026-03-20 06:57:28 | INFO     | visual-interaction-backend |   Server ready at http://0.0.0.0:5000
+2026-03-20 06:57:28 | INFO     | visual-interaction-backend |   Health check: http://0.0.0.0:5000/health
+2026-03-20 06:57:28 | INFO     | visual-interaction-backend |   API endpoints: /api/simulation, /api/chunks
+2026-03-20 06:57:28 | INFO     | visual-interaction-backend | ============================================================
+2026-03-20 06:57:28 | INFO     | visual-interaction-backend | Starting Flask development server...
+2026-03-20 06:57:28 | INFO     | visual-interaction-backend | ============================================================
+ * Serving Flask app 'app' i don't want these lines in the debug
+
+---
+
+i want normal how we debug like that no extra to add
